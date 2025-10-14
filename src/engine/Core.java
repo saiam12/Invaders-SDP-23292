@@ -90,86 +90,106 @@ public final class Core {
 			gameState = new GameState(1, 0, MAX_LIVES, 0, 0,100);
 
 			switch (returnCode) {
-			case 1:
-				// Main menu.
-				currentScreen = new TitleScreen(width, height, FPS);
-				LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
-						+ " title screen at " + FPS + " fps.");
-				returnCode = frame.setScreen(currentScreen);
-				LOGGER.info("Closing title screen.");
-				break;
-			case 2:
-				// Game & score.
-				do {
-					// One extra live every few levels.
-					boolean bonusLife = gameState.getLevel()
-							% EXTRA_LIFE_FRECUENCY == 0
-							&& gameState.getLivesRemaining() < MAX_LIVES;
-					
-					engine.level.Level currentLevel = levelManager.getLevel(gameState.getLevel());
+                case 1:
+                    // Main menu.
+                    currentScreen = new TitleScreen(width, height, FPS);
+                    LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+                            + " title screen at " + FPS + " fps.");
+                    returnCode = frame.setScreen(currentScreen);
+                    LOGGER.info("Closing title screen.");
+                    break;
+                case 2:
+                    do {
+                        // One extra life every few levels
+                        boolean bonusLife = gameState.getLevel()
+                                % EXTRA_LIFE_FRECUENCY == 0
+                                && gameState.getLivesRemaining() < MAX_LIVES;
+                      
+                        engine.level.Level currentLevel = levelManager.getLevel(gameState.getLevel());
 
-					// TODO: Handle case where level is not found after JSON loading is implemented.
-					if (currentLevel == null) {
-						// For now, we can just break or default to level 1 if we run out of levels.
-						// This will be important when the number of levels is defined by maps.json
-						break;
-					}
+                        // TODO: Handle case where level is not found after JSON loading is implemented.
+                        if (currentLevel == null) {
+                          // For now, we can just break or default to level 1 if we run out of levels.
+                          // This will be important when the number of levels is defined by maps.json
+                          break;
+                        }
 
-					currentScreen = new GameScreen(gameState,
-							currentLevel,
-							bonusLife, MAX_LIVES, width, height, FPS);
-					LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
-							+ " game screen at " + FPS + " fps.");
-					frame.setScreen(currentScreen);
-					LOGGER.info("Closing game screen.");
+                        // Start a new level
+                        currentScreen = new GameScreen(
+                                gameState,
+                                currentLevel,
+                                bonusLife,
+                                MAX_LIVES,
+                                width,
+                                height,
+                                FPS
+                        );
 
-					gameState = ((GameScreen) currentScreen).getGameState();
+                        LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+                                + " game screen at " + FPS + " fps.");
+                        frame.setScreen(currentScreen);
+                        LOGGER.info("Closing game screen.");
 
-					gameState = new GameState(gameState.getLevel() + 1,
-							gameState.getScore(),
-							gameState.getLivesRemaining(),
-							gameState.getBulletsShot(),
-							gameState.getShipsDestroyed(),
-                            gameState.getCoin());
+                        gameState = ((GameScreen) currentScreen).getGameState();
 
-				} while (gameState.getLivesRemaining() > 0);
+                        if (gameState.getLivesRemaining() > 0) {
+                            LOGGER.info("Opening shop screen with "
+                                    + gameState.getCoin() + " coins.");
 
-				LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
-						+ " score screen at " + FPS + " fps, with a score of "
-						+ gameState.getScore() + ", "
-						+ gameState.getLivesRemaining() + " lives remaining, "
-						+ gameState.getBulletsShot() + " bullets shot and "
-						+ gameState.getShipsDestroyed() + " ships destroyed.");
-				currentScreen = new ScoreScreen(width, height, FPS, gameState);
-				returnCode = frame.setScreen(currentScreen);
-				LOGGER.info("Closing score screen.");
-				break;
-			case 3:
-				// High scores.
-				currentScreen = new HighScoreScreen(width, height, FPS);
-				LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
-						+ " high score screen at " + FPS + " fps.");
-				returnCode = frame.setScreen(currentScreen);
-				LOGGER.info("Closing high score screen.");
-				break;
-				case 4:
-					// Shop screen.
-					currentScreen = new ShopScreen(gameState, width, height, FPS);
-					LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
-							+ " shop screen at " + FPS + " fps, with "
-							+ gameState.getCoin() + " coins.");
-					returnCode = frame.setScreen(currentScreen);
-					LOGGER.info("Closing shop screen.");
-					break;
-			default:
-				break;
-			}
+                            //Launch the ShopScreen (between levels)
+                            currentScreen = new ShopScreen(gameState, width, height, FPS, true);
 
-		} while (returnCode != 0);
+                            frame.setScreen(currentScreen);
+                            LOGGER.info("Closing shop screen.");
 
-		fileHandler.flush();
-		fileHandler.close();
-		System.exit(0);
+                            gameState = new GameState(
+                                    gameState.getLevel() + 1,          // Increment level
+                                    gameState.getScore(),              // Keep current score
+                                    gameState.getLivesRemaining(),     // Keep remaining lives
+                                    gameState.getBulletsShot(),        // Keep bullets fired
+                                    gameState.getShipsDestroyed(),     // Keep ships destroyed
+                                    gameState.getCoin()                // Keep current coins
+                            );
+                        }
+                        // Loop while player still has lives and levels remaining
+                    } while (gameState.getLivesRemaining() > 0);
+
+                    LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+                            + " score screen at " + FPS + " fps, with a score of "
+                            + gameState.getScore() + ", "
+                            + gameState.getLivesRemaining() + " lives remaining, "
+                            + gameState.getBulletsShot() + " bullets shot and "
+                            + gameState.getShipsDestroyed() + " ships destroyed.");
+
+                    currentScreen = new ScoreScreen(width, height, FPS, gameState);
+                    returnCode = frame.setScreen(currentScreen);
+                    LOGGER.info("Closing score screen.");
+                    break;
+                case 3:
+                    // High scores
+                    currentScreen = new HighScoreScreen(width, height, FPS);
+                    LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+                            + " high score screen at " + FPS + " fps.");
+                    returnCode = frame.setScreen(currentScreen);
+                    LOGGER.info("Closing high score screen.");
+                    break;
+                case 4:
+                    // Shop opened manually from main menu
+                    currentScreen = new ShopScreen(gameState, width, height, FPS, false);
+                    LOGGER.info("Starting shop screen (menu) with " + gameState.getCoin() + " coins.");
+                    returnCode = frame.setScreen(currentScreen);
+                    LOGGER.info("Closing shop screen (menu).");
+                    break;
+
+                default:
+                    break;
+            }
+
+        } while (returnCode != 0);
+
+        fileHandler.flush();
+        fileHandler.close();
+        System.exit(0);
 	}
 
 	/**

@@ -76,6 +76,9 @@ public class ShopScreen extends Screen {
     private Cooldown purchaseFeedbackCooldown;
     private String feedbackMessage;
 
+    /** Indicates if the shop was opened between levels (true) or from the main menu (false) */
+    public boolean betweenLevels;
+
     /**
      * Constructor, establishes the properties of the screen.
      *
@@ -89,15 +92,19 @@ public class ShopScreen extends Screen {
      *            Frames per second, frame rate at which the game is run.
      */
     public ShopScreen(final GameState gameState, final int width,
-                      final int height, final int fps) {
+                      final int height, final int fps,
+                      final boolean betweenLevels) {
         super(width, height, fps);
 
         this.gameState = gameState;
         this.selectedItem = 0;
-        this.selectedLevel = 1; // Start at level 1
-        this.selectionMode = 0; // Start in item selection mode
+        this.selectedLevel = 1;
+        this.selectionMode = 0;
 
-        this.returnCode = 1; // Return to main menu
+        this.betweenLevels = betweenLevels;
+
+        // If opened between levels : back to game, otherwise : back to menu
+        this.returnCode = betweenLevels ? 2 : 1;
 
         this.selectionCooldown = Core.getCooldown(SELECTION_TIME);
         this.selectionCooldown.reset();
@@ -106,7 +113,7 @@ public class ShopScreen extends Screen {
         this.feedbackMessage = "";
 
         this.logger.info("Shop screen initialized with " +
-                gameState.getCoin() + " coins.");
+                gameState.getCoin() + " coins. BetweenLevels=" + betweenLevels);
     }
 
     /**
