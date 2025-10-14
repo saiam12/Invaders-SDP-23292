@@ -12,9 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import entity.FinalBoss;
+import entity.Ship;
 import screen.Screen;
 import entity.Entity;
-import entity.Ship;
 
 /**
  * Manages screen drawing.
@@ -74,6 +75,10 @@ public final class DrawManager {
 		EnemyShipC2,
 		/** Bonus ship. */
 		EnemyShipSpecial,
+        /** Final boss - first form */
+        FinalBoss,
+        /** Final boss - second form */
+        FinalBoss2,
 		/** Destroyed enemy ship. */
 		Explosion,
 		/** Active sound button. */
@@ -114,6 +119,11 @@ public final class DrawManager {
 			spriteMap.put(SpriteType.EnemyShipC1, new boolean[12][8]);
 			spriteMap.put(SpriteType.EnemyShipC2, new boolean[12][8]);
 			spriteMap.put(SpriteType.EnemyShipSpecial, new boolean[16][7]);
+
+            /** when final boss' spritetype is implemeted, need to add */
+            //spriteMap.put(SpriteType.FinalBoss, new boolean[100][80]);
+            //spriteMap.put(SpriteType.FinalBoss2, new boolean[100][80]);
+
 			spriteMap.put(SpriteType.Explosion, new boolean[13][7]);
 			spriteMap.put(SpriteType.SoundOn, new boolean[15][15]);
 			spriteMap.put(SpriteType.SoundOff, new boolean[15][15]);
@@ -217,6 +227,17 @@ public final class DrawManager {
 				if (image[i][j])
 					backBufferGraphics.drawRect(positionX + i * 2, positionY
 							+ j * 2, 1, 1);
+
+        /** draw hitbox of final boss because final boss' spritetype is not implemented(for test) */
+        if( entity instanceof FinalBoss){
+            backBufferGraphics.setColor(Color.RED);
+            backBufferGraphics.drawRect(
+                    entity.getPositionX(),
+                    entity.getPositionY(),
+                    entity.getWidth(),
+                    entity.getHeight()
+            );
+        }
 	}
 
 	/**

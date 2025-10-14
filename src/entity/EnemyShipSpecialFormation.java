@@ -177,11 +177,9 @@ public class EnemyShipSpecialFormation implements Iterable<EnemyShip> {
                 if (enemyShipSpecial.getDirection() == EnemyShip.Direction.LEFT) {
                     if (isAtLeftSide)
                         enemyShipSpecial.setDirection(EnemyShip.Direction.RIGHT);
-                    this.logger.info("LEFT moving");
                 } else {
                     if (isAtRightSide) {
                         enemyShipSpecial.setDirection(EnemyShip.Direction.LEFT);
-                        this.logger.info("RIGHT moving");
                     }
                 }
 
