@@ -14,6 +14,7 @@ import screen.HighScoreScreen;
 import screen.ScoreScreen;
 import screen.Screen;
 import screen.TitleScreen;
+import engine.level.LevelManager;
 import screen.ShopScreen;
 
 /**
@@ -35,37 +36,13 @@ public final class Core {
 	private static final int MAX_LIVES = 3;
 	/** Levels between extra life. */
 	private static final int EXTRA_LIFE_FRECUENCY = 3;
-	/** Total number of levels. */
-	private static final int NUM_LEVELS = 7;
-	
-	/** Difficulty settings for level 1. */
-	private static final GameSettings SETTINGS_LEVEL_1 =
-			new GameSettings(5, 4, 60, 2000);
-	/** Difficulty settings for level 2. */
-	private static final GameSettings SETTINGS_LEVEL_2 =
-			new GameSettings(5, 5, 50, 2500);
-	/** Difficulty settings for level 3. */
-	private static final GameSettings SETTINGS_LEVEL_3 =
-			new GameSettings(6, 5, 40, 1500);
-	/** Difficulty settings for level 4. */
-	private static final GameSettings SETTINGS_LEVEL_4 =
-			new GameSettings(6, 6, 30, 1500);
-	/** Difficulty settings for level 5. */
-	private static final GameSettings SETTINGS_LEVEL_5 =
-			new GameSettings(7, 6, 20, 1000);
-	/** Difficulty settings for level 6. */
-	private static final GameSettings SETTINGS_LEVEL_6 =
-			new GameSettings(7, 7, 10, 1000);
-	/** Difficulty settings for level 7. */
-	private static final GameSettings SETTINGS_LEVEL_7 =
-			new GameSettings(8, 7, 2, 500);
-	
+
 	/** Frame to draw the screen on. */
 	private static Frame frame;
 	/** Screen currently shown. */
 	private static Screen currentScreen;
-	/** Difficulty settings list. */
-	private static List<GameSettings> gameSettings;
+	/** Level manager for loading level settings. */
+	private static LevelManager levelManager;
 	/** Application logger. */
 	private static final Logger LOGGER = Logger.getLogger(Core.class
 			.getSimpleName());
@@ -105,15 +82,7 @@ public final class Core {
 		int width = frame.getWidth();
 		int height = frame.getHeight();
 
-		gameSettings = new ArrayList<GameSettings>();
-		gameSettings.add(SETTINGS_LEVEL_1);
-		gameSettings.add(SETTINGS_LEVEL_2);
-		gameSettings.add(SETTINGS_LEVEL_3);
-		gameSettings.add(SETTINGS_LEVEL_4);
-		gameSettings.add(SETTINGS_LEVEL_5);
-		gameSettings.add(SETTINGS_LEVEL_6);
-		gameSettings.add(SETTINGS_LEVEL_7);
-		
+		levelManager = new LevelManager();
 		GameState gameState;
 
 		int returnCode = 1;
@@ -137,8 +106,17 @@ public final class Core {
 							% EXTRA_LIFE_FRECUENCY == 0
 							&& gameState.getLivesRemaining() < MAX_LIVES;
 					
+					engine.level.Level currentLevel = levelManager.getLevel(gameState.getLevel());
+
+					// TODO: Handle case where level is not found after JSON loading is implemented.
+					if (currentLevel == null) {
+						// For now, we can just break or default to level 1 if we run out of levels.
+						// This will be important when the number of levels is defined by maps.json
+						break;
+					}
+
 					currentScreen = new GameScreen(gameState,
-							gameSettings.get(gameState.getLevel() - 1),
+							currentLevel,
 							bonusLife, MAX_LIVES, width, height, FPS);
 					LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
 							+ " game screen at " + FPS + " fps.");
@@ -154,8 +132,7 @@ public final class Core {
 							gameState.getShipsDestroyed(),
                             gameState.getCoin());
 
-				} while (gameState.getLivesRemaining() > 0
-						&& gameState.getLevel() <= NUM_LEVELS);
+				} while (gameState.getLivesRemaining() > 0);
 
 				LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
 						+ " score screen at " + FPS + " fps, with a score of "
