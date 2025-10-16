@@ -809,10 +809,38 @@ public final class DrawManager {
 		//backBufferGraphics.setColor(Color.GREEN);
 		//drawHorizontalLine(screen, 165);
 
+		int headerHeight = 165; // Space used by title, balance, instructions
+		int footerHeight = 50;  // Space needed for exit option (increased for safety)
+		int availableHeight = screen.getHeight() - headerHeight - footerHeight;
+
 		// FIXED: Draw items with proper spacing
 		int currentY = 170;  // Start position
-		int baseSpacing = 65;  // Space between each item
+		int baseSpacing = 58;  // Space between each item
+		int expandedExtraSpace = 55;
 
+		// Check if we're in level selection mode
+		boolean hasExpandedItem = (selectionMode == 1);
+
+		// Calculate total required height
+		int totalRequiredHeight = totalItems * baseSpacing;
+		if (hasExpandedItem) {
+			totalRequiredHeight += expandedExtraSpace;
+		}
+
+		// Adjust spacing if content would overflow
+		int adjustedSpacing = baseSpacing;
+		if (totalRequiredHeight > availableHeight) {
+			// Calculate how much space we need to save
+			int overflow = totalRequiredHeight - availableHeight;
+			// Reduce base spacing to accommodate
+			adjustedSpacing = baseSpacing - (overflow / totalItems);
+			// Ensure minimum spacing for readability
+			if (adjustedSpacing < 48) {
+				adjustedSpacing = 48;
+			}
+		}
+
+		// Draw items
 		for (int i = 0; i < totalItems; i++) {
 			boolean isSelected = (i == selectedItem) && (selectionMode == 0);
 			boolean isLevelSelection = (i == selectedItem && selectionMode == 1);
@@ -825,27 +853,28 @@ public final class DrawManager {
 
 			// Add extra space when showing level selection buttons
 			if (isLevelSelection) {
-				currentY += baseSpacing + 55;
+				currentY += adjustedSpacing + expandedExtraSpace;
 			} else {
-				currentY += baseSpacing;
+				currentY += adjustedSpacing;
 			}
 		}
 
 		// Draw exit option
-		int exitY = screen.getHeight() - 25;
+		int exitY = screen.getHeight() - 30;
 		if (selectedItem == totalItems && selectionMode == 0) {
 			backBufferGraphics.setColor(Color.GREEN);
 		} else {
 			backBufferGraphics.setColor(Color.WHITE);
 		}
 
-        if (shopScreen.betweenLevels)
-        {
-            drawCenteredRegularString(screen, "< Back to Game >", exitY);
-        } else {
-            drawCenteredRegularString(screen, "< Back to Main Menu >", exitY);
-        }
+		if (shopScreen.betweenLevels)
+		{
+			drawCenteredRegularString(screen, "< Back to Game >", exitY);
+		} else {
+			drawCenteredRegularString(screen, "< Back to Main Menu >", exitY);
+		}
 	}
+
 
 	/**
 	 * Draws a single shop item with level indicators.
@@ -885,12 +914,18 @@ public final class DrawManager {
 		if (isSelected || isLevelSelection) {
 			backBufferGraphics.setColor(Color.GRAY);
 			backBufferGraphics.drawString(description, 30, yPosition + 15);
+
+
 		}
 
 		// Draw level options if in level selection mode for this item
 		if (isLevelSelection) {
 			int levelStartX = 30;
 			int levelY = yPosition + 35;
+			int maxWidth = screen.getWidth() - 60; // 30px margin each side
+			int currX = levelStartX;
+			int currY = levelY;
+			int spaceBetween = 18; // space between level texts
 
 			for (int lvl = 1; lvl <= maxLevel; lvl++) {
 				int price = prices[lvl - 1];
@@ -909,14 +944,17 @@ public final class DrawManager {
 					backBufferGraphics.setColor(Color.RED);
 				}
 
-				String levelText = "Lv." + lvl + " (" + price + "$)";
-				if (isOwned) {
-					levelText = "Lv." + lvl + " [OWNED]";
+				String levelText = "Lv." + lvl + (isOwned ? " [OWNED]" : " (" + price + "$)");
+				int textWidth = fontRegularMetrics.stringWidth(levelText);
+
+				// If adding this string would overflow available width, wrap to next line
+				if (currX + textWidth > levelStartX + maxWidth) {
+					currX = levelStartX;
+					currY += fontRegularMetrics.getHeight() + 3;
 				}
 
-				backBufferGraphics.drawString(levelText,
-						levelStartX + ((lvl - 1) * 95),
-						levelY);
+				backBufferGraphics.drawString(levelText, currX, currY);
+				currX += textWidth + spaceBetween;
 			}
 		}
 	}
