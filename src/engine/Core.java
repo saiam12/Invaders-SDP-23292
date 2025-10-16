@@ -14,6 +14,7 @@ import screen.HighScoreScreen;
 import screen.ScoreScreen;
 import screen.Screen;
 import screen.TitleScreen;
+import screen.AchievementScreen;
 import engine.level.LevelManager;
 import screen.ShopScreen;
 
@@ -179,6 +180,14 @@ public final class Core {
                     LOGGER.info("Starting shop screen (menu) with " + gameState.getCoin() + " coins.");
                     returnCode = frame.setScreen(currentScreen);
                     LOGGER.info("Closing shop screen (menu).");
+                    break;
+                case 6:
+                    // Achievements
+                    currentScreen = new AchievementScreen(width, height, FPS);
+                    LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+                            + " achievement screen at " + FPS + " fps.");
+                    returnCode = frame.setScreen(currentScreen);
+                    LOGGER.info("Closing achievement screen.");
                     break;
 
                 default:
