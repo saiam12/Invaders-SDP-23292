@@ -1,15 +1,16 @@
 package engine.level;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 public class LevelManager {
 
-    private static final String MAPS_FILE = "maps.example.json";
     private List<Level> levels;
 
     public LevelManager() {
@@ -17,31 +18,27 @@ public class LevelManager {
     }
 
     /**
-     * Loads the levels from the maps.json file.
+     * Loads the levels from the maps.json resource file.
      */
     private void loadLevels() {
-        try {
-            // TODO: Implement JSON parsing here. When implemented, the hardcoded fallback below can be removed.
-            // com.google.gson.Gson gson = new com.google.gson.Gson();
-            // String jsonContent = new String(Files.readAllBytes(Paths.get(MAPS_FILE)));
-            //
-            // // 1. Parse the root object to get the list of level maps
-            // Map<String, Object> root = gson.fromJson(jsonContent, new com.google.gson.reflect.TypeToken<Map<String, Object>>() {}.getType());
-            // List<Map<String, Object>> levelMaps = (List<Map<String, Object>>) root.get("levels");
-            //
-            // // 2. Create Level objects from the maps
-            // this.levels = new ArrayList<>();
-            // for (Map<String, Object> map : levelMaps) {
-            //     this.levels.add(new Level(map));
-            // }
-        } catch (Exception e) {
-            // In a real implementation, this error should be logged properly.
-            e.printStackTrace();
-        }
+        try (InputStream inputStream = LevelManager.class.getClassLoader().getResourceAsStream("maps/maps.json")) {
+            if (inputStream == null) {
+                throw new IOException("Cannot find resource file: maps/maps.json");
+            }
+            
+            String jsonContent;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                jsonContent = reader.lines().collect(Collectors.joining("\n"));
+            }
+            
+            this.levels = JsonLoader.parse(jsonContent);
 
-        // If loading from JSON fails or is not yet implemented, use hardcoded levels as a fallback.
-        if (this.levels == null) {
-            // TODO: This hardcoded data should be removed once JSON loading is functional.
+        } catch (Exception e) {
+            System.err.println("Failed to load levels from JSON resource: " + e.getMessage());
+            System.err.println("Falling back to hardcoded levels.");
+            e.printStackTrace();
+            
+            // If loading from JSON fails, use hardcoded levels as a fallback.
             this.levels = new ArrayList<>();
             this.levels.add(new Level(1, 5, 4, 60, 2000));
             this.levels.add(new Level(2, 5, 5, 50, 2500));
@@ -52,6 +49,7 @@ public class LevelManager {
             this.levels.add(new Level(7, 8, 7, 2, 500));
         }
     }
+    
     /**
      * Gets the settings for a specific level.
      *
@@ -62,9 +60,11 @@ public class LevelManager {
         if (levels == null) {
             return null;
         }
-        // Level numbers are 1-based, but list is 0-based.
-        if (levelNumber > 0 && levelNumber <= levels.size()) {
-            return levels.get(levelNumber - 1);
+
+        for (Level level : levels) {
+            if (level.getLevel() == levelNumber) {
+                return level;
+            }
         }
         return null;
     }

@@ -13,10 +13,12 @@ import screen.GameScreen;
 import screen.HighScoreScreen;
 import screen.ScoreScreen;
 import screen.Screen;
+import screen.ShopScreen;
 import screen.TitleScreen;
 import screen.AchievementScreen;
 import engine.level.LevelManager;
 import screen.ShopScreen;
+import screen.*;
 
 /**
  * Implements core game logic.
@@ -84,12 +86,12 @@ public final class Core {
 		int height = frame.getHeight();
 
 		levelManager = new LevelManager();
-		GameState gameState;
+		GameState gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0,0);
 
-		int returnCode = 1;
+
+        int returnCode = 1;
 		do {
-			gameState = new GameState(1, 0, MAX_LIVES, 0, 0,100);
-
+            gameState = new GameState(1, 0, MAX_LIVES,MAX_LIVES, 0, 0,gameState.getCoin());
 			switch (returnCode) {
                 case 1:
                     // Main menu.
@@ -130,9 +132,7 @@ public final class Core {
                                 + " game screen at " + FPS + " fps.");
                         frame.setScreen(currentScreen);
                         LOGGER.info("Closing game screen.");
-
                         gameState = ((GameScreen) currentScreen).getGameState();
-
                         if (gameState.getLivesRemaining() > 0) {
                             LOGGER.info("Opening shop screen with "
                                     + gameState.getCoin() + " coins.");
@@ -147,6 +147,7 @@ public final class Core {
                                     gameState.getLevel() + 1,          // Increment level
                                     gameState.getScore(),              // Keep current score
                                     gameState.getLivesRemaining(),     // Keep remaining lives
+									gameState.getLivesRemainingP2(),   // Keep remaining livesP2
                                     gameState.getBulletsShot(),        // Keep bullets fired
                                     gameState.getShipsDestroyed(),     // Keep ships destroyed
                                     gameState.getCoin()                // Keep current coins
@@ -189,7 +190,11 @@ public final class Core {
                     returnCode = frame.setScreen(currentScreen);
                     LOGGER.info("Closing achievement screen.");
                     break;
-
+				case 8: // (추가) CreditScreen
+					currentScreen = new CreditScreen(width, height, FPS);
+					LOGGER.info("Starting " + currentScreen.getClass().getSimpleName() + " screen.");
+					returnCode = frame.setScreen(currentScreen);
+					break;
                 default:
                     break;
             }

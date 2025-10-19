@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import screen.Screen;
+import engine.level.Level;
 import engine.Cooldown;
 import engine.Core;
 import engine.DrawManager;
@@ -77,8 +78,6 @@ public class EnemyShipSpecialFormation implements Iterable<EnemyShip> {
     private Cooldown enemyShipSpecialCooldown;
     private Cooldown enemyShipSpecialExplosionCooldown;
 
-    ;
-
     /**
      * Constructor, sets the initial conditions.
      *
@@ -110,6 +109,24 @@ public class EnemyShipSpecialFormation implements Iterable<EnemyShip> {
         this.enemyShipSpecialCooldown = cooldown;
         this.enemyShipSpecialExplosionCooldown = explosionCooldown;
         cooldown.reset();
+    }
+
+    /**
+     * Level-based constructor (preferred). Avoids passing GameSettings around.
+     */
+    public EnemyShipSpecialFormation(final Level level,
+                                     final Cooldown cooldown,
+                                     final Cooldown explosionCooldown) {
+        this(
+            new GameSettings(
+                level.getFormationWidth(),
+                level.getFormationHeight(),
+                level.getBaseSpeed(),
+                level.getShootingFrecuency()
+            ),
+            cooldown,
+            explosionCooldown
+        );
     }
 
     /**
