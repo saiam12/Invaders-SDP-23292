@@ -39,14 +39,13 @@ public class FinalBoss extends Entity implements BossEntity{
     public FinalBoss(int positionX, int positionY, int screenWidth, int screenHeight){
 
         super(positionX,positionY,100,80, Color.RED);
-        this.healPoint = 20;
+        this.healPoint = 80;
         this.maxHp = healPoint;
         this.pointValue = 1000;
-        this.spriteType = DrawManager.SpriteType.EnemyShipSpecial;
+        this.spriteType = DrawManager.SpriteType.FinalBoss1;
         this.isDestroyed = false;
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
-
 
         this.animationCooldown = Core.getCooldown(500);
         this.shootCooldown1 = Core.getCooldown(5000);
@@ -64,10 +63,13 @@ public class FinalBoss extends Entity implements BossEntity{
         if(this.animationCooldown.checkFinished()){
             this.animationCooldown.reset();
 
-            if(this.spriteType == DrawManager.SpriteType.EnemyShipSpecial){
-                this.spriteType = DrawManager.SpriteType.EnemyShipA1;
-            } else{
-                this.spriteType = DrawManager.SpriteType.EnemyShipSpecial;
+            switch (this.spriteType) {
+                case FinalBoss1:
+                    this.spriteType = DrawManager.SpriteType.FinalBoss2;
+                    break;
+                case FinalBoss2:
+                    this.spriteType = DrawManager.SpriteType.FinalBoss1;
+                    break;
             }
         }
         movePattern();
@@ -186,8 +188,8 @@ public class FinalBoss extends Entity implements BossEntity{
     @Override
     public void destroy(){
         if(!this.isDestroyed){
+            this.spriteType = DrawManager.SpriteType.FinalBossDeath;
             this.isDestroyed = true;
-            this.spriteType = DrawManager.SpriteType.Explosion;
         }
     }
 

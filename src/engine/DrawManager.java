@@ -65,7 +65,7 @@ public final class DrawManager {
 	public static enum SpriteType {
 		Ship, ShipDestroyed, Bullet, EnemyBullet, EnemyShipA1, EnemyShipA2,
 		EnemyShipB1, EnemyShipB2, EnemyShipC1, EnemyShipC2, EnemyShipSpecial,
-		FinalBoss, FinalBoss2, Explosion, SoundOn, SoundOff, Item_MultiShot,
+		FinalBoss1, FinalBoss2,FinalBossBullet,FinalBossDeath,OmegaBoss1, OmegaBoss2,OmegaBossDeath, Explosion, SoundOn, SoundOff, Item_MultiShot,
 		Item_Atkspeed, Item_Penetrate, Item_Explode, Item_Slow, Item_Stop,
 		Item_Push, Item_Shield, Item_Heal
 	}
@@ -100,7 +100,13 @@ public final class DrawManager {
 			spriteMap.put(SpriteType.Item_Push, new boolean[5][5]);
 			spriteMap.put(SpriteType.Item_Shield, new boolean[5][5]);
 			spriteMap.put(SpriteType.Item_Heal, new boolean[5][5]);
-
+			spriteMap.put(SpriteType.FinalBoss1, new boolean[50][40]);
+			spriteMap.put(SpriteType.FinalBoss2, new boolean[50][40]);
+			spriteMap.put(SpriteType.FinalBossBullet,new boolean[3][5]);
+			spriteMap.put(SpriteType.FinalBossDeath, new boolean[50][40]);
+			spriteMap.put(SpriteType.OmegaBoss1, new boolean[32][14]);
+			spriteMap.put(SpriteType.OmegaBoss2, new boolean[32][14]);
+			spriteMap.put(SpriteType.OmegaBossDeath, new boolean[16][16]);
 			fileManager.loadSprite(spriteMap);
 			logger.info("Finished loading the sprites.");
 
@@ -169,10 +175,7 @@ public final class DrawManager {
 				if (image[i][j])
 					backBufferGraphics.drawRect(positionX + i * 2, positionY + j * 2, 1, 1);
 
-        if (entity instanceof FinalBoss) {
-            backBufferGraphics.setColor(Color.RED);
-            backBufferGraphics.drawRect(entity.getPositionX(), entity.getPositionY(), entity.getWidth(), entity.getHeight());
-        }
+
 	}
 
 	/**
@@ -258,14 +261,13 @@ public final class DrawManager {
     /**
      * Draws the current level on the bottom-left of the screen.
      */
-    public void drawLevel(final Screen screen, final int level) {
+    public void drawLevel(final Screen screen, final String levelName) {
         final int paddingX = 20;
         final int paddingY = 50;
         backBufferGraphics.setFont(fontRegular);
         backBufferGraphics.setColor(Color.WHITE);
-        String levelText = "Level " + level;
         int yPos = screen.getHeight() - paddingY;
-        backBufferGraphics.drawString(levelText, paddingX, yPos);
+        backBufferGraphics.drawString(levelName, paddingX, yPos);
     }
 
     /**
@@ -449,7 +451,7 @@ public final class DrawManager {
             } else {
                 backBufferGraphics.setColor(Color.WHITE);
             }
-            drawCenteredRegularString(screen, achievement.getName() + " - " + achievement.getDescription(), screen.getHeight() / 4 + fontRegularMetrics.getHeight() * (i + 1) * 2);
+            drawCenteredRegularString(screen, achievement.getName() + " - " + achievement.getDescription(), screen.getHeight() / 5 + fontRegularMetrics.getHeight() * (i + 1) * 2);
             i++;
         }
         backBufferGraphics.setColor(Color.GRAY);

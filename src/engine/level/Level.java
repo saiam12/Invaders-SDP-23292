@@ -18,8 +18,6 @@ public class Level {
 
     // New fields for the complex JSON structure
     private String levelName;
-    private String bgm;
-    private String visualTheme;
     private String specialGimmick;
     private String unlockCondition;
     
@@ -54,8 +52,6 @@ public class Level {
         // Parsing simple fields
         this.level = ((Number) map.get("level")).intValue();
         this.levelName = (String) map.get("levelName");
-        this.bgm = (String) map.get("bgm");
-        this.visualTheme = (String) map.get("visualTheme");
         this.achievementTrigger = (String) map.get("achievementTrigger");
         this.specialGimmick = (String) map.get("specialGimmick");
         this.unlockCondition = (String) map.get("unlockCondition");
@@ -116,14 +112,6 @@ public class Level {
 
     public String getLevelName() {
         return levelName;
-    }
-
-    public String getBgm() {
-        return bgm;
-    }
-
-    public String getVisualTheme() {
-        return visualTheme;
     }
 
     public LevelEnemyFormation getEnemyFormation() {

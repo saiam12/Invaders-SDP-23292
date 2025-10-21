@@ -2,9 +2,7 @@
   "levels": [
     {
       "level": 1,
-      "levelName": "Stage 1",
-      "bgm": "bgm_stage_default.mp3",
-      "visualTheme": "space_default",
+      "levelName": "1. Contact",
       "enemyFormation": {
         "formationWidth": 5,
         "formationHeight": 4,
@@ -14,13 +12,11 @@
       "enemyTypes": [
         { "type": "enemyA", "count": 20 }
       ],
-      "completionBonus": { "currency": 100 }
+      "completionBonus": { "currency": 10 }
     },
     {
       "level": 2,
-      "levelName": "Stage 2",
-      "bgm": "bgm_stage_default.mp3",
-      "visualTheme": "space_default",
+      "levelName": "2. Ambush",
       "enemyFormation": {
         "formationWidth": 5,
         "formationHeight": 5,
@@ -31,13 +27,17 @@
         { "type": "enemyA", "count": 15 },
         { "type": "enemyB", "count": 10 }
       ],
-      "completionBonus": { "currency": 150 }
+      "itemDrops": [
+        { "enemyType": "enemyA", "itemId": "Heal", "dropChance": 0.15 },
+        { "enemyType": "enemyA", "itemId": "Shield", "dropChance": 0.05 },
+        { "enemyType": "enemyB", "itemId": "Shield", "dropChance": 0.1 }
+      ],
+      "bossId": "omegaBoss",
+      "completionBonus": { "currency": 20 }
     },
     {
       "level": 3,
-      "levelName": "Stage 3",
-      "bgm": "bgm_stage_default.mp3",
-      "visualTheme": "space_default",
+      "levelName": "3. Nebula",
       "enemyFormation": {
         "formationWidth": 6,
         "formationHeight": 5,
@@ -49,15 +49,17 @@
         { "type": "enemyB", "count": 15 }
       ],
       "itemDrops": [
-        { "enemyType": "enemyB", "itemId": "extra_life", "dropChance": 0.05 }
+        { "enemyType": "enemyA", "itemId": "Heal", "dropChance": 0.1 },
+        { "enemyType": "enemyA", "itemId": "Push", "dropChance": 0.05 },
+        { "enemyType": "enemyB", "itemId": "Shield", "dropChance": 0.15 },
+        { "enemyType": "enemyB", "itemId": "Slow", "dropChance": 0.05 }
       ],
-      "completionBonus": { "currency": 200 }
+      "bossId": "omegaBoss",
+      "completionBonus": { "currency": 30 }
     },
     {
       "level": 4,
-      "levelName": "Stage 4",
-      "bgm": "bgm_stage_default.mp3",
-      "visualTheme": "asteroid",
+      "levelName": "4. The Fleet",
       "enemyFormation": {
         "formationWidth": 6,
         "formationHeight": 6,
@@ -68,13 +70,18 @@
         { "type": "enemyA", "count": 18 },
         { "type": "enemyB", "count": 18 }
       ],
-      "completionBonus": { "currency": 250 }
+      "itemDrops": [
+        { "enemyType": "enemyA", "itemId": "Shield", "dropChance": 0.15 },
+        { "enemyType": "enemyA", "itemId": "Slow", "dropChance": 0.05 },
+        { "enemyType": "enemyB", "itemId": "Slow", "dropChance": 0.1 },
+        { "enemyType": "enemyB", "itemId": "Push", "dropChance": 0.05 }
+      ],
+      "bossId": "finalBoss",
+      "completionBonus": { "currency": 40 }
     },
     {
       "level": 5,
-      "levelName": "Stage 5",
-      "bgm": "bgm_stage_default.mp3",
-      "visualTheme": "asteroid",
+      "levelName": "5. Labyrinth",
       "enemyFormation": {
         "formationWidth": 7,
         "formationHeight": 6,
@@ -87,15 +94,17 @@
         { "type": "enemyC", "count": 14 }
       ],
       "itemDrops": [
-        { "enemyType": "enemyC", "itemId": "multi_shot", "dropChance": 0.1 }
+        { "enemyType": "enemyB", "itemId": "Slow", "dropChance": 0.15 },
+        { "enemyType": "enemyB", "itemId": "Stop", "dropChance": 0.05 },
+        { "enemyType": "enemyC", "itemId": "Stop", "dropChance": 0.1 },
+        { "enemyType": "enemyC", "itemId": "Push", "dropChance": 0.05 }
       ],
-      "completionBonus": { "currency": 300 }
+      "bossId": "omegaBoss",
+      "completionBonus": { "currency": 50 }
     },
     {
       "level": 6,
-      "levelName": "Stage 6",
-      "bgm": "bgm_stage_default.mp3",
-      "visualTheme": "boss_hangar",
+      "levelName": "6. Swarm",
       "enemyFormation": {
         "formationWidth": 7,
         "formationHeight": 7,
@@ -106,13 +115,18 @@
         { "type": "enemyB", "count": 25 },
         { "type": "enemyC", "count": 24 }
       ],
-      "completionBonus": { "currency": 400 }
+      "itemDrops": [
+        { "enemyType": "enemyB", "itemId": "Stop", "dropChance": 0.1 },
+        { "enemyType": "enemyB", "itemId": "Explode", "dropChance": 0.02 },
+        { "enemyType": "enemyC", "itemId": "Explode", "dropChance": 0.05 },
+        { "enemyType": "enemyC", "itemId": "Stop", "dropChance": 0.05 }
+      ],
+      "bossId": "finalBoss",
+      "completionBonus": { "currency": 70 }
     },
     {
       "level": 7,
-      "levelName": "Stage 7",
-      "bgm": "bgm_stage_default.mp3",
-      "visualTheme": "boss_hangar",
+      "levelName": "7. Omega",
       "enemyFormation": {
         "formationWidth": 8,
         "formationHeight": 7,
@@ -125,9 +139,12 @@
         { "type": "enemyC", "count": 23 }
       ],
       "itemDrops": [
-        { "enemyType": "enemyC", "itemId": "penetrating_shot", "dropChance": 0.1 }
+        { "enemyType": "enemyC", "itemId": "Explode", "dropChance": 0.1 },
+        { "enemyType": "enemyC", "itemId": "Heal", "dropChance": 0.05 }
       ],
-      "completionBonus": { "currency": 500 }
+      "bossId": "omegaAndFinal",
+      "completionBonus": { "currency": 90 },
+      "achievementTrigger": "Conqueror"
     }
   ]
 }

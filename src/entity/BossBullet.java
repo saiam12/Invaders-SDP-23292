@@ -33,7 +33,7 @@ public class BossBullet extends Entity{
         super(x, y, width, height, color);
         this.dx = dx;
         this.dy = dy;
-        this.spriteType = DrawManager.SpriteType.EnemyBullet; // boss's bullet image = enemyBullet
+        this.spriteType = DrawManager.SpriteType.FinalBossBullet; // boss's bullet image = enemyBullet
     }
     /**
      * move a bullet

@@ -1,5 +1,7 @@
 package engine;
 
+import audio.SoundManager;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
@@ -96,6 +98,8 @@ public final class Core {
                 case 1:
                     // Main menu.
                     currentScreen = new TitleScreen(width, height, FPS);
+					SoundManager.stopAll();
+					SoundManager.playLoop("sfx/menu_music.wav");
                     LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
                             + " title screen at " + FPS + " fps.");
                     returnCode = frame.setScreen(currentScreen);
@@ -107,7 +111,11 @@ public final class Core {
                         boolean bonusLife = gameState.getLevel()
                                 % EXTRA_LIFE_FRECUENCY == 0
                                 && gameState.getLivesRemaining() < MAX_LIVES;
-                      
+
+						// Music for each level
+						SoundManager.stopAll();
+						SoundManager.playLoop("sfx/level" + gameState.getLevel() + ".wav");
+
                         engine.level.Level currentLevel = levelManager.getLevel(gameState.getLevel());
 
                         // TODO: Handle case where level is not found after JSON loading is implemented.
@@ -116,6 +124,9 @@ public final class Core {
                           // This will be important when the number of levels is defined by maps.json
                           break;
                         }
+
+						SoundManager.stopAll();
+						SoundManager.playLoop("sfx/level" + gameState.getLevel() + ".wav");
 
                         // Start a new level
                         currentScreen = new GameScreen(
@@ -133,8 +144,11 @@ public final class Core {
                         frame.setScreen(currentScreen);
                         LOGGER.info("Closing game screen.");
                         gameState = ((GameScreen) currentScreen).getGameState();
-                        if (gameState.getLivesRemaining() > 0) {
-                            LOGGER.info("Opening shop screen with "
+                        if (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0) {
+							SoundManager.stopAll();
+							SoundManager.play("sfx/levelup.wav");
+
+							LOGGER.info("Opening shop screen with "
                                     + gameState.getCoin() + " coins.");
 
                             //Launch the ShopScreen (between levels)
@@ -154,7 +168,10 @@ public final class Core {
                             );
                         }
                         // Loop while player still has lives and levels remaining
-                    } while (gameState.getLivesRemaining() > 0);
+                    } while (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0);
+
+					SoundManager.stopAll();
+					SoundManager.play("sfx/gameover.wav");
 
                     LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
                             + " score screen at " + FPS + " fps, with a score of "
@@ -177,6 +194,7 @@ public final class Core {
                     break;
                 case 4:
                     // Shop opened manually from main menu
+
                     currentScreen = new ShopScreen(gameState, width, height, FPS, false);
                     LOGGER.info("Starting shop screen (menu) with " + gameState.getCoin() + " coins.");
                     returnCode = frame.setScreen(currentScreen);

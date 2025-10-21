@@ -40,6 +40,7 @@ public class AchievementManager {
         achievements.add(new Achievement("First Blood", "Defeat your first enemy"));
         achievements.add(new Achievement("Bear Grylls", "Survive for 60 seconds"));
         achievements.add(new Achievement("Bad Sniper", "Under 80% accuracy"));
+        achievements.add(new Achievement("Conqueror", "Clear the final level"));
 
         loadAchievements();
     }
