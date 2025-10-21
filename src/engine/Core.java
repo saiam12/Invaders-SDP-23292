@@ -82,6 +82,12 @@ public final class Core {
 	 */
 	public static void main(final String[] args) {
 		try {
+			ShopItem.setMultiShotLevel(1);
+			ShopItem.setPenetrationLevel(2);
+			ShopItem.setBulletSpeedLevel(3);
+			ShopItem.setRapidFireLevel(5);
+			ShopItem.setSHIPSPEED(5);
+
 			LOGGER.setUseParentHandlers(false);
 
 			fileHandler = new FileHandler("log");
