@@ -15,9 +15,6 @@ Hello
 ## Detailed Requirements
 - Develop a button for achievements
 - Develop BGM on/off button
-- Develop Select player fuselage button
-- Implement click the button you are selecting
-- Implement full screen mode
 ## Dependencies on Other Teams
 - Develop play mode(1 or 2 player) select button
 - Implement pause in game

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import engine.DrawManager.SpriteType;
@@ -268,4 +269,54 @@ public final class FileManager {
 				bufferedWriter.close();
 		}
 	}
+	/**
+	 * Loads achievement unlock status from file and returns it as a map.
+	 *
+	 * @return Map of achievement names and their unlocked status.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 */
+	public Map<String, Boolean> loadAchievements() throws IOException {
+		Map<String, Boolean> unlockedStatus = new HashMap<>();
+		String path = "achievements.dat";
+
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF-8"))) {
+			logger.info("load saved achieving file");
+			String line;
+			while ((line = reader.readLine()) != null) {
+
+				String[] parts = line.split(":");
+				if (parts.length == 2) {
+
+					unlockedStatus.put(parts[0], Boolean.parseBoolean(parts[1]));
+				}
+			}
+		} catch (FileNotFoundException e) {
+
+			logger.info("No saved achievement file found. A new one will be created");
+		}
+		return unlockedStatus;
+	}
+	/**
+	 * Saves current achievements and their unlock status to disk.
+	 *
+	 * @param achievements
+	 *            List of achievements to save.
+	 * @throws IOException
+	 *             In case of saving problems.
+	 */
+	public void saveAchievements(final List<Achievement> achievements) throws IOException {
+		String path = "achievements.dat";
+		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), "UTF-8"))) {
+			logger.info("Saving achievements to file");
+
+			for (Achievement achievement : achievements) {
+
+				writer.write(achievement.getName() + ":" + achievement.isUnlocked());
+				writer.newLine();
+			}
+		}
+	}
+
+
 }
