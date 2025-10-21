@@ -178,3 +178,4 @@ log*
 *.ttf
 .checkstyle
 production
+achievements.dat

@@ -52,6 +52,15 @@ public class DropItem extends Entity {
         }
     }
 
+    public static ItemType fromString(String text) {
+        for (ItemType b : ItemType.values()) {
+            if (b.name().equalsIgnoreCase(text)) {
+                return b;
+            }
+        }
+        return null;
+    }
+
     /** Speed of the item, positive is down. */
     private int speed;
     /** Type of the item. */
