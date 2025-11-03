@@ -33,6 +33,8 @@ public class EnemyShip extends Entity {
 	private boolean isDestroyed;
 	/** Values of the ship, in points, when destroyed. */
 	private int pointValue;
+    /** Enemy's HP */
+    public int hp;
 
 	/** Special enemy Direction enum **/
 	public enum Direction {
@@ -73,17 +75,21 @@ public class EnemyShip extends Entity {
 		case EnemyShipA1:
 		case EnemyShipA2:
 			this.pointValue = A_TYPE_POINTS;
+            this.hp = 1;
 			break;
 		case EnemyShipB1:
 		case EnemyShipB2:
 			this.pointValue = B_TYPE_POINTS;
+            this.hp = 2;
 			break;
 		case EnemyShipC1:
 		case EnemyShipC2:
 			this.pointValue = C_TYPE_POINTS;
+            this.hp = 3;
 			break;
 		default:
 			this.pointValue = 0;
+            this.hp = 1;
 			break;
 		}
 	}
@@ -219,4 +225,31 @@ public class EnemyShip extends Entity {
 				return null;
 		}
 	}
+
+    public final void takeDamage(int damage) {
+        if (!this.isDestroyed) {
+            this.hp -= damage;
+            if (this.hp <= 0) {
+                destroy();
+            } else {
+                updateColorByHP();
+            }
+        }
+    }
+
+    private void updateColorByHP() {
+        switch (this.hp) {
+            case 1:
+                this.color = Color.GREEN;
+                break;
+            case 2:
+                this.color = Color.YELLOW;
+                break;
+            case 3:
+                this.color = Color.RED;
+                break;
+        }
+    }
+
+    public int getHP(){return this.hp;}
 }
