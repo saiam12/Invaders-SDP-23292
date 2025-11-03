@@ -190,10 +190,10 @@ public class GameScreen extends Screen {
         enemyShipFormation = new EnemyShipFormation(this.currentLevel);
 		enemyShipFormation.attach(this);
         this.enemyShipFormation.applyEnemyColorByLevel(this.currentLevel);
-		this.ship = new Ship(this.width / 2 - 100, ITEMS_SEPARATION_LINE_HEIGHT - 50);
+		this.ship = new Ship(this.width / 2 - 100, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
 		    this.ship.setPlayerId(1);   //=== [ADD] Player 1 ===
 
-        this.shipP2 = new Ship(this.width / 2 + 100, ITEMS_SEPARATION_LINE_HEIGHT - 50);
+        this.shipP2 = new Ship(this.width / 2 + 100, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.pink);
         this.shipP2.setPlayerId(2); // === [ADD] Player2 ===
         // special enemy initial
 		enemyShipSpecialFormation = new EnemyShipSpecialFormation(this.currentLevel,

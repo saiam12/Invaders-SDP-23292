@@ -1,6 +1,7 @@
 package audio;
 
 import javax.sound.sampled.*;
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,18 +25,21 @@ public class SoundManager {
     }
 
     private static Clip loadClip(String path) {
-        try {
-            InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-            if (in == null) throw new IllegalArgumentException("Resource not found: " + path);
-            AudioInputStream ais = AudioSystem.getAudioInputStream(in);
-            Clip clip = AudioSystem.getClip();
-            clip.open(ais);
-            return clip;
+        String p = path.startsWith("/") ? path : "/" + path;
+        try (InputStream raw = SoundManager.class.getResourceAsStream(p)) {
+            if (raw == null) throw new IllegalArgumentException("Resource not found: " + p);
+            try (BufferedInputStream in = new BufferedInputStream(raw);
+                 AudioInputStream ais = AudioSystem.getAudioInputStream(in)) {
+                Clip clip = AudioSystem.getClip();
+                clip.open(ais);
+                return clip;
+            }
         } catch (Exception e) {
-            System.err.println("[Sound] Load failed: " + path + " -> " + e.getMessage());
+            System.err.println("[Sound] Load failed: " + p + " -> " + e);
             return null;
         }
     }
+
 
     public static void playLoop(String resourcePath) {
         if (muted) return;  // no sound played
