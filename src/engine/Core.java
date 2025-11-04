@@ -11,15 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import entity.ShopItem;
-import screen.GameScreen;
-import screen.HighScoreScreen;
-import screen.ScoreScreen;
-import screen.Screen;
-import screen.ShopScreen;
-import screen.TitleScreen;
-import screen.AchievementScreen;
 import engine.level.LevelManager;
-import screen.ShopScreen;
 import screen.*;
 
 /**
@@ -93,7 +85,8 @@ public final class Core {
 
         int returnCode = 1;
 		do {
-            gameState = new GameState(1, 0, MAX_LIVES,MAX_LIVES, 0, 0,gameState.getCoin());
+			ShopItem.resetAllItems();
+            gameState = new GameState(1, 0, MAX_LIVES,MAX_LIVES, 0, 0, 0);
 			switch (returnCode) {
                 case 1:
                     // Main menu.
@@ -172,7 +165,8 @@ public final class Core {
 
 					SoundManager.stopAll();
 					SoundManager.play("sfx/gameover.wav");
-
+					// calculate skin_coin reward
+					int SkinCoinReward = gameState.calculateSkinCoin();
                     LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
                             + " score screen at " + FPS + " fps, with a score of "
                             + gameState.getScore() + ", "
