@@ -115,4 +115,8 @@ public class GameState {
 			this.coin = amount;
 		}
 	}
+
+	public final int calculateSkinCoin(){
+		return this.coin / 10;
+	}
 }
