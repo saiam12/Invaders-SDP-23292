@@ -3,10 +3,8 @@ package screen;
 import java.awt.Color;
 import java.util.List;
 import java.util.ArrayList;
-import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import engine.Cooldown;
 import engine.Core;
@@ -15,12 +13,8 @@ import engine.GameTimer;
 import engine.AchievementManager;
 import engine.ItemHUDManager;
 import entity.*;
-import java.awt.event.KeyEvent;
-import java.util.HashSet;
-import java.util.Set;
 
 import engine.level.Level;
-import engine.level.LevelManager;
 
 
 /**
@@ -164,8 +158,8 @@ public class GameScreen extends Screen {
 
         this.currentLevel = level;
 		this.bonusLife = bonusLife;
-		this.currentlevel = level;
-		this.maxLives = maxLives;
+        this.currentlevel = level;
+        this.maxLives = maxLives;
 		        this.level = gameState.getLevel();
 		        this.score = gameState.getScore();
                 this.coin = gameState.getCoin();
@@ -189,7 +183,6 @@ public class GameScreen extends Screen {
 		this.bossBullets = new HashSet<>();
         enemyShipFormation = new EnemyShipFormation(this.currentLevel);
 		enemyShipFormation.attach(this);
-        this.enemyShipFormation.applyEnemyColorByLevel(this.currentLevel);
 		this.ship = new Ship(this.width / 2 - 100, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
 		    this.ship.setPlayerId(1);   //=== [ADD] Player 1 ===
 
@@ -387,6 +380,14 @@ public class GameScreen extends Screen {
 			}
 			this.isRunning = false;
 		}
+
+        for (EnemyShip enemy : enemyShipFormation) {
+            int enemyHp = enemy.getHealth();
+            int enemyMaxHp = enemy.getMaxHealth();
+
+            Color color = getColorForHealth(enemyHp, enemyMaxHp);
+            enemy.setColor(color);
+        }
 	}
 
 
@@ -539,9 +540,9 @@ public class GameScreen extends Screen {
 					if (!enemyShip.isDestroyed()
 							&& checkCollision(bullet, enemyShip)) {
 
-                        boolean beforeHit = enemyShip.getHP() != 0;
-                        enemyShip.takeDamage(1);
-                        boolean afterHit = enemyShip.getHP() == 0;
+                        boolean beforeHit = enemyShip.getHealth() != 0;
+                        enemyShip.takeDamage(1); // Implement user ship damage
+                        boolean afterHit = enemyShip.getHealth() == 0;
 
                         if (beforeHit && afterHit) {
                             int pts = enemyShip.getPointValue();
@@ -992,4 +993,18 @@ public class GameScreen extends Screen {
 			this.screenFinishedCooldown.reset();
 		}
 	}
+
+    public Color getColorForHealth(final int health, final int maxHealth) {
+        double ratio = (double) health / maxHealth;
+
+        if (ratio > 0.75) {
+            return new Color(0x3DDC84); // 초록: 체력 높음
+        } else if (ratio > 0.5) {
+            return new Color(0xFFC107); // 노랑: 중간
+        } else if (ratio > 0.25) {
+            return new Color(0xFF9800); // 주황: 낮음
+        } else {
+            return new Color(0xF44336); // 빨강: 위급
+        }
+    }
 }
