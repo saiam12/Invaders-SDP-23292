@@ -998,13 +998,13 @@ public class GameScreen extends Screen {
         double ratio = (double) health / maxHealth;
 
         if (ratio > 0.75) {
-            return new Color(0x3DDC84); // 초록: 체력 높음
+            return new Color(0x3DDC84); // Green: Full HP
         } else if (ratio > 0.5) {
-            return new Color(0xFFC107); // 노랑: 중간
+            return new Color(0xFFC107); // Yellow: Middle HP
         } else if (ratio > 0.25) {
-            return new Color(0xFF9800); // 주황: 낮음
+            return new Color(0xFF9800); // Orange: Low HP
         } else {
-            return new Color(0xF44336); // 빨강: 위급
+            return new Color(0xF44336); // Red: Critical HP
         }
     }
 }
