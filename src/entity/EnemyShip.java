@@ -33,6 +33,10 @@ public class EnemyShip extends Entity {
 	private boolean isDestroyed;
 	/** Values of the ship, in points, when destroyed. */
 	private int pointValue;
+    /** Enemy's HP. */
+    private int hp;
+    /** Enemy's Max HP. */
+    private int maxHp;
 
 	/** Special enemy Direction enum **/
 	public enum Direction {
@@ -69,23 +73,28 @@ public class EnemyShip extends Entity {
         this.explosionCooldown = Core.getCooldown(500);
 		this.isDestroyed = false;
 
-		switch (this.spriteType) {
-		case EnemyShipA1:
-		case EnemyShipA2:
-			this.pointValue = A_TYPE_POINTS;
-			break;
-		case EnemyShipB1:
-		case EnemyShipB2:
-			this.pointValue = B_TYPE_POINTS;
-			break;
-		case EnemyShipC1:
-		case EnemyShipC2:
-			this.pointValue = C_TYPE_POINTS;
-			break;
-		default:
-			this.pointValue = 0;
-			break;
-		}
+        switch (this.spriteType) {
+            case EnemyShipA1:
+            case EnemyShipA2:
+                this.pointValue = A_TYPE_POINTS;
+                this.maxHp = 1;
+                break;
+            case EnemyShipB1:
+            case EnemyShipB2:
+                this.pointValue = B_TYPE_POINTS;
+                this.maxHp = 2;
+                break;
+            case EnemyShipC1:
+            case EnemyShipC2:
+                this.pointValue = C_TYPE_POINTS;
+                this.maxHp = 3;
+                break;
+            default:
+                this.pointValue = 0;
+                this.maxHp = 1;
+                break;
+        }
+        this.hp = this.maxHp;
 	}
 
 	/**
@@ -219,4 +228,14 @@ public class EnemyShip extends Entity {
 				return null;
 		}
 	}
+
+    public final void takeDamage(int damage) {
+        if (!this.isDestroyed) {
+            this.hp -= damage;
+        }
+    }
+
+    public int getHealth() {return this.hp;}
+
+    public int getMaxHealth() {return this.maxHp;}
 }
