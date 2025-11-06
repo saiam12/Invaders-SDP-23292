@@ -3,10 +3,8 @@ package screen;
 import java.awt.Color;
 import java.util.List;
 import java.util.ArrayList;
-import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import engine.Cooldown;
 import engine.Core;
@@ -15,12 +13,8 @@ import engine.GameTimer;
 import engine.AchievementManager;
 import engine.ItemHUDManager;
 import entity.*;
-import java.awt.event.KeyEvent;
-import java.util.HashSet;
-import java.util.Set;
 
 import engine.level.Level;
-import engine.level.LevelManager;
 
 
 /**
@@ -164,8 +158,8 @@ public class GameScreen extends Screen {
 
         this.currentLevel = level;
 		this.bonusLife = bonusLife;
-		this.currentlevel = level;
-		this.maxLives = maxLives;
+        this.currentlevel = level;
+        this.maxLives = maxLives;
 		        this.level = gameState.getLevel();
 		        this.score = gameState.getScore();
                 this.coin = gameState.getCoin();
@@ -189,7 +183,6 @@ public class GameScreen extends Screen {
 		this.bossBullets = new HashSet<>();
         enemyShipFormation = new EnemyShipFormation(this.currentLevel);
 		enemyShipFormation.attach(this);
-        this.enemyShipFormation.applyEnemyColorByLevel(this.currentLevel);
 		this.ship = new Ship(this.width / 2 - 100, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
 		    this.ship.setPlayerId(1);   //=== [ADD] Player 1 ===
 
@@ -387,6 +380,14 @@ public class GameScreen extends Screen {
 			}
 			this.isRunning = false;
 		}
+
+        for (EnemyShip enemy : enemyShipFormation) {
+            int enemyHp = enemy.getHealth();
+            int enemyMaxHp = enemy.getMaxHealth();
+
+            Color color = getColorForHealth(enemyHp, enemyMaxHp);
+            enemy.setColor(color);
+        }
 	}
 
 
@@ -538,46 +539,53 @@ public class GameScreen extends Screen {
 				for (EnemyShip enemyShip : this.enemyShipFormation)
 					if (!enemyShip.isDestroyed()
 							&& checkCollision(bullet, enemyShip)) {
-                        int pts = enemyShip.getPointValue();
-                        addPointsFor(bullet, pts);
-                        this.coin += (pts / 10);
-                        this.shipsDestroyed++;
 
-                        String enemyType = enemyShip.getEnemyType();
-						this.enemyShipFormation.destroy(enemyShip);
-						AchievementManager.getInstance().onEnemyDefeated();
-						if (enemyType != null && this.currentLevel.getItemDrops() != null) {
-							List<engine.level.ItemDrop> potentialDrops = new ArrayList<>();
-							for (engine.level.ItemDrop itemDrop : this.currentLevel.getItemDrops()) {
-								if (enemyType.equals(itemDrop.getEnemyType())) {
-									potentialDrops.add(itemDrop);
-								}
-							}
+                        boolean beforeHit = enemyShip.getHealth() != 0;
+                        enemyShip.takeDamage(1); // Implement user ship damage
+                        boolean afterHit = enemyShip.getHealth() == 0;
 
-							List<engine.level.ItemDrop> successfulDrops = new ArrayList<>();
-							for (engine.level.ItemDrop itemDrop : potentialDrops) {
-								if (Math.random() < itemDrop.getDropChance()) {
-									successfulDrops.add(itemDrop);
-								}
-							}
+                        if (beforeHit && afterHit) {
+                            int pts = enemyShip.getPointValue();
+                            addPointsFor(bullet, pts);
+                            this.coin += (pts / 10);
+                            this.shipsDestroyed++;
+                            String enemyType = enemyShip.getEnemyType();
+                            this.enemyShipFormation.destroy(enemyShip);
+                            AchievementManager.getInstance().onEnemyDefeated();
+                            if (enemyType != null && this.currentLevel.getItemDrops() != null) {
+                                List<engine.level.ItemDrop> potentialDrops = new ArrayList<>();
+                                for (engine.level.ItemDrop itemDrop : this.currentLevel.getItemDrops()) {
+                                    if (enemyType.equals(itemDrop.getEnemyType())) {
+                                        potentialDrops.add(itemDrop);
+                                    }
+                                }
 
-							if (!successfulDrops.isEmpty()) {
-								engine.level.ItemDrop selectedDrop = successfulDrops.get((int) (Math.random() * successfulDrops.size()));
-								DropItem.ItemType droppedType = DropItem.fromString(selectedDrop.getItemId());
-								if (droppedType != null) {
-									final int ITEM_DROP_SPEED = 2;
+                                List<engine.level.ItemDrop> successfulDrops = new ArrayList<>();
+                                for (engine.level.ItemDrop itemDrop : potentialDrops) {
+                                    if (Math.random() < itemDrop.getDropChance()) {
+                                        successfulDrops.add(itemDrop);
+                                    }
+                                }
 
-									DropItem newDropItem = ItemPool.getItem(
-											enemyShip.getPositionX() + enemyShip.getWidth() / 2,
-											enemyShip.getPositionY() + enemyShip.getHeight() / 2,
-											ITEM_DROP_SPEED,
-											droppedType
-									);
-									this.dropItems.add(newDropItem);
-									this.logger.info("An item (" + droppedType + ") dropped");
-								}
-							}
-						}
+                                if (!successfulDrops.isEmpty()) {
+                                    engine.level.ItemDrop selectedDrop = successfulDrops.get((int) (Math.random() * successfulDrops.size()));
+                                    DropItem.ItemType droppedType = DropItem.fromString(selectedDrop.getItemId());
+                                    if (droppedType != null) {
+                                        final int ITEM_DROP_SPEED = 2;
+
+                                        DropItem newDropItem = ItemPool.getItem(
+                                                enemyShip.getPositionX() + enemyShip.getWidth() / 2,
+                                                enemyShip.getPositionY() + enemyShip.getHeight() / 2,
+                                                ITEM_DROP_SPEED,
+                                                droppedType
+                                        );
+                                        this.dropItems.add(newDropItem);
+                                        this.logger.info("An item (" + droppedType + ") dropped");
+                                    }
+                                }
+                            }
+                        }
+
 						if (!bullet.penetration()) {
 							recyclable.add(bullet);
 							break;
@@ -985,4 +993,18 @@ public class GameScreen extends Screen {
 			this.screenFinishedCooldown.reset();
 		}
 	}
+
+    public Color getColorForHealth(final int health, final int maxHealth) {
+        double ratio = (double) health / maxHealth;
+
+        if (ratio > 0.75) {
+            return new Color(0x3DDC84); // Green: Full HP
+        } else if (ratio > 0.5) {
+            return new Color(0xFFC107); // Yellow: Middle HP
+        } else if (ratio > 0.25) {
+            return new Color(0xFF9800); // Orange: Low HP
+        } else {
+            return new Color(0xF44336); // Red: Critical HP
+        }
+    }
 }
