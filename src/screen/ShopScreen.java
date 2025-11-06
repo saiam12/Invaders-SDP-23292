@@ -258,7 +258,14 @@ public class ShopScreen extends Screen {
         if (currentLevel >= level) {
             feedbackMessage = "Already owned!";
             purchaseFeedbackCooldown.reset();
-            logger.info("Item already at level " + level);
+            logger.info("Purchase denied: Item already at level " + level);
+            return;
+        }
+
+        else if (currentLevel + 1 < level) {
+            feedbackMessage = "Need prior level";
+            purchaseFeedbackCooldown.reset();
+            logger.info("Purchase denied: " + level + 1 + " level not purchased.");
             return;
         }
 
@@ -266,7 +273,7 @@ public class ShopScreen extends Screen {
         if (gameState.getCoin() < price) {
             feedbackMessage = "Not enough coins!";
             purchaseFeedbackCooldown.reset();
-            logger.info("Not enough coins. Need " + price +
+            logger.info("Purchase denied: Not enough coins. Need " + price +
                     ", have " + gameState.getCoin());
             return;
         }
