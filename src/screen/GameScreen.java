@@ -541,7 +541,12 @@ public class GameScreen extends Screen {
 							&& checkCollision(bullet, enemyShip)) {
 
                         boolean beforeHit = enemyShip.getHealth() != 0;
-                        enemyShip.takeDamage(1); // Implement user ship damage
+						if (!bullet.checkAlreadyHit(enemyShip)) {
+							bullet.addEnemyShip(enemyShip);
+							enemyShip.takeDamage(1); // Implement user ship damage
+						}
+						else
+							break;
                         boolean afterHit = enemyShip.getHealth() == 0;
 
                         if (beforeHit && afterHit) {

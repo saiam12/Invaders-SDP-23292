@@ -30,7 +30,8 @@ public class Bullet extends Entity {
 	private int penetrationCount;
 	/** Number of possible penetrations */
 	private int maxPenetration;
-
+	/** A set of enemies that this specific bullet has already hit (for penetration logic)*/
+	private Set<EnemyShip> enemiesAlreadyHit;
 
 	/**
 	 * Constructor, establishes the bullet's properties.
@@ -49,6 +50,7 @@ public class Bullet extends Entity {
 		this.speed = speed;
 		this.penetrationCount = 0;
 		this.maxPenetration = ShopItem.getPenetrationCount();
+		this.enemiesAlreadyHit = new HashSet<>();
 		setSprite();
 	}
 
@@ -114,5 +116,28 @@ public class Bullet extends Entity {
 		this.maxPenetration = ShopItem.getPenetrationCount();
 	}
 
+	/**
+	 * Checks if the specified enemy has already been hit by this bullet.
+	 *
+	 * @param enemyShip The enemy to check.
+	 * @return true if the enemy has already been hit, false otherwise.
+	 */
+	public final boolean checkAlreadyHit(EnemyShip enemyShip){
+		return this.enemiesAlreadyHit.contains(enemyShip);
+	}
+
+	/**
+	 * (Private) Adds an enemy to the 'alreadyHitEnemies' set.
+	 *
+	 * @param enemyShip The enemy to add.
+	 */
+	public final void addEnemyShip(EnemyShip enemyShip){
+		this.enemiesAlreadyHit.add(enemyShip);
+	}
+
+	/** reset enemiesAlreadyHit */
+	public final void resetEnemiesAlreadyHit() {
+		this.enemiesAlreadyHit.clear();
+	}
 
 }
