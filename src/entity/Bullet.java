@@ -1,6 +1,8 @@
 package entity;
 
 import java.awt.Color;
+import java.util.HashSet;
+import java.util.Set;
 
 import engine.DrawManager.SpriteType;
 
@@ -47,7 +49,6 @@ public class Bullet extends Entity {
 		this.speed = speed;
 		this.penetrationCount = 0;
 		this.maxPenetration = ShopItem.getPenetrationCount();
-
 		setSprite();
 	}
 
@@ -112,5 +113,6 @@ public class Bullet extends Entity {
 		this.penetrationCount = 0;
 		this.maxPenetration = ShopItem.getPenetrationCount();
 	}
+
 
 }
