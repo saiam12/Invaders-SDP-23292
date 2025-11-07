@@ -17,6 +17,7 @@ import entity.FinalBoss;
 import entity.Ship;
 import engine.Achievement;
 import screen.CreditScreen;
+import screen.GameScreen;
 import screen.Screen;
 import engine.Score;
 import screen.TitleScreen;
@@ -60,6 +61,9 @@ public final class DrawManager {
 
 	/** Sprite types mapped to their images. */
 	private static Map<SpriteType, boolean[][]> spriteMap;
+
+//	public void drawBossHealthBar(GameScreen gameScreen, String omega, int healPoint, int maxHp) {
+//	}
 
 	/** Sprite types. */
 	public static enum SpriteType {
@@ -718,4 +722,54 @@ public final class DrawManager {
 	}
 
     	public void drawShootingStars(final Screen screen, final List<ShootingStar> shootingStars, final float angle) {    }
+
+	public void drawBossHealthBar(final int positionX,final int positionY, final String bossName,
+								  final int currentHealth, final int maxHealth) {
+		// Health bar dimensions
+		int barWidth = 105;
+		int barHeight = 5;
+
+		if (bossName == "FIANL"){
+			barWidth = 105;
+		}
+		else if(bossName == "OMEGA"){barWidth = 65;}
+
+		final int barX = positionX;
+		final int barY = positionY-6;
+
+
+		// Calculate health percentage
+		float healthPercent = (float) currentHealth / maxHealth;
+		if (healthPercent < 0) healthPercent = 0;
+		if (healthPercent > 1) healthPercent = 1;
+
+		int currentBarWidth = (int) (barWidth * healthPercent);
+
+		// Draw boss name
+		backBufferGraphics.setFont(fontRegular);
+		backBufferGraphics.setColor(Color.WHITE);
+
+		// Draw background (empty health bar) - dark gray
+		backBufferGraphics.setColor(new Color(40, 40, 40));
+		backBufferGraphics.fillRect(barX, barY, barWidth, barHeight);
+
+		// Draw current health bar - green
+		if (currentBarWidth > 0) {
+			backBufferGraphics.setColor(Color.GREEN);
+			backBufferGraphics.fillRect(barX, barY, currentBarWidth, barHeight);
+		}
+
+		// Draw border - white
+		backBufferGraphics.setColor(Color.WHITE);
+		backBufferGraphics.drawRect(barX - 1, barY - 1, barWidth + 1, barHeight + 1);
+
+		// Draw health text (current / max)
+		backBufferGraphics.setFont(fontSmall);
+		backBufferGraphics.setColor(Color.WHITE);
+		String healthText = currentHealth + " / " + maxHealth;
+		int textWidth = fontRegularMetrics.stringWidth(healthText);
+		backBufferGraphics.drawString(healthText,
+				barX + (barWidth - textWidth / 2) / 2,
+				barY + barHeight - 5);
+	}
 }

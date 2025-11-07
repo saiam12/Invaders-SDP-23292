@@ -2,8 +2,6 @@ package engine;
 
 import audio.SoundManager;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
