@@ -3,5 +3,7 @@ plugins { id 'java' }
 repositories { mavenCentral() }
 
 dependencies {
-    implementation 'com.google.code.gson:gson:2.11.0' // JSON 직렬화
+    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'io.javalin:javalin:6.1.6'
+    implementation 'org.slf4j:slf4j-simple:2.0.16'
 }
