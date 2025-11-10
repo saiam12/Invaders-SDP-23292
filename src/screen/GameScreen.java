@@ -102,6 +102,8 @@ public class GameScreen extends Screen {
 	private int maxLives;
 	/** Current coin. */
 	private int coin;
+	/** check 1p or 2p mode. */
+	private boolean isTwoPlayerMode;
     // Unified scoring entry: maintains both P1/P2 and legacy this.score (total score)
     private void addPointsFor(Bullet bullet, int pts) {
         Integer owner = (bullet != null ? bullet.getOwnerId() : null);
@@ -172,6 +174,7 @@ public class GameScreen extends Screen {
 				}
 		this.bulletsShot = gameState.getBulletsShot();
 		this.shipsDestroyed = gameState.getShipsDestroyed();
+		this.isTwoPlayerMode = gameState.isTwoPlayerMode();
 	}
 
 	/**
@@ -183,11 +186,14 @@ public class GameScreen extends Screen {
 		this.bossBullets = new HashSet<>();
         enemyShipFormation = new EnemyShipFormation(this.currentLevel);
 		enemyShipFormation.attach(this);
-		this.ship = new Ship(this.width / 2 - 100, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
-		    this.ship.setPlayerId(1);   //=== [ADD] Player 1 ===
+		this.ship = new Ship(this.width / 2, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
+		this.ship.setPlayerId(1);   //=== [ADD] Player 1 ===
 
-        this.shipP2 = new Ship(this.width / 2 + 100, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.pink);
-        this.shipP2.setPlayerId(2); // === [ADD] Player2 ===
+		if(this.isTwoPlayerMode) {
+			this.ship.setPositionX(this.width / 2 - 100);
+			this.shipP2 = new Ship(this.width / 2 + 100, ITEMS_SEPARATION_LINE_HEIGHT - 20, Color.pink);
+			this.shipP2.setPlayerId(2); // === [ADD] Player2 ===
+		}
         // special enemy initial
 		enemyShipSpecialFormation = new EnemyShipSpecialFormation(this.currentLevel,
 				Core.getVariableCooldown(BONUS_SHIP_INTERVAL, BONUS_SHIP_VARIANCE),
@@ -221,7 +227,9 @@ public class GameScreen extends Screen {
 		super.run();
 
 		this.score += LIFE_SCORE * (this.livesP1 - 1);
-		this.score += LIFE_SCORE * (this.livesP2 - 1);
+		if(this.isTwoPlayerMode) {
+			this.score += LIFE_SCORE * (this.livesP2 - 1);
+		}
 		this.logger.info("Screen cleared with a score of " + this.score);
 
 		return this.returnCode;
@@ -266,7 +274,7 @@ public class GameScreen extends Screen {
 				}
 			}
 
-			if (this.shipP2 != null && this.livesP2 > 0 && !this.shipP2.isDestroyed()) {
+			if (this.isTwoPlayerMode && this.shipP2 != null && this.livesP2 > 0 && !this.shipP2.isDestroyed()) {
 				boolean p2Right = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
 				boolean p2Left  = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_LEFT);
 				boolean p2Up    = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_UP);
@@ -332,7 +340,7 @@ public class GameScreen extends Screen {
 					break;
 			}
 			this.ship.update();
-			if (this.shipP2 != null) {
+			if (this.isTwoPlayerMode && this.shipP2 != null) {
 				this.shipP2.update();
 			}
 			// special enemy update
@@ -350,14 +358,14 @@ public class GameScreen extends Screen {
 		cleanBullets();
 		draw();
 
-		if (((this.livesP1 == 0) && (this.shipP2 == null || this.livesP2 == 0)) && !this.levelFinished) {
+		if ((this.livesP1 == 0 && (!this.isTwoPlayerMode || this.livesP2 == 0)) && !this.levelFinished) {
 			this.levelFinished = true;
 			this.screenFinishedCooldown.reset();
 			if (this.gameTimer.isRunning()) {
 				this.gameTimer.stop();
 			}
 
-			if ((this.livesP1 > 0) || (this.shipP2 != null && this.livesP2 > 0)) {
+			if ((this.livesP1 > 0) || (this.isTwoPlayerMode && this.shipP2 != null && this.livesP2 > 0)) {
 				if (this.level == 1) {
 					AchievementManager.getInstance().unlockAchievement("Beginner");
 				} else if (this.level == 3) {
@@ -366,7 +374,7 @@ public class GameScreen extends Screen {
 			}
 		}
 		if (this.levelFinished && this.screenFinishedCooldown.checkFinished()) {
-			if (this.livesP1 > 0 || (this.shipP2 != null && this.livesP2 > 0)) { // Check for win condition
+			if (this.livesP1 > 0 || (this.isTwoPlayerMode && this.shipP2 != null && this.livesP2 > 0)) { // Check for win condition
 				if (this.currentlevel.getCompletionBonus() != null) {
 					this.coin += this.currentlevel.getCompletionBonus().getCurrency();
 					this.logger.info("Awarded " + this.currentlevel.getCompletionBonus().getCurrency() + " coins for level completion.");
@@ -402,7 +410,7 @@ public class GameScreen extends Screen {
 					this.ship.getPositionY());
 		}
 
-		if (this.shipP2 != null && this.livesP2 > 0) {
+		if (this.isTwoPlayerMode && this.shipP2 != null && this.livesP2 > 0) {
 			drawManager.drawEntity(this.shipP2, this.shipP2.getPositionX(), this.shipP2.getPositionY());
 		}
 
@@ -433,10 +441,14 @@ public class GameScreen extends Screen {
 
 		// Interface.
         drawManager.drawScore(this, this.scoreP1);   // Top line still displays P1
-        drawManager.drawScoreP2(this, this.scoreP2); // Added second line for P2
+		if(this.isTwoPlayerMode) {
+			drawManager.drawScoreP2(this, this.scoreP2); // Added second line for P2
+		}
         drawManager.drawCoin(this,this.coin);
 		drawManager.drawLives(this, this.livesP1);
-		drawManager.drawLivesP2(this, this.livesP2);
+		if(this.isTwoPlayerMode) {
+			drawManager.drawLivesP2(this, this.livesP2);
+		}
 		drawManager.drawTime(this, this.elapsedTime);
 		drawManager.drawItemsHUD(this);
 		drawManager.drawLevel(this, this.currentLevel.getLevelName());
@@ -522,7 +534,7 @@ public class GameScreen extends Screen {
 									+ " lives remaining.");
 						}
 					}
-				} else if (this.shipP2 != null && this.livesP2 > 0 && !this.shipP2.isDestroyed()
+				} else if (this.isTwoPlayerMode && this.shipP2 != null && this.livesP2 > 0 && !this.shipP2.isDestroyed()
 						&& checkCollision(bullet, this.shipP2) && !this.levelFinished) {
 					recyclable.add(bullet);
 					if (!this.shipP2.isInvincible()) {
@@ -700,7 +712,7 @@ public class GameScreen extends Screen {
         }
 
         // ===== P2 collision check =====
-        if (!this.levelFinished && this.shipP2 != null && this.livesP2 > 0
+        if (this.isTwoPlayerMode && !this.levelFinished && this.shipP2 != null && this.livesP2 > 0
                 && !this.shipP2.isDestroyed() && !this.shipP2.isInvincible()) {
             // Check collision with normal enemy ships
             for (EnemyShip enemyShip : this.enemyShipFormation) {
@@ -797,7 +809,7 @@ public class GameScreen extends Screen {
 							break;
 					}
 					acquiredDropItems.add(dropItem);
-				} else if (this.shipP2 != null && this.livesP2 > 0 && !this.shipP2.isDestroyed()
+				} else if (this.isTwoPlayerMode && this.shipP2 != null && this.livesP2 > 0 && !this.shipP2.isDestroyed()
 						&& checkCollision(this.shipP2, dropItem)) {
 					this.logger.info("Player acquired dropItem: " + dropItem.getItemType());
 
@@ -899,7 +911,7 @@ public class GameScreen extends Screen {
 	            AchievementManager.getInstance().unlockAchievement("Mr. Greedy");
 	        }
 	        return new GameState(this.level, this.score, this.livesP1,this.livesP2,
-	                this.bulletsShot, this.shipsDestroyed,this.coin);
+	                this.bulletsShot, this.shipsDestroyed,this.coin, this.isTwoPlayerMode);
 	    }
 	/**
 	 * Adds one life to the player.
@@ -980,7 +992,7 @@ public class GameScreen extends Screen {
 					}
 					bulletsToRemove.add(b);
 				}
-				else if (this.shipP2 != null && this.livesP2 > 0 && !this.shipP2.isDestroyed() && this.checkCollision(b, this.shipP2)) {
+				else if (this.isTwoPlayerMode && this.shipP2 != null && this.livesP2 > 0 && !this.shipP2.isDestroyed() && this.checkCollision(b, this.shipP2)) {
 					if (!this.shipP2.isDestroyed()) {
 						this.shipP2.destroy();
 						this.livesP2--;
