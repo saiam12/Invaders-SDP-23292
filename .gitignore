@@ -169,6 +169,17 @@ pip-log.txt
 *.iml
 out/
 
+############
+## Gradle
+############
+.gradle/
+build/
+
+##############
+# local-only
+##############
+gradle.properties
+
 #############
 ## Custom
 #############

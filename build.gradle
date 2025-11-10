@@ -1,9 +1,24 @@
-plugins { id 'java' }
+plugins {
+    id 'java'
+}
 
-repositories { mavenCentral() }
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17) // or 11
+    }
+}
+
+repositories {
+    mavenCentral()
+}
 
 dependencies {
     implementation 'com.google.code.gson:gson:2.11.0'
     implementation 'io.javalin:javalin:6.1.6'
     implementation 'org.slf4j:slf4j-simple:2.0.16'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+}
+
+test {
+    useJUnitPlatform()
 }
