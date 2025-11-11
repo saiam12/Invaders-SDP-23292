@@ -424,12 +424,20 @@ public class GameScreen extends Screen {
 				drawManager.drawEntity(bossBullet, bossBullet.getPositionX(), bossBullet.getPositionY());
 			}
 			drawManager.drawEntity(finalBoss, finalBoss.getPositionX(), finalBoss.getPositionY());
+			drawManager.drawBossHealthBar(finalBoss.getPositionX(),finalBoss.getPositionY(), "FINAL",
+					finalBoss.getHealPoint(), finalBoss.getMaxHp());
 		}
 
 		enemyShipFormation.draw();
 
 		if(this.omegaBoss != null) {
 			this.omegaBoss.draw(drawManager);
+		}
+
+		if(this.omegaBoss != null && !this.omegaBoss.isDestroyed()) {
+			this.omegaBoss.draw(drawManager);
+			drawManager.drawBossHealthBar(omegaBoss.getPositionX(),omegaBoss.getPositionY(), "OMEGA",
+					this.omegaBoss.getHealPoint(), this.omegaBoss.getMaxHp());
 		}
 
 		for (Bullet bullet : this.bullets)
