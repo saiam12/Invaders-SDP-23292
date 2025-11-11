@@ -21,6 +21,8 @@ public class GameState {
 	private int shipsDestroyed;
     /** Current coin. */
     private int coin;
+	/** check 1p or 2p mode. */
+	private boolean isTwoPlayerMode;
 
 
 	/**
@@ -40,10 +42,12 @@ public class GameState {
 	 *            Bullets shot until now.
 	 * @param shipsDestroyed
 	 *            Ships destroyed until now.
+	 * @param isTwoPlayerMode
+	 * 			  check 1p or 2p mode.
 	 */
 	public GameState(final int level, final int score,
 			final int livesRemaining,final int livesRemainingP2, final int bulletsShot,
-			final int shipsDestroyed, final int coin) {
+			final int shipsDestroyed, final int coin, final boolean isTwoPlayerMode) {
 		this.level = level;
 		this.score = score;
 		this.livesRemaining = livesRemaining;
@@ -51,7 +55,11 @@ public class GameState {
 		this.bulletsShot = bulletsShot;
         this.shipsDestroyed = shipsDestroyed;
         this.coin = coin;
+		this.isTwoPlayerMode = isTwoPlayerMode;
 		    }
+
+	public final boolean isTwoPlayerMode() { return isTwoPlayerMode; }
+
 	/**
 	 * @return the level
 	 */
