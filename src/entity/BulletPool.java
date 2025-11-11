@@ -44,6 +44,7 @@ public final class BulletPool {
 			bullet.setPositionY(positionY);
 			bullet.setSpeed(speed);
 			bullet.resetPenetration();
+			bullet.resetEnemiesAlreadyHit();
 			bullet.setSprite();
 		} else {
 			bullet = new Bullet(positionX, positionY, speed);
