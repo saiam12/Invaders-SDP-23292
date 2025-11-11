@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import entity.Entity;
@@ -687,7 +688,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws the starfield background.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param stars
@@ -731,10 +732,10 @@ public final class DrawManager {
 		final int barX = positionX;
 		final int barY = positionY - 6;
 
-		if (bossName == "FIANL"){
+		if (Objects.equals(bossName, "FINAL")){
 			barWidth = 105;
 		}
-		else if(bossName == "OMEGA"){barWidth = 65;}
+		else if(Objects.equals(bossName, "OMEGA")){barWidth = 65;}
 
 		// Calculate health percentage
 		float healthPercent = (float) currentHealth / maxHealth;
