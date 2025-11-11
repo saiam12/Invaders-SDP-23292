@@ -551,8 +551,6 @@ public class GameScreen extends Screen {
 				for (EnemyShip enemyShip : this.enemyShipFormation)
 					if (!enemyShip.isDestroyed()
 							&& checkCollision(bullet, enemyShip)) {
-
-                        boolean beforeHit = enemyShip.getHealth() != 0;
 						if (!bullet.checkAlreadyHit(enemyShip)) {
 							bullet.addEnemyShip(enemyShip);
 							enemyShip.takeDamage(1); // Implement user ship damage
@@ -561,7 +559,7 @@ public class GameScreen extends Screen {
 							break;
                         boolean afterHit = enemyShip.getHealth() == 0;
 
-                        if (beforeHit && afterHit) {
+                        if (afterHit) {
                             int pts = enemyShip.getPointValue();
                             addPointsFor(bullet, pts);
                             this.coin += (pts / 10);
