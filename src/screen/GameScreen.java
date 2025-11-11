@@ -798,16 +798,16 @@ public class GameScreen extends Screen {
 						case Explode:
 							int pts = 0;
                             // Circuit all enemies
-                            for (EnemyShip enemy : this.enemyShipFormation) {
+                            for (EnemyShip enemyShip : this.enemyShipFormation) {
 
-                                if (enemy != null && !enemy.isDestroyed()) {
-                                    boolean alive = !enemy.isDestroyed();
-                                    enemy.takeDamage(1);
+                                if (enemyShip != null && !enemyShip.isDestroyed()) {
 
-                                    if (alive && enemy.isDestroyed()) {
-                                        pts += enemy.getPointValue();
+                                    enemyShip.takeDamage(1);
+                                    boolean afterHit = enemyShip.getHealth() == 0;
+                                    if (afterHit) {
+                                        pts += enemyShip.getPointValue();
                                         this.shipsDestroyed++;
-                                        this.enemyShipFormation.destroy(enemy);
+                                        this.enemyShipFormation.destroy(enemyShip);
                                     }
                                 }
                             }
@@ -845,14 +845,16 @@ public class GameScreen extends Screen {
 						case Explode:
                             int pts2 = 0;
                             // Circuit all enemies
-                            for (EnemyShip enemy : this.enemyShipFormation) {
-                                if (enemy != null && !enemy.isDestroyed()) {
-                                    boolean alive = !enemy.isDestroyed();
-                                    enemy.takeDamage(1);
-                                    if (alive && enemy.isDestroyed()) {
-                                        pts2 += enemy.getPointValue();
+                            for (EnemyShip enemyShip : this.enemyShipFormation) {
+
+                                if (enemyShip != null && !enemyShip.isDestroyed()) {
+
+                                    enemyShip.takeDamage(1);
+                                    boolean afterHit = enemyShip.getHealth() == 0;
+                                    if (afterHit) {
+                                        pts2 += enemyShip.getPointValue();
                                         this.shipsDestroyed++;
-                                        this.enemyShipFormation.destroy(enemy);
+                                        this.enemyShipFormation.destroy(enemyShip);
                                     }
                                 }
                             }
