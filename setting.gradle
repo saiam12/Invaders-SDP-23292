@@ -1,14 +1,11 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
+
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
     }
 }
 
-toolchainManagement {
-    jvm {
-        repositories {
-            jdkDownload()   // Gradle version must be 8.10+
-        }
-    }
-}
 rootProject.name = "TEAMKWAK"
