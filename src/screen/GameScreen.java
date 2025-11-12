@@ -804,8 +804,21 @@ public class GameScreen extends Screen {
 							DropItem.PushbackItem(this.enemyShipFormation,20);
 							break;
 						case Explode:
-							int destroyedEnemy = this.enemyShipFormation.destroyAll();
-                            int pts = destroyedEnemy * 5;
+							int pts = 0;
+                            // Circuit all enemies
+                            for (EnemyShip enemyShip : this.enemyShipFormation) {
+
+                                if (enemyShip != null && !enemyShip.isDestroyed()) {
+
+                                    enemyShip.takeDamage(1);
+                                    boolean afterHit = enemyShip.getHealth() == 0;
+                                    if (afterHit) {
+                                        pts += enemyShip.getPointValue();
+                                        this.shipsDestroyed++;
+                                        this.enemyShipFormation.destroy(enemyShip);
+                                    }
+                                }
+                            }
                             addPointsFor(null, pts);
                             break;
 						case Slow:
@@ -838,9 +851,22 @@ public class GameScreen extends Screen {
 							DropItem.PushbackItem(this.enemyShipFormation,20);
 							break;
 						case Explode:
-							int destroyedEnemy = this.enemyShipFormation.destroyAll();
-                            int pts = destroyedEnemy * 5;
-                            addPointsFor(null, pts);
+                            int pts2 = 0;
+                            // Circuit all enemies
+                            for (EnemyShip enemyShip : this.enemyShipFormation) {
+
+                                if (enemyShip != null && !enemyShip.isDestroyed()) {
+
+                                    enemyShip.takeDamage(1);
+                                    boolean afterHit = enemyShip.getHealth() == 0;
+                                    if (afterHit) {
+                                        pts2 += enemyShip.getPointValue();
+                                        this.shipsDestroyed++;
+                                        this.enemyShipFormation.destroy(enemyShip);
+                                    }
+                                }
+                            }
+                            addPointsFor(null, pts2);
                             break;
 						case Slow:
 							enemyShipFormation.activateSlowdown();
