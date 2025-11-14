@@ -20,6 +20,17 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
 }
 
+sourceSets {
+    main {
+        java { srcDirs = ['src'] }
+        resources { srcDirs = ['res'] }
+    }
+}
+
 test {
     useJUnitPlatform()
+}
+
+application {
+    mainClass = 'engine.Core'
 }
