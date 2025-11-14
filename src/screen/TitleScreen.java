@@ -299,8 +299,6 @@ public class TitleScreen extends Screen {
 	private void nextMenuItem() {
 		SoundManager.play("sfx/menu_select.wav");
 		if (this.returnCode == 2)
-			this.returnCode = 7;
-		else if (this.returnCode == 7)
 			this.returnCode = 3;
 		else if (this.returnCode == 3)
 			this.returnCode = 6;
@@ -330,8 +328,6 @@ public class TitleScreen extends Screen {
 		else if (this.returnCode == 6)
 			this.returnCode = 3;
 		else if (this.returnCode == 3)
-			this.returnCode = 7;
-		else if (this.returnCode == 7)
 			this.returnCode = 2;
 		else if (this.returnCode == 5) {
 			this.returnCode = 6;
