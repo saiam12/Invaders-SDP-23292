@@ -4,5 +4,9 @@ class Agent:
         print("Agent 초기화 완료 (현재는 깡통 상태)")
 
     def get_action(self, state):
-
-        return random.randint(0, 5)
+        action_packet = {
+            "moveX": random.choice([-1, 0, 1]),
+            "moveY": random.choice([-1, 0, 1]),
+            "shoot": random.choice([True, False])
+        }
+        return action_packet
