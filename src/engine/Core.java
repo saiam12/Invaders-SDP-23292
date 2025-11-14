@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import entity.ShopItem;
 import engine.level.LevelManager;
 import screen.*;
+import engine.dto.*;
 
 /**
  * Implements core game logic.
@@ -285,4 +286,27 @@ public final class Core {
 			final int variance) {
 		return new Cooldown(milliseconds, variance);
 	}
+
+    /**
+     * Handle external action packet coming from HTTP API.
+     *
+     * Movement is represented as axis values and shoot flag.
+     *
+     * @param packet ActionPacket received from external controller (Python).
+     */
+    public static void handleExternalAction(final ActionPacket packet) {
+        // Only handle actions when the current screen is a game screen.
+        if (!(currentScreen instanceof GameScreen)) {
+            return;
+        }
+
+        GameScreen gameScreen = (GameScreen) currentScreen;
+
+        // Map axis-based movement and attack to the game screen.
+        gameScreen.handleExternalAction(
+                packet.moveX,  // -1: left, 0: none, 1: right
+                packet.moveY,    // -1: up, 0: none, 1: down
+                packet.shoot       // true: shoot, false: no shoot
+        );
+    }
 }

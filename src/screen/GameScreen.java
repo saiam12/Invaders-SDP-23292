@@ -98,7 +98,7 @@ public class GameScreen extends Screen {
 	private boolean levelFinished;
 	/** Checks if a bonus life is received. */
 	private boolean bonusLife;
-  /** Maximum number of lives. */
+    /** Maximum number of lives. */
 	private int maxLives;
 	/** Current coin. */
 	private int coin;
@@ -118,27 +118,37 @@ public class GameScreen extends Screen {
     /** bossBullets carry bullets which Boss fires */
 	private Set<BossBullet> bossBullets;
 	/** Is the bullet on the screen erased */
-  private boolean is_cleared = false;
-  /** Timer to track elapsed time. */
-  private GameTimer gameTimer;
-  /** Elapsed time since the game started. */
-  private long elapsedTime;
-  // Achievement popup
-  private String achievementText;
-  private Cooldown achievementPopupCooldown;
-  private enum StagePhase{wave, boss_wave};
-  private StagePhase currentPhase;
-  /** Health change popup. */
-  private String healthPopupText;
-  private Cooldown healthPopupCooldown;
+    private boolean is_cleared = false;
+    /** Timer to track elapsed time. */
+    private GameTimer gameTimer;
+    /** Elapsed time since the game started. */
+    private long elapsedTime;
+    // Achievement popup
+    private String achievementText;
+    private Cooldown achievementPopupCooldown;
+    private enum StagePhase{wave, boss_wave};
+    private StagePhase currentPhase;
+    /** Health change popup. */
+    private String healthPopupText;
+    private Cooldown healthPopupCooldown;
 
-	    private GameState gameState;
+    private GameState gameState;
 
-	    /**
-	     * Constructor, establishes the properties of the screen.
-	     *
-	     * @param gameState
-	     *            Current game state.	 * @param level
+    // === External control state for HTTP/AI controller (Player 1) ===
+    /** Whether external control is enabled for player 1. */
+    private boolean AImode = false;
+    /** Latest external horizontal movement (-1: left, 0: none, 1: right). */
+    private int externalMoveX = 0;
+    /** Latest external vertical movement (-1: up, 0: none, 1: down). */
+    private int externalMoveY = 0;
+    /** Latest external shooting flag. */
+    private boolean externalShoot = false;
+
+    /**
+     * Constructor, establishes the properties of the screen.
+     *
+     * @param gameState
+     *            Current game state.	 * @param level
 	 *            Current level settings.
 	 * @param bonusLife
 	 *            Checks if a bonus life is awarded this level.
@@ -240,11 +250,33 @@ public class GameScreen extends Screen {
 			}
 
 			if (this.livesP1 > 0 && !this.ship.isDestroyed()) {
-				boolean p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D);
-				boolean p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A);
-				boolean p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W);
-				boolean p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S);
-				boolean p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE);
+
+                boolean p1Right = false;
+                boolean p1Left  = false;
+                boolean p1Up    = false;
+                boolean p1Down  = false;
+                boolean p1Fire  = false;
+
+                if (this.AImode) {
+                    if (externalMoveX == 1) {
+                        p1Right = true;
+                    } else if (externalMoveX == -1) {
+                        p1Left = true;
+                    }
+                    if (externalMoveY == 1) {
+                        p1Down = true;
+                    } else if (externalMoveY == -1) {
+                        p1Up = true;
+                    }
+                    p1Fire = externalShoot;
+                }
+                else {
+                    p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D);
+                    p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A);
+                    p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W);
+                    p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S);
+                    p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE);
+                }
 
 				boolean isRightBorder = this.ship.getPositionX()
 						+ this.ship.getWidth() + this.ship.getSpeed() > this.width - 1;
@@ -1006,5 +1038,23 @@ public class GameScreen extends Screen {
         } else {
             return new Color(0xF44336); // Red: Critical HP
         }
+    }
+    /**
+     * Updates external control input for player 1.
+     * This method is called from Core via HTTP API.
+     *
+     * @param moveX Horizontal movement axis (-1, 0, 1).
+     * @param moveY Vertical movement axis (-1, 0, 1).
+     * @param shoot Whether the player should shoot.
+     */
+    public void handleExternalAction(final int moveX, final int moveY, final boolean shoot) {
+        this.setAImode(true);
+        this.externalMoveX = moveX;
+        this.externalMoveY = moveY;
+        this.externalShoot = shoot;
+    }
+
+    public void setAImode(final boolean aImode) {
+        AImode = aImode;
     }
 }
