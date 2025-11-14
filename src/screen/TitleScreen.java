@@ -8,7 +8,6 @@ import java.util.Random;
 
 import engine.Cooldown;
 import engine.Core;
-import engine.DrawManager;
 import engine.DrawManager.SpriteType;
 import entity.Entity;
 import entity.SoundButton;
@@ -279,8 +278,8 @@ public class TitleScreen extends Screen {
 					}
 				}
 			}
-			if (inputManager.isKeyDown(KeyEvent.VK_RIGHT)
-					|| inputManager.isKeyDown(KeyEvent.VK_D)) {
+			if ((inputManager.isKeyDown(KeyEvent.VK_RIGHT)
+					|| inputManager.isKeyDown(KeyEvent.VK_D)) && !(this.returnCode == 5)) {
 				this.returnCode = 5;
 				this.targetAngle += 90;
 				this.selectionCooldown.reset();
