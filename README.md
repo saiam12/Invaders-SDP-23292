@@ -1,4 +1,4 @@
-# 🚀 Space Game Project
+# 🚀 Space Invader Project
 
 ## 🧭 Overview
 This project is a space shooting game developed using **Java** (and **Python** for AI mode).  
