@@ -2,6 +2,7 @@ package screen;
 
 import java.awt.event.KeyEvent;
 
+import engine.AnimatedBackground;
 import engine.Cooldown;
 import engine.Core;
 import engine.DrawManager;
@@ -14,6 +15,9 @@ public class ModeSelectScreen extends Screen {
 
     /** Time between changes in user selection. */
     private Cooldown selectionCooldown;
+
+    /** Animated background. */
+    private AnimatedBackground animatedBackground;
 
     /**
      * Constructor, establishes the properties of the screen.
@@ -32,6 +36,7 @@ public class ModeSelectScreen extends Screen {
         this.returnCode = 2;
         this.selectionCooldown = Core.getCooldown(SELECTION_TIME);
         this.selectionCooldown.reset();
+        this.animatedBackground = new AnimatedBackground(width, height);
     }
 
     /**
@@ -50,6 +55,7 @@ public class ModeSelectScreen extends Screen {
      */
     protected final void update() {
         super.update();
+        this.animatedBackground.update();
 
         draw();
         if (this.selectionCooldown.checkFinished()
@@ -81,6 +87,7 @@ public class ModeSelectScreen extends Screen {
             this.returnCode = 1; // Return to title screen
         else if (this.returnCode == 1)
             this.returnCode = 2;
+        this.animatedBackground.rotateRight();
     }
 
     /**
@@ -94,6 +101,7 @@ public class ModeSelectScreen extends Screen {
             this.returnCode = 7;
         else if (this.returnCode == 7)
             this.returnCode = 2;
+        this.animatedBackground.rotateLeft();
     }
 
     /**
@@ -102,6 +110,7 @@ public class ModeSelectScreen extends Screen {
     private void draw() {
         drawManager.initDrawing(this);
 
+        this.animatedBackground.draw(drawManager, this);
         drawManager.drawModeSelect(this, this.returnCode);
 
         drawManager.completeDrawing(this);

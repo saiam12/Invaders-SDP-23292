@@ -21,9 +21,8 @@ import screen.CreditScreen;
 import screen.GameScreen;
 import screen.Screen;
 import engine.Score;
-import screen.TitleScreen;
-import screen.TitleScreen.Star;
-import screen.TitleScreen.ShootingStar;
+import engine.AnimatedBackground.Star;
+import engine.AnimatedBackground.ShootingStar;
 
 /**
  * Manages screen drawing.
