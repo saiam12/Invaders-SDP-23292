@@ -2,8 +2,6 @@ package engine;
 
 import audio.SoundManager;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -98,6 +96,12 @@ public final class Core {
                             + " title screen at " + FPS + " fps.");
                     returnCode = frame.setScreen(currentScreen);
                     LOGGER.info("Closing title screen.");
+					if (returnCode == 2) {
+						currentScreen = new ModeSelectScreen(width, height, FPS);
+						LOGGER.info("Starting" + WIDTH + "x" + HEIGHT + " mode select screen at " + FPS + " fps.");
+						returnCode = frame.setScreen(currentScreen);
+						LOGGER.info("Closing mode select screen.");
+					}
                     break;
                 case 2:
 					isTwoPlayerMode = false;
