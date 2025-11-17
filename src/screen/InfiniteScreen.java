@@ -21,7 +21,6 @@ public class InfiniteScreen extends Screen {
     private static final int INPUT_DELAY = 6000;
     private static final int LIFE_SCORE = 100;
     private static final int SEPARATION_LINE_HEIGHT = 45;
-    private static final int ITEMS_SEPARATION_LINE_HEIGHT = 400;
     private static final int SCREEN_CHANGE_INTERVAL = 1500;
 
     /** Initial spawn interval in milliseconds */
