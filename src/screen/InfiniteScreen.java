@@ -1,11 +1,10 @@
 package screen;
 
-import engine.GameState;
+import engine.*;
 import entity.*;
 
 import java.awt.*;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 public class InfiniteScreen extends Screen {
 
@@ -18,7 +17,29 @@ public class InfiniteScreen extends Screen {
     private long gameStartTime;       // Moment the game starts
     private boolean bossSpawned;   // Whether boss has appeared
     private static final int ITEMS_SEPARATION_LINE_HEIGHT = 400;
+
+    private static final int INPUT_DELAY = 6000;
+    private static final int LIFE_SCORE = 100;
+    private static final int SEPARATION_LINE_HEIGHT = 45;
+    private static final int ITEMS_SEPARATION_LINE_HEIGHT = 400;
+    private static final int SCREEN_CHANGE_INTERVAL = 1500;
+
+    /** Initial spawn interval in milliseconds */
+    private static final int INITIAL_SPAWN_INTERVAL = 1500;
+    /** Minimum spawn interval (milliseconds) */
+    private static final int MIN_SPAWN_INTERVAL = 500;
+    /** How much the spawn interval decreases every 30 seconds */
+    private static final int SPAWN_INTERVAL_DECREASE = 200;
+    /** Interval for difficulty increase check (milliseconds) */
+    private static final int SPAWN_INTERVAL_DECREASE_TIME = 30000;
+    /** Boss spawn interval: 5 minutes (300000 milliseconds) */
+    private static final int BOSS_SPAWN_INTERVAL = 300000;
     /** Returns the Y-coordinate of the bottom boundary for enemies (above items HUD) */
+
+    private Cooldown enemySpawnCooldown;
+    private int currentSpawnInterval;
+    private Cooldown difficultyIncreaseCooldown;
+
     public static int getItemsSeparationLineHeight() {
         return ITEMS_SEPARATION_LINE_HEIGHT;
     }
@@ -40,6 +61,14 @@ public class InfiniteScreen extends Screen {
         this.score = 0;
         this.gameStartTime = 0;
         this.bossSpawned = false;
+        this.gameStartTime = System.currentTimeMillis();
+
+        this.currentSpawnInterval = INITIAL_SPAWN_INTERVAL;
+        this.enemySpawnCooldown = Core.getCooldown(currentSpawnInterval);
+        this.enemySpawnCooldown.reset();
+        this.difficultyIncreaseCooldown = Core.getCooldown(SPAWN_INTERVAL_DECREASE_TIME);
+        this.difficultyIncreaseCooldown.reset();
+
         this.ship = new Ship(this.width / 2, ITEMS_SEPARATION_LINE_HEIGHT - 20, Color.green); // Placeholder, implement Player class separately
     }
 
