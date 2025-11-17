@@ -15,7 +15,6 @@ public class StatePacket {
     public int playerHp;
     public List<List<Integer>> bullets;
     public List<List<Integer>> enemies;
-    public List<List<Integer>> items;
+    public List<List<String>> items;
     public int score;
-    public long rngSeed;
 }

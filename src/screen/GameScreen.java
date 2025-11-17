@@ -13,6 +13,7 @@ import engine.GameTimer;
 import engine.AchievementManager;
 import engine.ItemHUDManager;
 import entity.*;
+import engine.dto.StatePacket;
 
 import engine.level.Level;
 
@@ -1105,7 +1106,55 @@ public class GameScreen extends Screen {
         this.externalShoot = shoot;
     }
 
-    public void setAImode(final boolean aImode) {
-        AImode = aImode;
+    public void setAImode(final boolean aimode) {
+        AImode = aimode;
+    }
+
+    public StatePacket buildStatePacket() {
+        StatePacket packet = new StatePacket();
+
+        // 1. Frame index
+        packet.frame = (int)(System.currentTimeMillis() / 16);  // 대략 60fps 기준
+
+        // 2. Player info
+        packet.playerX = this.ship.getPositionX();
+        packet.playerY = this.ship.getPositionY();
+        packet.playerHp = this.livesP1;
+
+        // 3. Bullets info
+        packet.bullets = new ArrayList<>();
+        for (Bullet b : this.bullets) {
+            List<Integer> bullet_info = new ArrayList<>();
+            bullet_info.add(b.getPositionX());
+            bullet_info.add(b.getPositionY());
+            packet.bullets.add(bullet_info);
+        }
+
+        // 4. Enemies info
+        packet.enemies = new ArrayList<>();
+        for (EnemyShip e : this.enemyShipFormation) {
+            if (!e.isDestroyed()) {
+                List<Integer> enemy_info = new ArrayList<>();
+                enemy_info.add(e.getPositionX());
+                enemy_info.add(e.getPositionY());
+                enemy_info.add(e.getHealth());
+                packet.enemies.add(enemy_info);
+            }
+        }
+
+        // 5. Items info
+        packet.items = new ArrayList<>();
+        for (DropItem d : this.dropItems) {
+            List<String> item_info = new ArrayList<>();
+            item_info.add(String.valueOf(d.getPositionX()));
+            item_info.add(String.valueOf(d.getPositionY()));
+            item_info.add(d.getItemType().toString());
+            packet.items.add(item_info);
+        }
+
+        // 6. Score
+        packet.score = this.score;
+
+        return packet;
     }
 }

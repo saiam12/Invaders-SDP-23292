@@ -74,7 +74,9 @@ public final class Core {
 			e.printStackTrace();
 		}
 
-		frame = new Frame(WIDTH, HEIGHT);
+        ApiServer.start(8000); // start http server
+
+        frame = new Frame(WIDTH, HEIGHT);
 		DrawManager.getInstance().setFrame(frame);
 		int width = frame.getWidth();
 		int height = frame.getHeight();
@@ -389,5 +391,11 @@ public final class Core {
                 packet.moveY,    // -1: up, 0: none, 1: down
                 packet.shoot       // true: shoot, false: no shoot
         );
+    }
+    public static GameScreen getCurrentGameScreen(){
+        if  (currentScreen instanceof GameScreen) {
+            return (GameScreen) currentScreen;
+        }
+        return null;
     }
 }

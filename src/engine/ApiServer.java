@@ -1,4 +1,5 @@
 package engine;
+import screen.GameScreen;
 
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -84,5 +85,26 @@ public class ApiServer {
      */
     public void stop() {
         app.stop();
+    }
+
+    public static void start(int port) {
+        Javalin app = Javalin.create().start(port);
+
+        // Existing action endpoint
+        app.post("/action", ctx -> {
+            // ... ActionPacket ...
+        });
+
+        // === New endpoint: get current game state ===
+        app.get("/state", ctx -> {
+            GameScreen gameScreen = Core.getCurrentGameScreen();
+            if (gameScreen == null) {
+                ctx.status(503).result("Game screen is not active.");
+                return;
+            }
+
+            StatePacket state = gameScreen.buildStatePacket();
+            ctx.json(state);
+        });
     }
 }
