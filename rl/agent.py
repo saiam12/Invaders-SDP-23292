@@ -42,6 +42,17 @@ class DQN(nn.Module):
             nn.Linear(32, 2)  # 2개의 행동 (공격 안함, 공격)
         )
 
+    def forward(self, x):
+        """신경망 전파 로직 (순전파)"""
+        common = self.common_layers(x)
+
+        moveX_q = self.moveX_head(common)
+        moveY_q = self.moveY_head(common)
+        shoot_q = self.shoot_head(common)
+
+        # 3개의 Q-value 묶음을 반환
+        return moveX_q, moveY_q, shoot_q
+
 class Agent:
     def __init__(self):
         print("Agent 초기화 완료 (현재는 깡통 상태)")
