@@ -16,5 +16,6 @@ public class StatePacket {
     public List<List<Integer>> bullets;
     public List<List<Integer>> enemies;
     public List<List<String>> items;
+    public List<Integer> boss;
     public int score;
 }

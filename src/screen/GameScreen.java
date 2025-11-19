@@ -725,6 +725,13 @@ public class GameScreen extends Screen {
             bullet_info.add(b.getPositionY());
             packet.bullets.add(bullet_info);
         }
+        for (BossBullet b : this.bossBullets) {
+            List<Integer> bullet_info = new ArrayList<>();
+            bullet_info.add(b.getPositionX());
+            bullet_info.add(b.getPositionY());
+            packet.bullets.add(bullet_info);
+        }
+
 
         // 4. Enemies info
         packet.enemies = new ArrayList<>();
@@ -734,14 +741,13 @@ public class GameScreen extends Screen {
                 enemy_info.add(e.getPositionX());
                 enemy_info.add(e.getPositionY());
                 enemy_info.add(e.getHealth());
-                String enemy_ship_type = e.getEnemyType();
-                int enemy_ship_type_int = switch (enemy_ship_type) {
+                int enemy_ship_type = switch (e.getEnemyType()) {
                     case "enemyA" -> 1;
                     case "enemyB" -> 2;
                     case "enemyC" -> 3;
                     default -> 0;
                 };
-                enemy_info.add(enemy_ship_type_int);
+                enemy_info.add(enemy_ship_type);
                 packet.enemies.add(enemy_info);
             }
         }
@@ -756,7 +762,29 @@ public class GameScreen extends Screen {
             packet.items.add(item_info);
         }
 
-        // 6. Score
+        // 6. Boss info
+        packet.boss = new ArrayList<>();
+        if (this.finalBoss != null && !this.finalBoss.isDestroyed()) {
+            packet.boss = List.of(
+                    finalBoss.getPositionX(),
+                    finalBoss.getPositionY(),
+                    finalBoss.getHealPoint(),
+                    finalBoss.getMaxHp(),
+                    0
+            );
+        } else if (this.omegaBoss != null && !this.omegaBoss.isDestroyed()) {
+            packet.boss = List.of(
+                    omegaBoss.getPositionX(),
+                    omegaBoss.getPositionY(),
+                    omegaBoss.getHealPoint(),
+                    omegaBoss.getMaxHp(),
+                    1
+            );
+        } else {
+            packet.boss = null;
+        }
+
+        // 7. Score
         packet.score = this.score;
 
         return packet;
