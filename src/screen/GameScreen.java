@@ -1,8 +1,6 @@
 package screen;
 
 import java.awt.Color;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -19,7 +17,7 @@ import engine.level.Level;
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  *
  */
-public class GameScreen extends Screen {
+public class GameScreen extends Screen implements CollisionContext {
 
 	/** Milliseconds until the screen accepts user input. */
 	private static final int INPUT_DELAY = 6000;
@@ -660,7 +658,7 @@ public class GameScreen extends Screen {
     public int getLivesP1() { return this.livesP1; }
     public void setLivesP1(int lives) { this.livesP1 = lives; }
     public Ship getShip() { return this.ship; }
-    public boolean isLevelFinished() { return this.levelFinished; }
+    public boolean isLevelFinished() { return !this.levelFinished; }
     public Logger getLogger() { return this.logger; }
     public boolean isTwoPlayerMode() { return this.isTwoPlayerMode; }
     public Ship getShipP2() { return this.shipP2; }
