@@ -110,6 +110,8 @@ class Agent:
         return action_packet
 
     def _state_to_tensor(self, state):
+        state_tensor = torch.FloatTensor(state)
+        return state_tensor.unsqueeze(0)
 
     def remember(self, state, action_packet, reward, next_state, is_game_over):
         pass
