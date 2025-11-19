@@ -4,7 +4,9 @@ import torch.nn as nn
 import torch.optim as optim
 import random
 import numpy as np
+from collections import deque
 
+# --- define neural network ---
 class DQN(nn.Module):
     def __init__(self, state_size):
         """
@@ -53,9 +55,30 @@ class DQN(nn.Module):
         # 3개의 Q-value 묶음을 반환
         return moveX_q, moveY_q, shoot_q
 
+# --- Agent Class ---
 class Agent:
-    def __init__(self):
-        print("Agent 초기화 완료 (현재는 깡통 상태)")
+    def __init__(self, state_size, batch_size=32, gamma=0.99):
+        print('reset Agent ...')
+        self.state_size = state_size
+        self.batch_size = batch_size
+        self.gamma = gamma
+
+        # generate (DQN + Target Network)
+        self.model = DQN(state_size)
+        self.target_model = DQN(state_size)
+        self.target_model.load_state_dict(self.model.state_dict())
+
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+
+        # set relay buffer
+        self.memory = deque(maxlen=100000)
+
+        # set epsilon
+        self.epsilon = 1.0 # start with 100% discovery
+        self.epsilon_min = 0.01 # at least 1% discovery
+        self.epsilon_decay = 0.9995 # Reduce probability of discovery every time
+
+        print("reset Agent complete")
 
     def get_action(self, state):
         """
