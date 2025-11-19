@@ -88,11 +88,32 @@ public class ApiServer {
     }
 
     public static void start(int port) {
-        Javalin app = Javalin.create().start(port);
+        Gson gson = new Gson();
+
+        Javalin app = Javalin.create(config -> {
+            config.jsonMapper(new GsonJsonMapper(gson));
+        });
+
+        app.start(8000);
 
         // Existing action endpoint
         app.post("/action", ctx -> {
-            // ... ActionPacket ...
+            try {
+                ActionPacket packet = gson.fromJson(ctx.body(), ActionPacket.class);
+
+                // Basic validation
+                if (packet == null) {
+                    ctx.status(400).result("{\"error\":\"bad_json\"}");
+                    return;
+                }
+
+                // Forward the action to the game core
+                Core.handleExternalAction(packet);
+
+                ctx.json(Map.of("ok", true));
+            } catch (Exception e) {
+                ctx.status(400).result("{\"error\":\"bad_request\"}");
+            }
         });
 
         // === New endpoint: get current game state ===
