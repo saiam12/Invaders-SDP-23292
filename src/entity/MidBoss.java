@@ -50,6 +50,8 @@ public abstract class MidBoss extends Entity implements BossEntity {
 	@Override
 	public boolean isDestroyed() { return this.isDestroyed; }
 
+	public int getMaxHp() { return this.maxHp; }
+
 	/**
 	 * Associates the formation to a given screen.
 	 *

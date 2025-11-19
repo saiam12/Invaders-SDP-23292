@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import entity.Entity;
@@ -17,11 +18,11 @@ import entity.FinalBoss;
 import entity.Ship;
 import engine.Achievement;
 import screen.CreditScreen;
+import screen.GameScreen;
 import screen.Screen;
 import engine.Score;
-import screen.TitleScreen;
-import screen.TitleScreen.Star;
-import screen.TitleScreen.ShootingStar;
+import engine.AnimatedBackground.Star;
+import engine.AnimatedBackground.ShootingStar;
 
 /**
  * Manages screen drawing.
@@ -60,6 +61,9 @@ public final class DrawManager {
 
 	/** Sprite types mapped to their images. */
 	private static Map<SpriteType, boolean[][]> spriteMap;
+
+//	public void drawBossHealthBar(GameScreen gameScreen, String omega, int healPoint, int maxHp) {
+//	}
 
 	/** Sprite types. */
 	public static enum SpriteType {
@@ -332,40 +336,61 @@ public final class DrawManager {
 	 * Draws main menu.
 	 */
 	public void drawMenu(final Screen screen, final int option) {
-		String playString1 = "1P Mode";
-		String playString2 = "2P Mode";
-        String highScoresString = "High scores";
-        String achievementsString = "Achievements";
-        String shopString = "Shop";
-        String exitString = "Exit";
+		String playString = "Play";
+		String highScoresString = "High scores";
+		String achievementsString = "Achievements";
+		String shopString = "Shop";
+		String exitString = "Exit";
 
 		// Pulsing color for selected item
 		float pulse = (float) ((Math.sin(System.currentTimeMillis() / 200.0) + 1.0) / 2.0);
 		Color pulseColor = new Color(0, 0.5f + pulse * 0.5f, 0);
 
-        if (option == 2) backBufferGraphics.setColor(pulseColor);
-        else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, playString1, screen.getHeight() / 3 * 2);
+		if (option == 2) backBufferGraphics.setColor(pulseColor);
+		else backBufferGraphics.setColor(Color.WHITE);
+		drawCenteredRegularString(screen, playString, screen.getHeight() / 3 * 2);
+
+		if (option == 3) backBufferGraphics.setColor(pulseColor);
+		else backBufferGraphics.setColor(Color.WHITE);
+		drawCenteredRegularString(screen, highScoresString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 1);
+
+		if (option == 6) backBufferGraphics.setColor(pulseColor);
+		else backBufferGraphics.setColor(Color.WHITE);
+		drawCenteredRegularString(screen, achievementsString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
+
+		if (option == 4) backBufferGraphics.setColor(pulseColor);
+		else backBufferGraphics.setColor(Color.WHITE);
+		drawCenteredRegularString(screen, shopString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 3);
+
+		if (option == 0) backBufferGraphics.setColor(pulseColor);
+		else backBufferGraphics.setColor(Color.WHITE);
+		drawCenteredRegularString(screen, exitString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 4);
+
+	}
+
+	/**
+	 * Draws mode select screen.
+	 */
+	public void drawModeSelect(final Screen screen, final int option) {
+		String playString1 = "1P Mode";
+		String playString2 = "2P Mode";
+		String backString = "Back";
+
+		// Pulsing color for selected item
+		float pulse = (float) ((Math.sin(System.currentTimeMillis() / 200.0) + 1.0) / 2.0);
+		Color pulseColor = new Color(0, 0.5f + pulse * 0.5f, 0);
+
+		if (option == 2) backBufferGraphics.setColor(pulseColor);
+		else backBufferGraphics.setColor(Color.WHITE);
+		drawCenteredRegularString(screen, playString1, screen.getHeight() / 3 * 2);
 
 		if (option == 7) backBufferGraphics.setColor(pulseColor);
 		else backBufferGraphics.setColor(Color.WHITE);
 		drawCenteredRegularString(screen, playString2, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 1);
 
-		if (option == 3) backBufferGraphics.setColor(pulseColor);
-        else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, highScoresString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
-
-        if (option == 6) backBufferGraphics.setColor(pulseColor);
-        else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, achievementsString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 3);
-
-        if (option == 4) backBufferGraphics.setColor(pulseColor);
-        else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, shopString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 4);
-
-        if (option == 0) backBufferGraphics.setColor(pulseColor);
-        else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, exitString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 5);
+		if (option == 1) backBufferGraphics.setColor(pulseColor);
+		else backBufferGraphics.setColor(Color.WHITE);
+		drawCenteredRegularString(screen, backString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
 	}
 
 	/**
@@ -683,7 +708,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws the starfield background.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param stars
@@ -717,5 +742,92 @@ public final class DrawManager {
 		}
 	}
 
-    	public void drawShootingStars(final Screen screen, final List<ShootingStar> shootingStars, final float angle) {    }
+	public void drawShootingStars(final Screen screen, final List<ShootingStar> shootingStars, final float angle) {    }
+
+	public void drawBossHealthBar(final int positionX,final int positionY, final String bossName,
+								  final int currentHealth, final int maxHealth) {
+		// Health bar dimensions
+		int barWidth = 105;
+		int barHeight = 5;
+		final int barX = positionX;
+		final int barY = positionY - 6;
+
+		if (Objects.equals(bossName, "FINAL")){
+			barWidth = 105;
+		}
+		else if(Objects.equals(bossName, "OMEGA")){barWidth = 65;}
+
+		// Calculate health percentage
+		float healthPercent = (float) currentHealth / maxHealth;
+		if (healthPercent < 0) healthPercent = 0;
+		if (healthPercent > 1) healthPercent = 1;
+
+		int currentBarWidth = (int) (barWidth * healthPercent);
+
+		// Draw background (empty health bar) - dark gray
+		backBufferGraphics.setColor(new Color(40, 40, 40));
+		backBufferGraphics.fillRect(barX, barY, barWidth, barHeight);
+
+		// Draw current health bar - green
+		if (currentBarWidth > 0) {
+			Color healthColor = getHealthBarColor(healthPercent);
+			backBufferGraphics.setColor(healthColor);
+			backBufferGraphics.fillRect(barX, barY, currentBarWidth, barHeight);
+		}
+
+		// Draw border - white
+		backBufferGraphics.setColor(Color.WHITE);
+		backBufferGraphics.drawRect(barX - 1, barY - 1, barWidth + 1, barHeight + 1);
+
+		// Draw health text (current / max)
+		backBufferGraphics.setFont(fontSmall);
+		backBufferGraphics.setColor(Color.WHITE);
+		String healthText = currentHealth + " / " + maxHealth;
+		int textWidth = fontRegularMetrics.stringWidth(healthText);
+		backBufferGraphics.drawString(healthText,
+				barX + (barWidth - textWidth / 2) / 2,
+				barY + barHeight - 5);
+	}
+
+	private Color getHealthBarColor(float healthPercent) {
+		if (healthPercent > 0.90f) {
+			// 100% - 90%: Green
+			return new Color(0, 255, 0);
+		} else if (healthPercent > 0.5f) {
+			// 90% - 50%: Green to Yellow
+			float ratio = (0.90f - healthPercent) / 0.4f;
+			return interpolateColor(
+					new Color(0, 255, 0),      // Green
+					new Color(255, 255, 0),    // Yellow
+					ratio
+			);
+		} else if (healthPercent > 0.25f) {
+			// 50% - 25%: Yellow to Orange
+			float ratio = (0.5f - healthPercent) / 0.25f;
+			return interpolateColor(
+					new Color(255, 255, 0),    // Yellow
+					new Color(255, 165, 0),    // Orange
+					ratio
+			);
+		} else {
+			// 25% - 0%: Orange to Red
+			float ratio = (0.25f - healthPercent) / 0.25f;
+			return interpolateColor(
+					new Color(255, 165, 0),    // Orange
+					new Color(255, 0, 0),      // Red
+					ratio
+			);
+		}
+	}
+
+	private Color interpolateColor(Color color1, Color color2, float ratio) {
+		if (ratio < 0) ratio = 0;
+		if (ratio > 1) ratio = 1;
+
+		int r = (int) (color1.getRed() + (color2.getRed() - color1.getRed()) * ratio);
+		int g = (int) (color1.getGreen() + (color2.getGreen() - color1.getGreen()) * ratio);
+		int b = (int) (color1.getBlue() + (color2.getBlue() - color1.getBlue()) * ratio);
+
+		return new Color(r, g, b);
+	}
 }
