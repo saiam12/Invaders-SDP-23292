@@ -110,10 +110,6 @@ class Agent:
         return action_packet
 
     def _state_to_tensor(self, state):
-        pass
-
-    def get_action(self, state):
-        pass
 
     def remember(self, state, action_packet, reward, next_state, is_game_over):
         pass
