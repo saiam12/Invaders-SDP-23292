@@ -734,6 +734,14 @@ public class GameScreen extends Screen {
                 enemy_info.add(e.getPositionX());
                 enemy_info.add(e.getPositionY());
                 enemy_info.add(e.getHealth());
+                String enemy_ship_type = e.getEnemyType();
+                int enemy_ship_type_int = switch (enemy_ship_type) {
+                    case "enemyA" -> 1;
+                    case "enemyB" -> 2;
+                    case "enemyC" -> 3;
+                    default -> 0;
+                };
+                enemy_info.add(enemy_ship_type_int);
                 packet.enemies.add(enemy_info);
             }
         }
