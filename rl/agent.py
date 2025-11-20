@@ -15,7 +15,7 @@ class DQN(nn.Module):
         """
         super(DQN, self).__init__()
 
-        # 공통 은닉층
+        # common hidded layer
         self.common_layers = nn.Sequential(
             nn.Linear(state_size, 128),
             nn.ReLU(),
@@ -23,21 +23,21 @@ class DQN(nn.Module):
             nn.ReLU()
         )
 
-        # 1. moveX (좌/정지/우) 헤드
+        # 1. moveX (left/stop/right)
         self.moveX_head = nn.Sequential(
             nn.Linear(128, 32),
             nn.ReLU(),
             nn.Linear(32, 3)  # 3개의 행동 (좌, 정지, 우)
         )
 
-        # 2. moveY (하/정지/상) 헤드
+        # 2. moveY (up/stop/down)
         self.moveY_head = nn.Sequential(
             nn.Linear(128, 32),
             nn.ReLU(),
             nn.Linear(32, 3)  # 3개의 행동 (하, 정지, 상)
         )
 
-        # 3. shoot (No/Yes) 헤드
+        # 3. shoot (No/Yes)
         self.shoot_head = nn.Sequential(
             nn.Linear(128, 32),
             nn.ReLU(),
@@ -45,14 +45,13 @@ class DQN(nn.Module):
         )
 
     def forward(self, x):
-        """신경망 전파 로직 (순전파)"""
         common = self.common_layers(x)
 
         moveX_q = self.moveX_head(common)
         moveY_q = self.moveY_head(common)
         shoot_q = self.shoot_head(common)
 
-        # 3개의 Q-value 묶음을 반환
+        # return 3 Q-values
         return moveX_q, moveY_q, shoot_q
 
 # --- Agent Class ---
