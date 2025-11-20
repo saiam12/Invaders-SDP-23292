@@ -6,9 +6,7 @@ from agent import Agent
 # Java game server URL
 JAVA_SERVER_URL = "http://localhost:8000"
 
-# (Important!) Fixed size of the state vector to tell the AI
-# This value must match the length of the list created by the preprocess_state function.
-# Example: Player(4) + Enemies(12*4) + Bullets(20*2) + Items(5*3) = approx 100~120
+# fix state size
 STATE_SIZE = 120
 
 def preprocess_state(state_json):
@@ -17,17 +15,14 @@ def preprocess_state(state_json):
     """
     try:
         # 1. Extract fixed information (4 items)
-        # (Convert to float() just in case Java sends coordinates as strings)
         player_info = [
-            float(state_json['playerX']) / 448.0, # Normalization (Recommended to convert to 0-1 range)
+            float(state_json['playerX']) / 448.0, # Normalization
             float(state_json['playerY']) / 520.0,
             float(state_json['playerHp']) / 3.0,
             float(state_json['score']) / 10000.0
         ]
 
         # 2. Convert variable information (Enemies, Bullets, Items) -> Fixed size array (Padding/Truncating)
-
-        # Example: Enemy info (Max 10 enemies, 4 info each [x, y, hp, type])
         MAX_ENEMIES = 10
         enemies_flat = []
         if 'enemies' in state_json:
@@ -67,7 +62,6 @@ def preprocess_state(state_json):
 def run_ai_controller():
     print(f"AI Controller starting... (Attempting to connect to {JAVA_SERVER_URL})")
 
-    # ▼▼▼ [Modified] Pass state_size to resolve error ▼▼▼
     agent = Agent(state_size=STATE_SIZE)
 
     while True:
