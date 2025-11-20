@@ -79,7 +79,7 @@ class Agent:
 
         print("reset Agent complete")
 
-    def get_action(self, state):
+    def get_action(self, state): # 나중에 바꿀 임시 코드
         """
         [ActionPacket 규약]
         - moveX: -1 (좌), 0 (정지), 1 (우)
