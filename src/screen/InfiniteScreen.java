@@ -9,6 +9,7 @@ import java.awt.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.awt.event.KeyEvent;
 
 public class InfiniteScreen extends Screen implements CollisionContext {
 
@@ -56,6 +57,12 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Health change popup. */
     private String healthPopupText;
     private Cooldown healthPopupCooldown;
+    /** Shop screen instance for infinite mode. */
+    private ShopScreen shopScreen;
+    /** Cooldown for shop toggle. */
+    private Cooldown shopToggleCooldown;
+    /** Whether shop is currently open. */
+    private boolean isShopOpen;
 
     /**
      * Constructor, establishes the properties of the screen.
@@ -92,19 +99,25 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.ship = new Ship(this.width / 2, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
         this.ship.setPlayerId(1);
         this.dropItems = new HashSet<DropItem>();
+        this.shopScreen = null; // Start with null
+        this.shopToggleCooldown = Core.getCooldown(300); // 300ms cooldown
+        this.isShopOpen = false;
     }
 
     /** Update game state (spawn enemies, update player, etc.) */
     protected void update() {
         super.update();
 
-        gameStartTime++;
-        spawnEnemies();
-        scaleEnemyHealthOverTime();
-        spawnBossIfNeeded();
-        updateScore();
-        manageItemUpgrades();
-        // TODO: update player, check collisions, and remove defeated enemies
+        handleShopToggle();
+        if (!isShopOpen) {
+            gameStartTime++;
+            spawnEnemies();
+            scaleEnemyHealthOverTime();
+            spawnBossIfNeeded();
+            updateScore();
+            manageItemUpgrades();
+            drawInfiniteMode();
+        }
     }
 
     /** Spawn enemies according to the elapsed time */
@@ -144,6 +157,59 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Draw the current game screen */
     protected void drawInfiniteMode() {
         // TODO: render player, enemies, score, and UI elements on screen
+    }
+
+    /**
+     * Handles opening and closing the shop with T key.
+     */
+    private void handleShopToggle() {
+        if (this.shopToggleCooldown.checkFinished()) {
+            if (inputManager.isKeyDown(KeyEvent.VK_T)) {
+                if (isShopOpen) {
+                    closeShop();
+                } else {
+                    openShop();
+                }
+                this.shopToggleCooldown.reset();
+            }
+        }
+    }
+
+    /**
+     * Opens the shop screen.
+     */
+    private void openShop() {
+        this.isShopOpen = true;
+        this.shopScreen = new ShopScreen(this.gameState, this.width, this.height, this.returnCode, true);
+        this.logger.info("Opening shop in infinite mode");
+    }
+
+    /**
+     * Closes the shop screen.
+     */
+    private void closeShop() {
+        this.isShopOpen = false;
+        this.shopScreen = null;
+        this.logger.info("Closing shop in infinite mode");
+    }
+
+    @Override
+    public final int run() {
+        super.run();
+
+        // Main game loop
+        while (this.isRunning) {
+            // If shop is open, run shop screen instead
+            if (isShopOpen && shopScreen != null) {
+                int shopResult = shopScreen.run();
+                // When shop exits, close it
+                if (shopResult != 0) {
+                    closeShop();
+                }
+            }
+        }
+
+        return this.returnCode;
     }
 
     @Override
