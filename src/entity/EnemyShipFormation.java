@@ -263,7 +263,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
 	/**
 	 * Draws every individual component of the formation.
 	 */
-	public final void draw() {
+	public void draw() {
 		for (List<EnemyShip> column : this.enemyShips)
 			for (EnemyShip enemyShip : column)
 				drawManager.drawEntity(enemyShip, enemyShip.getPositionX(),
@@ -273,7 +273,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
 	/**
 	 * Updates the position of the ships.
 	 */
-	public final void update() {
+	public void update() {
 		if(this.shootingCooldown == null) {
 			this.shootingCooldown = Core.getVariableCooldown(shootingInterval,
 					shootingVariance);
@@ -441,7 +441,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
 	 * @param bullets
 	 *            Bullets set to add the bullet being shot.
 	 */
-	public final void shoot(final Set<Bullet> bullets) {
+	public void shoot(final Set<Bullet> bullets) {
 		// For now, only ships in the bottom row are able to shoot.
 		if (this.shooters.isEmpty()) {return; }
 		int index = (int) (Math.random() * this.shooters.size());
@@ -460,7 +460,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
 	 * @param destroyedShip
 	 *            Ship to be destroyed.
 	 */
-	public final void destroy(final EnemyShip destroyedShip) {
+	public void destroy(final EnemyShip destroyedShip) {
 		for (List<EnemyShip> column : this.enemyShips)
 			for (int i = 0; i < column.size(); i++)
 				if (column.get(i).equals(destroyedShip)) {
@@ -520,7 +520,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
 	 * @return Iterator over the enemy ships.
 	 */
 	@Override
-	public final Iterator<EnemyShip> iterator() {
+	public Iterator<EnemyShip> iterator() {
 		Set<EnemyShip> enemyShipsList = new HashSet<EnemyShip>();
 
 		for (List<EnemyShip> column : this.enemyShips)
@@ -555,7 +555,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
 	 *
 	 * @return True when all ships have been destroyed.
 	 */
-	public final boolean isEmpty() {
+	public boolean isEmpty() {
 		return this.shipCount <= 0;
 	}
 
@@ -595,7 +595,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
         }
     }
 
-	public final void clear() {
+	public void clear() {
 		for (List<EnemyShip> column : this.enemyShips) {
 			column.clear();
 		}
