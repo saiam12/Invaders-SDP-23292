@@ -56,6 +56,12 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Health change popup. */
     private String healthPopupText;
     private Cooldown healthPopupCooldown;
+    private GameTimer gameTimer;
+    private long lastScoreAdded;
+    private static final int timeInterval = 1000;
+    private static final int pointsPerSecond = 10;
+
+
 
     /**
      * Constructor, establishes the properties of the screen.
@@ -80,6 +86,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         if (this.bonusLife) this.lives++;
         this.bulletsShot = gameState.getBulletsShot();
         this.shipsDestroyed = gameState.getShipsDestroyed();
+        this.gameTimer = new GameTimer();
     }
 
     /** Initializes basic screen properties, and adds necessary elements. */
@@ -98,12 +105,22 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     protected void update() {
         super.update();
 
-        gameStartTime++;
-        spawnEnemies();
-        scaleEnemyHealthOverTime();
-        spawnBossIfNeeded();
-        updateScore();
-        manageItemUpgrades();
+        if (this.inputDelay.checkFinished()) {
+            if (!this.gameTimer.isRunning()) {
+                this.gameTimer.start();
+                this.lastScoreAdded = System.currentTimeMillis();
+            }
+
+            spawnEnemies();
+            scaleEnemyHealthOverTime();
+            spawnBossIfNeeded();
+            updateScore();
+            manageItemUpgrades();
+
+            if (this.lives <= 0 && !this.ship.isDestroyed()) {
+                this.isRunning = false;
+            }
+        }
         // TODO: update player, check collisions, and remove defeated enemies
     }
 
@@ -127,7 +144,19 @@ public class InfiniteScreen extends Screen implements CollisionContext {
 
     /** Update the score based on defeated enemies or achievements */
     protected void updateScore() {
-        // TODO: increment score based on enemy defeats or milestones
+        if (this.gameTimer.isRunning()) {
+            long currentTime = System.currentTimeMillis();
+            // Calculate time passed since last score update
+            if (currentTime - lastScoreAdded >= timeInterval) {
+                this.score += pointsPerSecond;
+                this.lastScoreAdded = currentTime;
+            }
+        }
+    }
+
+    public GameState getGameState() {
+        return new GameState(0,this.score,this.lives,0,
+                this.bulletsShot,this.shipsDestroyed,this.coin,false);
     }
 
     /** Handle item acquisition and player upgrades */
