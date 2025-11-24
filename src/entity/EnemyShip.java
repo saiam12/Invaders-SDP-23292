@@ -137,7 +137,7 @@ public class EnemyShip extends Entity {
 	/**
 	 * Updates attributes, mainly used for animation purposes.
 	 */
-	public final void update() {
+	public void update() {
 		if (this.animationCooldown.checkFinished()) {
 			this.animationCooldown.reset();
 
