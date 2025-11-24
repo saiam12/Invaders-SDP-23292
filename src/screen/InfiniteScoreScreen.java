@@ -108,7 +108,7 @@ public class InfiniteScoreScreen extends Screen{
                     saveScore();
             } else if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
                 // Play again.
-                this.returnCode = 2;
+                this.returnCode = 9;
                 this.isRunning = false;
                 if (this.isNewRecord)
                     saveScore();
@@ -175,4 +175,6 @@ public class InfiniteScoreScreen extends Screen{
 
         drawManager.completeDrawing(this);
     }
+
+
 }
