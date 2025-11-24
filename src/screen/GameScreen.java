@@ -653,6 +653,10 @@ public class GameScreen extends Screen implements CollisionContext {
     }
 
     // Getters and Setters for CollisionManager
+	@Override
+	public InfiniteEnemyFormation getInfiniteEnemyFormation() {
+		return null;
+	}
     public Set<Bullet> getBullets() { return this.bullets; }
     public Set<BossBullet> getBossBullets() { return this.bossBullets; }
     public int getLivesP1() { return this.livesP1; }

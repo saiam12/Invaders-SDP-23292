@@ -10,6 +10,7 @@ public interface CollisionContext {
     Set<BossBullet> getBossBullets();
     EnemyShipFormation getEnemyShipFormation();
     EnemyShipSpecialFormation getEnemyShipSpecialFormation();
+    InfiniteEnemyFormation getInfiniteEnemyFormation();
     Set<DropItem> getDropItems();
 
     Ship getShip();
