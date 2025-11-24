@@ -109,7 +109,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.inputDelay = Core.getCooldown(INPUT_DELAY);
         this.inputDelay.reset();
 
-        // Initialize enemy spawn cooldown
+        // initialize spawn cooldown
         int randomInterval = MIN_SPAWN_INTERVAL + random.nextInt(MAX_SPAWN_INTERVAL - MIN_SPAWN_INTERVAL);
         this.enemySpawnCooldown = Core.getCooldown(randomInterval);
         this.enemySpawnCooldown.reset();
@@ -176,25 +176,28 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         if (this.enemySpawnCooldown.checkFinished()) {
             InfiniteEnemyShip.MovementPattern pattern;
             int x = 0, y = 0;
-            int typeRoll = random.nextInt(3); // 0, 1, 2 (3가지 타입)
+            int typeRoll = random.nextInt(3); // 0, 1, 2 (3 types)
 
             switch (typeRoll) {
-                case 0: // STRAIGHT_DOWN - Falls straight down
+                case 0: // STRAIGHT_DOWN
                     pattern = InfiniteEnemyShip.MovementPattern.STRAIGHT_DOWN;
                     x = random.nextInt(this.width - 30);
                     y = -50;
                     break;
 
-                case 1: // ZIGZAG_DOWN - Falls in a zigzag pattern
+                case 1: // ZIGZAG_DOWN
                     pattern = InfiniteEnemyShip.MovementPattern.ZIGZAG_DOWN;
                     x = random.nextInt(this.width - 30);
                     y = -50;
                     break;
 
-                case 2: // HORIZONTAL_MOVE - Horizontal movement
+                case 2: // HORIZONTAL_MOVE - horizontal movement
                 default:
                     pattern = InfiniteEnemyShip.MovementPattern.HORIZONTAL_MOVE;
-                    y = random.nextInt((int)(this.height * 0.3)); // 상단 30% 영역
+                    int minY = SEPARATION_LINE_HEIGHT + 10;
+                    int maxY = (int)(this.height * 0.3); // Upper 30% of screen
+                    y = minY + random.nextInt(maxY - minY);
+
                     boolean startLeft = random.nextBoolean();
                     if (startLeft) {
                         x = -50; // Start from left
@@ -207,7 +210,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             InfiniteEnemyShip enemy = new InfiniteEnemyShip(x, y, pattern, this.width, this.height);
             this.enemyManager.addEnemy(enemy);
 
-            // Set a random cooldown for the next spawn
+            // Set random cooldown for next spawn
             int randomInterval = MIN_SPAWN_INTERVAL + random.nextInt(MAX_SPAWN_INTERVAL - MIN_SPAWN_INTERVAL);
             this.enemySpawnCooldown.setMilliseconds(randomInterval);
             this.enemySpawnCooldown.reset();
@@ -229,7 +232,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         for (DropItem dropItem : this.dropItems)
             drawManager.drawEntity(dropItem, dropItem.getPositionX(), dropItem.getPositionY());
 
-
+        // UI
         drawManager.drawScore(this, this.score);
         drawManager.drawLives(this, this.lives);
         drawManager.drawCoin(this, this.coin);
@@ -279,13 +282,13 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     @Override
     public Set<Bullet> getBullets() { return this.bullets; }
     @Override
-    public Set<BossBullet> getBossBullets() { return new HashSet<>(); } // 무한 모드에서는 보스 불릿 없음
+    public Set<BossBullet> getBossBullets() { return new HashSet<>(); }
     @Override
-    public EnemyShipFormation getEnemyShipFormation() { return null; } // 무한 모드에서는 사용 안함
+    public EnemyShipFormation getEnemyShipFormation() { return null; }
     @Override
-    public EnemyShipSpecialFormation getEnemyShipSpecialFormation() { return null; } // 무한 모드에서는 사용 안함
+    public EnemyShipSpecialFormation getEnemyShipSpecialFormation() { return null; }
     @Override
-    public InfiniteEnemyFormation getInfiniteEnemyFormation() { return this.enemyManager; } // 무한 모드 전용
+    public InfiniteEnemyFormation getInfiniteEnemyFormation() { return this.enemyManager; }
     @Override
     public Set<DropItem> getDropItems() { return this.dropItems; }
     @Override
@@ -297,9 +300,9 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     @Override
     public void gainLife() { if (this.lives < this.maxLives) this.lives++; }
     @Override
-    public MidBoss getOmegaBoss() { return null; } // 무한 모드에서는 보스 없음
+    public MidBoss getOmegaBoss() { return null; }
     @Override
-    public FinalBoss getFinalBoss() { return null; } // 무한 모드에서는 보스 없음
+    public FinalBoss getFinalBoss() { return null; }
     @Override
     public void addPointsFor(Bullet b, int p) { this.score += p; }
     @Override
@@ -323,7 +326,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     @Override
     public boolean isTwoPlayerMode() { return false; }
     @Override
-    public boolean isLevelFinished() { return true; } // 무한 모드에서는 항상 진행 중
+    public boolean isLevelFinished() { return true; }
     @Override
     public Ship getShipP2() { throw new UnsupportedOperationException("Infinite mode does not support Player 2."); }
     @Override
