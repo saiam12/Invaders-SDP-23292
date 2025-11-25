@@ -35,13 +35,14 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private static final int SCREEN_CHANGE_INTERVAL = 1500;
 
     /** EnemyShip spawn interval :
-     * every 15 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds*/
+     * every 15 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds
+     * Every start begins with INITIAL_SPAWN_INTERVAL minus SPAWN_INTERVAL_DECREASE.*/
     private static final int INITIAL_SPAWN_INTERVAL = 1300;
     private static final int MIN_SPAWN_INTERVAL = 200;
     private static final int SPAWN_INTERVAL_DECREASE = 100;
-    private static final int SPAWN_INTERVAL_DECREASE_TIME = 3000;
+    private static final int SPAWN_INTERVAL_DECREASE_TIME = 15000;
     /** Boss spawn interval: 5 minute (300000 milliseconds) */
-    private static final int BOSS_SPAWN_INTERVAL = 10000;
+    private static final int BOSS_SPAWN_INTERVAL = 300000;
     private static int BOSS_SPAWN_COUNT = 0;
 
     private Cooldown enemySpawnCooldown;
@@ -150,8 +151,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.elapsedTime = 0;
         this.finalBoss = null;
         this.omegaBoss = null;
-        int EnemySpawnInterval = INITIAL_SPAWN_INTERVAL;
-        this.enemySpawnCooldown = Core.getCooldown(EnemySpawnInterval);
+        this.enemySpawnCooldown = Core.getCooldown(INITIAL_SPAWN_INTERVAL);
         this.enemySpawnCooldown.reset();
 
         this.gameTimer.start();
