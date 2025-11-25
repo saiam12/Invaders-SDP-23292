@@ -794,7 +794,11 @@ public final class DrawManager {
 				barY + barHeight - 5);
 	}
 
-	private Color getHealthBarColor(float healthPercent) {
+    public Graphics getBackBufferGraphics() {
+        return backBufferGraphics;
+    }
+
+    private Color getHealthBarColor(float healthPercent) {
 		if (healthPercent > 0.90f) {
 			// 100% - 90%: Green
 			return new Color(0, 255, 0);

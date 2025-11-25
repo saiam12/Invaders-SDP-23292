@@ -83,6 +83,28 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private InfiniteEnemyFormation enemyManager;
     /** Random generator */
     private Random random;
+    /** Selected item in shop */
+    private int selectedShopItem = 0;
+    /** Shop selection cooldown */
+    private Cooldown shopSelectionCooldown;
+    /** Maximum levels for each item. */
+    private static final int[] MAX_LEVELS = {3, 5, 2, 3, 5};
+    /** Item levels */
+    private int[] itemlevel = {
+            0,                          // MultiShot: Max Level 3
+            0,                          // Rapid Fire: Max Level 5
+            0,                          // Penetration: Max Level 2
+            0,                          // Bullet Speed: MAx Level 3
+            0                           // Ship Speed: Max Level 5
+    };
+    /** Item prices */
+    private int[][] prices = {
+            {30, 60, 100},              // MultiShot: Level 1-3
+            {25, 50, 75, 100, 150},     // Rapid Fire: Level 1-5
+            {40, 80},                   // Penetration: Level 1-2
+            {35, 70, 110},              // Bullet Speed: Level 1-3
+            {20, 40, 60, 80, 100}       // Ship Speed: Level 1-5
+    };
 
     /**
      * Constructor, establishes the properties of the screen.
@@ -135,6 +157,13 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.elapsedTime = 0;
 
         this.gameTimer.start();
+
+        this.shopToggleCooldown = Core.getCooldown(300);
+        this.shopToggleCooldown.reset();
+        this.shopSelectionCooldown = Core.getCooldown(200);
+        this.shopSelectionCooldown.reset();
+        this.isShopOpen = false;
+        this.shopScreen = null;
     }
 
     /** Update game state (spawn enemies, update player, etc.) */
@@ -142,15 +171,32 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         super.update();
 
         handleShopToggle();
-        if (!isShopOpen) {
-            gameStartTime++;
-            spawnEnemies();
-            scaleEnemyHealthOverTime();
-            spawnBossIfNeeded();
-            updateScore();
-            manageItemUpgrades();
+
+        // If shop is open, pause game and skip game logic
+        if (isShopOpen) {
+            // Pause game timer
+            if (this.gameTimer.isRunning()) {
+                this.gameTimer.stop();
+            }
+            // Still draw game frame (so overlay is visible)
             drawInfiniteMode();
+            // Handle shop-specific input (navigation, buy, close)
+            handleShopInput();
+            return; // Skip all game logic
         }
+
+        // Resume game timer when shop closes
+        if (!this.gameTimer.isRunning()) {
+            this.gameTimer.start();
+        }
+
+        gameStartTime++;
+        spawnEnemies();
+        scaleEnemyHealthOverTime();
+        spawnBossIfNeeded();
+        updateScore();
+        manageItemUpgrades();
+        drawInfiniteMode();
 
         if (!DropItem.isTimeFreezeActive()) {
             this.enemyManager.update();
@@ -275,28 +321,28 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     protected void drawInfiniteMode() {
         drawManager.initDrawing(this);
 
-        drawManager.drawEntity(this.ship, this.ship.getPositionX(), this.ship.getPositionY());
-
-
-        this.enemyManager.draw();
-
-        for (Bullet bullet : this.bullets)
-            drawManager.drawEntity(bullet, bullet.getPositionX(), bullet.getPositionY());
-
-        for (DropItem dropItem : this.dropItems)
-            drawManager.drawEntity(dropItem, dropItem.getPositionX(), dropItem.getPositionY());
+        drawManager.drawEntity(ship, ship.getPositionX(), ship.getPositionY());
+        enemyManager.draw();
+        bullets.forEach(b -> drawManager.drawEntity(b, b.getPositionX(), b.getPositionY()));
+        dropItems.forEach(d -> drawManager.drawEntity(d, d.getPositionX(), d.getPositionY()));
 
         // UI
-        drawManager.drawScore(this, this.score);
-        drawManager.drawLives(this, this.lives);
-        drawManager.drawCoin(this, this.coin);
+        drawManager.drawScore(this, score);
+        drawManager.drawLives(this, lives);
+        drawManager.drawCoin(this, coin);
         drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
         drawManager.drawHorizontalLine(this, ITEMS_SEPARATION_LINE_HEIGHT);
 
-        if (this.healthPopupText != null && !this.healthPopupCooldown.checkFinished()) {
-            drawManager.drawHealthPopup(this, this.healthPopupText);
+        if (!isShopOpen) {
+            drawManager.drawCenteredRegularString(this, "Press T to open shop", height - 30);
         } else {
-            this.healthPopupText = null;
+            drawShopOverlay();
+        }
+
+        if (healthPopupText != null && !healthPopupCooldown.checkFinished()) {
+            drawManager.drawHealthPopup(this, healthPopupText);
+        } else {
+            healthPopupText = null;
         }
 
         drawManager.completeDrawing(this);
@@ -336,15 +382,10 @@ public class InfiniteScreen extends Screen implements CollisionContext {
      * Handles opening and closing the shop with T key.
      */
     private void handleShopToggle() {
-        if (this.shopToggleCooldown.checkFinished()) {
-            if (inputManager.isKeyDown(KeyEvent.VK_T)) {
-                if (isShopOpen) {
-                    closeShop();
-                } else {
-                    openShop();
-                }
-                this.shopToggleCooldown.reset();
-            }
+        if (shopToggleCooldown.checkFinished() && inputManager.isKeyDown(KeyEvent.VK_T)) {
+            if (isShopOpen) closeShop();
+            else openShop();
+            shopToggleCooldown.reset();
         }
     }
 
@@ -352,36 +393,128 @@ public class InfiniteScreen extends Screen implements CollisionContext {
      * Opens the shop screen.
      */
     private void openShop() {
-        this.isShopOpen = true;
-        this.shopScreen = new ShopScreen(this.gameState, this.width, this.height, this.returnCode, true);
-        this.logger.info("Opening shop in infinite mode");
+        isShopOpen = true;
+        shopSelectionCooldown.reset();
+        logger.info("Shop opened");
+        if (gameTimer.isRunning()) gameTimer.stop();
     }
 
     /**
      * Closes the shop screen.
      */
     private void closeShop() {
-        this.isShopOpen = false;
-        this.shopScreen = null;
-        this.logger.info("Closing shop in infinite mode");
+        isShopOpen = false;
+        logger.info("Shop closed");
+        if (!gameTimer.isRunning()) gameTimer.start();
+    }
+
+    private void handleShopInput() {
+        if (this.shopSelectionCooldown.checkFinished()) {
+            if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE)) {
+                closeShop();
+                this.shopSelectionCooldown.reset();
+                return;
+            }
+
+            if (inputManager.isKeyDown(KeyEvent.VK_W) || inputManager.isKeyDown(KeyEvent.VK_UP)) {
+                selectedShopItem--;
+                if (selectedShopItem < 0) selectedShopItem = 4;
+                this.shopSelectionCooldown.reset();
+            }
+
+            if (inputManager.isKeyDown(KeyEvent.VK_S) || inputManager.isKeyDown(KeyEvent.VK_DOWN)) {
+                selectedShopItem++;
+                if (selectedShopItem > 4) selectedShopItem = 0;
+                this.shopSelectionCooldown.reset();
+            }
+
+            if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
+                attemptPurchase(selectedShopItem);
+                this.shopSelectionCooldown.reset();
+            }
+        }
+    }
+
+    private void attemptPurchase(int itemIndex) {
+        String[] names = {"Multi Shot", "Rapid Fire", "Penetration", "Bullet Speed", "Ship Speed"};
+
+        int currentLevel = itemlevel[itemIndex];
+
+        if (currentLevel >= MAX_LEVELS[itemIndex]) {
+            this.logger.info(names[itemIndex] + " is already at max level!");
+            return;
+        }
+
+        int price = prices[itemIndex][currentLevel];
+        if (this.coin >= price) {
+            this.coin -= price;
+            this.gameState.deductCoins(price);
+            itemlevel[itemIndex]++;
+
+            applyItemUpgrade(itemIndex);
+
+            this.logger.info("Purchased " + names[itemIndex] + " for " + price + " coins. New level: " + itemlevel[itemIndex]);
+        } else {
+            this.logger.info("Not enough coins for " + names[itemIndex] + ". Need: " + price + ", have: " + this.coin);
+        }
+    }
+
+    private void applyItemUpgrade(int itemIndex) {
+        switch (itemIndex) {
+            case 0: // Multi Shot
+                entity.ShopItem.setMultiShotLevel(entity.ShopItem.getMultiShotLevel() + 1);
+                break;
+            case 1: // Rapid Fire
+                entity.ShopItem.setRapidFireLevel(entity.ShopItem.getRapidFireLevel() + 1);
+                break;
+            case 2: // Penetration
+                entity.ShopItem.setPenetrationLevel(entity.ShopItem.getPenetrationLevel() + 1);
+                break;
+            case 3: // Bullet Speed
+                entity.ShopItem.setBulletSpeedLevel(entity.ShopItem.getBulletSpeedLevel() + 1);
+                break;
+            case 4: // Ship Speed
+                entity.ShopItem.setSHIPSPEED(entity.ShopItem.getSHIPSpeedCOUNT() + 5);
+                break;
+        }
+    }
+
+    private void drawShopOverlay() {
+        Graphics g = drawManager.getBackBufferGraphics();
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRect(0, 0, getWidth(), getHeight());
+
+        g.setColor(Color.GREEN);
+        drawManager.drawCenteredBigString(this, "SHOP", height / 8);
+        drawManager.drawCenteredRegularString(this, "Coins: " + coin, height / 8 + 40);
+
+        String[] names = {"Multi Shot", "Rapid Fire", "Penetration", "Bullet Speed", "Ship Speed"};
+        int startY = height / 3;
+
+        for (int i = 0; i < names.length; i++) {
+            String text;
+            if (itemlevel[i] >= MAX_LEVELS[i]) {
+                text = names[i] + " - MAX LEVEL";
+            } else {
+                text = names[i] + " - " + prices[i][itemlevel[i]] + " coins";
+            }
+
+            if (i == selectedShopItem) {
+                drawManager.drawCenteredBigString(this, "> " + text + " <", startY + i * 40);
+            } else {
+                drawManager.drawCenteredRegularString(this, text, startY + i * 40);
+            }
+        }
+
+        drawManager.drawCenteredRegularString(this,
+                "W/S: Select | SPACE: Buy | ESC/T: Close",
+                height - 30);
     }
 
     @Override
     public final int run() {
         super.run();
-
-        // Main game loop
-        while (this.isRunning) {
-            // If shop is open, run shop screen instead
-            if (isShopOpen && shopScreen != null) {
-                int shopResult = shopScreen.run();
-                // When shop exits, close it
-                if (shopResult != 0) {
-                    closeShop();
-                }
-            }
-        }
-
+        this.logger.info("Infinite mode ended with score: " + this.score);
         return this.returnCode;
     }
 
