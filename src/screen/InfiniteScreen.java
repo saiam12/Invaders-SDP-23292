@@ -180,11 +180,11 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         }
 
         if (this.lives > 0 && !this.ship.isDestroyed()) {
-            boolean p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D);
-            boolean p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A);
-            boolean p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W);
-            boolean p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S);
-            boolean p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE);
+            boolean p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
+            boolean p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_LEFT);
+            boolean p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_UP);
+            boolean p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_DOWN);
+            boolean p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_ENTER);
 
             boolean isRightBorder = this.ship.getPositionX()
                     + this.ship.getWidth() + this.ship.getSpeed() > this.width - 1;
