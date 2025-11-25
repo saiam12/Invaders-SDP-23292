@@ -83,7 +83,7 @@ public final class Core {
 		boolean isTwoPlayerMode = false;
 
 
-        int returnCode = 1;
+        int returnCode = 9;
 		do {
 			ShopItem.resetAllItems();
 			switch (returnCode) {
@@ -293,6 +293,13 @@ public final class Core {
 					currentScreen = new CreditScreen(width, height, FPS);
 					LOGGER.info("Starting " + currentScreen.getClass().getSimpleName() + " screen.");
 					returnCode = frame.setScreen(currentScreen);
+					break;
+				case 9:
+					// Login screen
+					currentScreen = new LoginScreen(width, height, FPS);
+					LOGGER.info("Starting " + WIDTH + "x" + HEIGHT + " login screen at " + FPS + " fps.");
+					returnCode = frame.setScreen(currentScreen);
+					LOGGER.info("Closing login screen.");
 					break;
                 default:
                     break;

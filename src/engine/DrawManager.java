@@ -679,14 +679,59 @@ public final class DrawManager {
 				currX += textWidth + spaceBetween;
 			}
 		}
-	}
-
-	/**
-	 * Draws purchase feedback message.
-	 */
-	public void drawShopFeedback(final Screen screen, final String message) {
-		int popupWidth = 300;
-		int popupHeight = 50;
+	    }
+	
+		/**
+		 * Draws the login screen.
+		 *
+		 * @param screen         The screen to draw on.
+		 * @param username       The current username text.
+		 * @param password       The current password text.
+		 * @param selectedField  The currently selected UI element.
+		 */
+		public void drawLoginScreen(final Screen screen, final String username, final String password, final int selectedField) {
+			// Title
+			drawCenteredBigString(screen, "LOGIN", screen.getHeight() / 4);
+	
+			int yPos = screen.getHeight() / 2 - 50;
+			int lineHeight = 35; // A fixed value for line height and padding
+	
+			// Username field
+			if (selectedField == 0) {
+				backBufferGraphics.setColor(Color.GREEN);
+			} else {
+				backBufferGraphics.setColor(Color.WHITE);
+			}
+			drawCenteredRegularString(screen, "Username:", yPos);
+			drawCenteredRegularString(screen, username.isEmpty() ? "_______" : username, yPos + lineHeight);
+	
+			// Password field
+			yPos += lineHeight * 2;
+			if (selectedField == 1) {
+				backBufferGraphics.setColor(Color.GREEN);
+			} else {
+				backBufferGraphics.setColor(Color.WHITE);
+			}
+			drawCenteredRegularString(screen, "Password:", yPos);
+			String maskedPassword = new String(new char[password.length()]).replace('\0', '*');
+			drawCenteredRegularString(screen, maskedPassword.isEmpty() ? "_______" : maskedPassword, yPos + lineHeight);
+	
+			// Login button
+			yPos += lineHeight * 2;
+			if (selectedField == 2) {
+				backBufferGraphics.setColor(Color.GREEN);
+			} else {
+				backBufferGraphics.setColor(Color.WHITE);
+			}
+			drawCenteredRegularString(screen, "LOGIN", yPos);
+		}
+	
+		/**
+		 * Draws purchase feedback message.
+		 */
+		public void drawShopFeedback(final Screen screen, final String message) {
+			int popupWidth = 300;
+			int popupHeight = 50;
 		int x = screen.getWidth() / 2 - popupWidth / 2;
 		int y = 70;
 
