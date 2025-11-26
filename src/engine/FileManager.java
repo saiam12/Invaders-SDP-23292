@@ -184,7 +184,7 @@ public final class FileManager {
 					.getCodeSource().getLocation().getPath();
 			jarPath = URLDecoder.decode(jarPath, "UTF-8");
 
-			String scoresPath = new File(jarPath).getParent();
+			String scoresPath = new File(jarPath).getPath();
 			scoresPath += File.separator;
 			scoresPath += "scores";
 
@@ -237,7 +237,7 @@ public final class FileManager {
 					.getCodeSource().getLocation().getPath();
 			jarPath = URLDecoder.decode(jarPath, "UTF-8");
 
-			String scoresPath = new File(jarPath).getParent();
+			String scoresPath = new File(jarPath).getPath();
 			scoresPath += File.separator;
 			scoresPath += "scores";
 
@@ -315,6 +315,97 @@ public final class FileManager {
 				writer.write(achievement.getName() + ":" + achievement.isUnlocked());
 				writer.newLine();
 			}
+		}
+	}
+
+	/**
+	 * Loads user data from disk.
+	 *
+	 * @return A map of username to User object.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 */
+	public Map<String, User> loadUsers() throws IOException {
+		Map<String, User> users = new HashMap<>();
+		InputStream inputStream = null;
+		BufferedReader bufferedReader = null;
+
+		try {
+			String jarPath = FileManager.class.getProtectionDomain()
+					.getCodeSource().getLocation().getPath();
+			jarPath = URLDecoder.decode(jarPath, "UTF-8");
+
+			String usersFilePath = new File(jarPath).getPath();
+			usersFilePath += File.separator;
+			usersFilePath += "users";
+
+			File usersFile = new File(usersFilePath);
+			inputStream = new FileInputStream(usersFile);
+			bufferedReader = new BufferedReader(new InputStreamReader(
+					inputStream, Charset.forName("UTF-8")));
+
+			logger.info("Loading user data.");
+
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				String[] parts = line.split(":", 2);
+				if (parts.length == 2) {
+					User user = new User(parts[0], parts[1]);
+					users.put(user.getUsername(), user);
+				}
+			}
+
+		} catch (FileNotFoundException e) {
+			logger.info("No user data file found. A new one will be created on first login.");
+		} finally {
+			if (bufferedReader != null)
+				bufferedReader.close();
+		}
+
+		return users;
+	}
+
+	/**
+	 * Saves user data to disk.
+	 *
+	 * @param users
+	 *            Map of users to save.
+	 * @throws IOException
+	 *             In case of saving problems.
+	 */
+	public void saveUsers(final Map<String, User> users)
+			throws IOException {
+		OutputStream outputStream = null;
+		BufferedWriter bufferedWriter = null;
+
+		try {
+			String jarPath = FileManager.class.getProtectionDomain()
+					.getCodeSource().getLocation().getPath();
+			jarPath = URLDecoder.decode(jarPath, "UTF-8");
+
+			String usersPath = new File(jarPath).getPath();
+			usersPath += File.separator;
+			usersPath += "users";
+
+			File usersFile = new File(usersPath);
+
+			if (!usersFile.exists())
+				usersFile.createNewFile();
+
+			outputStream = new FileOutputStream(usersFile);
+			bufferedWriter = new BufferedWriter(new OutputStreamWriter(
+					outputStream, Charset.forName("UTF-8")));
+
+			logger.info("Saving user data.");
+
+			for (User user : users.values()) {
+				bufferedWriter.write(user.getUsername() + ":" + user.getPassword());
+				bufferedWriter.newLine();
+			}
+
+		} finally {
+			if (bufferedWriter != null)
+				bufferedWriter.close();
 		}
 	}
 

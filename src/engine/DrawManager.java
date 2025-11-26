@@ -689,7 +689,7 @@ public final class DrawManager {
 		 * @param password       The current password text.
 		 * @param selectedField  The currently selected UI element.
 		 */
-		public void drawLoginScreen(final Screen screen, final String username, final String password, final int selectedField) {
+		public void drawLoginScreen(final Screen screen, final String username, final String password, final int selectedField, final String errorMessage) {
 			// Title
 			drawCenteredBigString(screen, "LOGIN", screen.getHeight() / 4);
 	
@@ -724,6 +724,12 @@ public final class DrawManager {
 				backBufferGraphics.setColor(Color.WHITE);
 			}
 			drawCenteredRegularString(screen, "LOGIN", yPos);
+
+			// Draw error message if present
+			if (errorMessage != null) {
+				backBufferGraphics.setColor(Color.RED);
+				drawCenteredRegularString(screen, errorMessage, screen.getHeight() - 100);
+			}
 		}
 	
 		/**
