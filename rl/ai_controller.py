@@ -106,7 +106,6 @@ def run_ai_controller():
                 # action_packet : {"moveX": 1, "moveY": 0, "shoot": true}
                 requests.post(f"{JAVA_SERVER_URL}/action", json=action_packet)
 
-
                 # Update current status to 'previous status' (for next turn)
                 prev_state = processed_state
                 prev_action = action_packet
@@ -119,8 +118,6 @@ def run_ai_controller():
                     prev_lives = 3
                     if agent.epsilon > agent.epsilon_min: # save model each round
                         agent.save_model()
-
-
 
                 # Print sent action (for debugging)
                 # Only print when there is actual movement or shooting to reduce log noise.
