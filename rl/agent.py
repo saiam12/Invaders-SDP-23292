@@ -1,59 +1,35 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 import random
 import numpy as np
 from collections import deque
 import os
 
+# use GPU if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 # --- define neural network ---
 class DQN(nn.Module):
     def __init__(self, state_size):
         """
-        Defines a 3-head DQN neural network compliant with the API specification (ActionPacket).
-
+        Single-head DQN network with unified action space (18 actions).
         """
         super(DQN, self).__init__()
 
-        # common hidded layer
-        self.common_layers = nn.Sequential(
+        # shared layers
+        self.net = nn.Sequential(
             nn.Linear(state_size, 128),
             nn.ReLU(),
             nn.Linear(128, 128),
-            nn.ReLU()
-        )
-
-        # 1. moveX (left/stop/right)
-        self.moveX_head = nn.Sequential(
-            nn.Linear(128, 32),
             nn.ReLU(),
-            nn.Linear(32, 3)  # 3개의 행동 (좌, 정지, 우)
-        )
-
-        # 2. moveY (up/stop/down)
-        self.moveY_head = nn.Sequential(
-            nn.Linear(128, 32),
-            nn.ReLU(),
-            nn.Linear(32, 3)  # 3개의 행동 (하, 정지, 상)
-        )
-
-        # 3. shoot (No/Yes)
-        self.shoot_head = nn.Sequential(
-            nn.Linear(128, 32),
-            nn.ReLU(),
-            nn.Linear(32, 2)  # 2개의 행동 (공격 안함, 공격)
+            nn.Linear(128, 18)  # unified 18-action output
         )
 
     def forward(self, x):
-        common = self.common_layers(x)
+        return self.net(x)  # [batch, 18] Q-values
 
-        moveX_q = self.moveX_head(common)
-        moveY_q = self.moveY_head(common)
-        shoot_q = self.shoot_head(common)
-
-        # return 3 Q-values
-        return moveX_q, moveY_q, shoot_q
 
 # --- Agent Class ---
 class Agent:
@@ -63,120 +39,142 @@ class Agent:
         self.batch_size = batch_size
         self.gamma = gamma
 
-        # set target network update cycle
+        # target network update cycle
         self.target_update_frequency = 1000
         self.train_count = 0
 
-        # generate (DQN + Target Network)
-        self.model = DQN(state_size)
-        self.target_model = DQN(state_size)
+        # unified action space (3 x 3 x 2 = 18)
+        # moveX: -1,0,1 / moveY: -1,0,1 / shoot: False, True
+        self.action_list = []
+        for mx in [-1, 0, 1]:
+            for my in [-1, 0, 1]:
+                for s in [False, True]:
+                    self.action_list.append((mx, my, s))
+
+        # networks
+        self.model = DQN(state_size).to(device)
+        self.target_model = DQN(state_size).to(device)
         self.target_model.load_state_dict(self.model.state_dict())
 
-        # set optimizer, loss_function
+        # optimizer & loss
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
-        self.criterion = nn.MSELoss() #
+        self.criterion = nn.MSELoss()
 
-        # set relay buffer
+        # replay buffer
         self.memory = deque(maxlen=100000)
 
-        # set epsilon
-        self.epsilon = 1.0 # start with 100% discovery
-        self.epsilon_min = 0.01 # at least 1% discovery
-        self.epsilon_decay = 0.9995 # Reduce probability of discovery every time
-        self.train_start = 1000 # Start training after 1000 samples
+        # epsilon-greedy settings
+        self.epsilon = 1.0          # start exploration at 100%
+        self.epsilon_min = 0.01     # minimum exploration rate
+        self.epsilon_decay = 0.9995 # decay per training step
+        self.train_start = 1000     # start training after N samples
+
+        # gradient clipping for stability
+        self.max_grad_norm = 10.0
 
         print("reset Agent complete")
 
-    def get_action(self, state):
-        # 1. Explore random action
-        if np.random.rand() <= self.epsilon:
-            return {
-                "moveX": random.choice([-1, 0, 1]),
-                "moveY": random.choice([-1, 0, 1]),
-                "shoot": random.choice([True, False])
-            }
-        # 2. Explore model prediction
-        state_tensor = self._state_to_tensor(state)
+    # --- Action encoding/decoding ---
+    def _action_dict_to_index(self, action_dict):
+        """Convert ActionPacket dict -> action index (0~17)."""
+        mx = action_dict["moveX"]
+        my = action_dict["moveY"]
+        s = bool(action_dict["shoot"])
+        for i, (ax, ay, shoot_flag) in enumerate(self.action_list):
+            if ax == mx and ay == my and shoot_flag == s:
+                return i
+        # fallback (should not happen ideally)
+        return 0
 
-        with torch.no_grad():
-            q_x, q_y, q_s = self.model(state_tensor)
-
-        # Select index with max Q-value from each head
-        moveX_idx = torch.argmax(q_x).item() # 0, 1, 2
-        moveY_idx = torch.argmax(q_y).item() # 0, 1, 2
-        shoot_idx = torch.argmax(q_s).item() # 0, 1
-
-        # Convert indices to ActionPacket values
+    def _index_to_action_dict(self, idx):
+        """Convert action index (0~17) -> ActionPacket dict."""
+        mx, my, s = self.action_list[idx]
         return {
-            "moveX": moveX_idx - 1,
-            "moveY": moveY_idx - 1,
-            "shoot": bool(shoot_idx)
+            "moveX": mx,
+            "moveY": my,
+            "shoot": s
         }
 
-    def append_sample(self, state, action_dict, reward, next_state, done):
-        action = [
-            action_dict["moveX"] + 1,
-            action_dict["moveY"] + 1,
-            int(action_dict["shoot"])
-        ]
-        self.memory.append((state, action, reward, next_state, done))
+    # --- choose action ---
+    def get_action(self, state):
+        # epsilon-greedy exploration
+        if np.random.rand() <= self.epsilon:
+            action_idx = random.randrange(len(self.action_list))
+        else:
+            state_tensor = self._state_to_tensor(state)
+            with torch.no_grad():
+                q_values = self.model(state_tensor)  # [1, 18]
+            action_idx = torch.argmax(q_values, dim=1).item()
 
+        # convert to ActionPacket format for Java
+        return self._index_to_action_dict(action_idx)
+
+    # --- store experience ---
+    def append_sample(self, state, action_dict, reward, next_state, done):
+        action_idx = self._action_dict_to_index(action_dict)
+        self.memory.append((state, action_idx, reward, next_state, done))
+
+    # --- training step ---
     def train_model(self):
-        """ Samples from buffer and trains the network. """
+        """Samples from replay buffer and trains the network."""
         if len(self.memory) < self.train_start:
             return
 
-        # Random sampling
         batch = random.sample(self.memory, self.batch_size)
 
-        states      = torch.FloatTensor(np.array([x[0] for x in batch]))
-        actions     = torch.LongTensor(np.array([x[1] for x in batch]))
-        rewards     = torch.FloatTensor(np.array([x[2] for x in batch]))
-        next_states = torch.FloatTensor(np.array([x[3] for x in batch]))
-        dones       = torch.FloatTensor(np.array([float(x[4]) for x in batch]))
+        # convert batch to tensors on the correct device
+        states      = torch.from_numpy(
+            np.array([x[0] for x in batch], dtype=np.float32)
+        ).to(device)
+        actions     = torch.from_numpy(
+            np.array([x[1] for x in batch], dtype=np.int64)
+        ).to(device)
+        rewards     = torch.from_numpy(
+            np.array([x[2] for x in batch], dtype=np.float32)
+        ).to(device)
+        next_states = torch.from_numpy(
+            np.array([x[3] for x in batch], dtype=np.float32)
+        ).to(device)
+        dones       = torch.from_numpy(
+            np.array([float(x[4]) for x in batch], dtype=np.float32)
+        ).to(device)
 
-        # Calculate Current Q (Prediction)
-        curr_q_x, curr_q_y, curr_q_s = self.model(states)
+        # Current Q(s,a)
+        curr_q_all = self.model(states)                       # [B, 18]
+        curr_q = curr_q_all.gather(1, actions.unsqueeze(1))   # [B, 1]
+        curr_q = curr_q.squeeze(1)                            # [B]
 
-        # Gather Q-values for the specific actions taken
-        q_x = curr_q_x.gather(1, actions[:, 0].unsqueeze(1)).squeeze(1)
-        q_y = curr_q_y.gather(1, actions[:, 1].unsqueeze(1)).squeeze(1)
-        q_s = curr_q_s.gather(1, actions[:, 2].unsqueeze(1)).squeeze(1)
-
-        # Calculate Target Q (Label)
+        # Target Q = r + γ max_a' Q_target(s')
         with torch.no_grad():
-            next_q_x, next_q_y, next_q_s = self.target_model(next_states)
+            next_q_all = self.target_model(next_states)       # [B, 18]
+            max_next_q, _ = next_q_all.max(dim=1)             # [B]
 
-        max_next_x = next_q_x.max(1)[0]
-        max_next_y = next_q_y.max(1)[0]
-        max_next_s = next_q_s.max(1)[0]
+        target_q = rewards + (1.0 - dones) * self.gamma * max_next_q
 
-        # Average next Q-values for simplified target
-        max_next_avg = (max_next_x + max_next_y + max_next_s) / 3.0
-
-        target_q = rewards + (1 - dones) * self.gamma * max_next_avg
-
-        # Loss & Optimize
-        curr_q_avg = (q_x + q_y + q_s) / 3.0
-        loss = self.criterion(curr_q_avg, target_q)
+        # compute loss and optimize
+        loss = self.criterion(curr_q, target_q)
 
         self.optimizer.zero_grad()
         loss.backward()
+        nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
 
-        # Update Target Model periodically(every 50 times)
+        # periodic target network update
         self.train_count += 1
         if self.train_count % self.target_update_frequency == 0:
             self.update_target_model()
-            print(f"Target model updated (Train count: {self.train_count})")
+            print(f"Target model updated (Train count: {self.train_count}, loss={loss.item():.4f})")
 
-        # Decay Epsilon
+        # decay epsilon
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+            if self.epsilon < self.epsilon_min:
+                self.epsilon = self.epsilon_min
 
     def _state_to_tensor(self, state):
-        state_tensor = torch.FloatTensor(state)
-        return state_tensor.unsqueeze(0)
+        """Convert 1D state (list or np.array) to [1, state_size] tensor on device."""
+        arr = np.array(state, dtype=np.float32)
+        return torch.from_numpy(arr).unsqueeze(0).to(device)
 
     def remember(self, *args):
         self.append_sample(*args)
@@ -185,19 +183,18 @@ class Agent:
         self.train_model()
 
     def update_target_model(self):
-        new_state = self.model.state_dict()
-        self.target_model.load_state_dict(new_state)
+        self.target_model.load_state_dict(self.model.state_dict())
 
     def load_model(self, filepath='model.pth'):
         if os.path.exists(filepath):
-            self.model.load_state_dict(torch.load(filepath))
+            self.model.load_state_dict(torch.load(filepath, map_location=device))
             self.update_target_model()
-            self.epsilon = self.epsilon_min # 학습된 모델 사용 시 탐험 최소화
+            self.epsilon = self.epsilon_min  # use minimal exploration for loaded model
             print(f"Model loaded from {filepath}")
         else:
             print("Saved model not found")
 
-    def save_model(self, filepath="model.pth"):
+    def save_model(self, filepath="./save_model/model.pth"):
         if not os.path.exists("./save_model"):
             os.makedirs("./save_model")
         torch.save(self.model.state_dict(), filepath)
