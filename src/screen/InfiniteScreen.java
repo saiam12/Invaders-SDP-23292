@@ -32,6 +32,12 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private static final int MIN_SPAWN_INTERVAL = 500;
     private static final int MAX_SPAWN_INTERVAL = 1500;
 
+    /** Enemy speed scaling */
+    private static final double INITIAL_SPEED_MULTIPLIER = 0.5;
+    private static final double MAX_SPEED_MULTIPLIER = 4.0;
+    private static final long SPEED_INCREASE_INTERVAL = 15000;
+    private double currentSpeedMultiplier;
+
     private Cooldown enemySpawnCooldown;
 
     public static int getItemsSeparationLineHeight() {return ITEMS_SEPARATION_LINE_HEIGHT;}
@@ -91,6 +97,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.bulletsShot = gameState.getBulletsShot();
         this.shipsDestroyed = gameState.getShipsDestroyed();
         this.random = new Random();
+        this.currentSpeedMultiplier = INITIAL_SPEED_MULTIPLIER;
     }
 
     /** Initializes basic screen properties, and adds necessary elements. */
@@ -124,6 +131,10 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     protected void update() {
         super.update();
 
+        if (this.gameTimer.isRunning()) {
+            this.elapsedTime = this.gameTimer.getElapsedTime();
+            updateSpeedMultiplier();
+        }
         spawnEnemies();
 
         if (!DropItem.isTimeFreezeActive()) {
@@ -171,6 +182,20 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         drawInfiniteMode();
     }
 
+    /**
+     * Update speed multiplier based on elapsed time.
+     */
+    private void updateSpeedMultiplier() {
+        double timeInSeconds = this.elapsedTime / 1000.0;
+        double increaseSteps = Math.floor(timeInSeconds / (SPEED_INCREASE_INTERVAL / 1000.0));
+
+        this.currentSpeedMultiplier = INITIAL_SPEED_MULTIPLIER + (increaseSteps * 0.1);
+
+        if (this.currentSpeedMultiplier > MAX_SPEED_MULTIPLIER) {
+            this.currentSpeedMultiplier = MAX_SPEED_MULTIPLIER;
+        }
+    }
+
     /** Spawn enemies with random intervals */
     protected void spawnEnemies() {
         if (this.enemySpawnCooldown.checkFinished()) {
@@ -208,6 +233,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             }
 
             InfiniteEnemyShip enemy = new InfiniteEnemyShip(x, y, pattern, this.width, this.height);
+            enemy.setSpeedMultiplier(this.currentSpeedMultiplier);
             this.enemyManager.addEnemy(enemy);
 
             // Set random cooldown for next spawn

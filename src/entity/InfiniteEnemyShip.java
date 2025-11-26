@@ -94,7 +94,7 @@ public class InfiniteEnemyShip extends Entity {
                 this.speedX = 0;
                 this.speedY = STRAIGHT_SPEED_Y;
                 this.spriteType = SpriteType.EnemyShipA1;
-                this.color = Color.GREEN;
+                this.color = Color.BLUE;
                 this.pointValue = STRAIGHT_POINT_VALUE;
                 break;
 
