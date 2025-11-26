@@ -23,8 +23,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Moment the game starts. */
     private long gameStartTime;
     /** Whether boss has appeared. */
-    private Cooldown bossSpawnCooldown;
-    /** Whether boss has appeared. */
     private boolean bossSpawned;
     /** Height of the items separation line (above items). */
     private static final int ITEMS_SEPARATION_LINE_HEIGHT = 400;
@@ -35,15 +33,16 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private static final int SCREEN_CHANGE_INTERVAL = 1500;
 
     /** EnemyShip spawn interval :
-     * every 15 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds
+     * every 10 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds
      * Every start begins with INITIAL_SPAWN_INTERVAL minus SPAWN_INTERVAL_DECREASE.*/
     private static final int INITIAL_SPAWN_INTERVAL = 1300;
     private static final int MIN_SPAWN_INTERVAL = 200;
     private static final int SPAWN_INTERVAL_DECREASE = 100;
-    private static final int SPAWN_INTERVAL_DECREASE_TIME = 15000;
-    /** Boss spawn interval: 5 minute (300000 milliseconds) */
-    private static final int BOSS_SPAWN_INTERVAL = 300000;
+    private static final int SPAWN_INTERVAL_DECREASE_TIME = 10000;
+    /** Boss spawn interval: 90 second(90000 milliseconds) */
+    private static final int BOSS_SPAWN_INTERVAL = 90000;
     private static int BOSS_SPAWN_COUNT = 0;
+    private long lastBossSpawnTime = 0;
 
     private Cooldown enemySpawnCooldown;
     private int currentSpawnInterval;
@@ -142,9 +141,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.difficultyIncreaseCooldown = Core.getCooldown(SPAWN_INTERVAL_DECREASE_TIME);
         this.enemySpawnCooldown.reset();
 
-        this.bossSpawnCooldown = Core.getCooldown(BOSS_SPAWN_INTERVAL);
-        this.bossSpawnCooldown.reset();
         this.bossSpawned = false;
+        this.lastBossSpawnTime = 0;
         BOSS_SPAWN_COUNT = 0;
 
         this.gameStartTime = System.currentTimeMillis();
@@ -238,8 +236,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
 
     /** Spawn a boss if the conditions are met */
     protected void spawnBoss() {
-        if (this.bossSpawnCooldown.checkFinished() && !this.bossSpawned) {
-            this.bossSpawnCooldown.reset();
+        if (this.elapsedTime - this.lastBossSpawnTime >= BOSS_SPAWN_INTERVAL && !this.bossSpawned) {
+            this.lastBossSpawnTime = this.elapsedTime;
             this.enemyManager.clear();
             if (BOSS_SPAWN_COUNT == 0) {
                 BOSS_SPAWN_COUNT ++;
@@ -247,6 +245,9 @@ public class InfiniteScreen extends Screen implements CollisionContext {
                 this.omegaBoss.attach(this);
                 this.bossActive = true;
                 this.bossSpawned = true;
+                if (this.gameTimer.isRunning()) {
+                    this.gameTimer.stop();
+                }
                 this.logger.info("Omega Boss has spawned!");
             }
             else {
@@ -254,9 +255,12 @@ public class InfiniteScreen extends Screen implements CollisionContext {
                  this.bossActive = true;
                  this.bossSpawned = true;
                  this.logger.info("Final Boss has spawned!");
+                if (this.gameTimer.isRunning()) {
+                    this.gameTimer.stop();
+                }
             }
             this.logger.info("========== BOSS SPAWNED! ==========");
-            this.logger.info("Elapsed time: " + (this.gameStartTime/ 1000) + " seconds");
+            this.logger.info("Elapsed time: " + (this.elapsedTime / 1000) + " seconds");
             this.logger.info("All regular enemies have been cleared!");
             this.logger.info("===================================");
         }
@@ -268,6 +272,9 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             this.bossActive = false;
             this.bossSpawned = false;
             this.omegaBoss = null;
+            if (!this.gameTimer.isRunning()) {
+                this.gameTimer.resume();
+            }
             return;
         }
         if (this.finalBoss != null && !this.finalBoss.isDestroyed()) {
@@ -300,7 +307,9 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             this.bossActive = false;
             this.bossSpawned = false;
             this.is_cleared = false;
-            this.logger.info("Boss defeated! Resuming normal spawning...");
+            if (!this.gameTimer.isRunning()) {
+                this.gameTimer.resume();
+            }
         }
     }
 
