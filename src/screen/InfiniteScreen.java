@@ -26,18 +26,31 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Moment the game starts. */
     private long gameStartTime;
     /** Whether boss has appeared. */
+    private Cooldown bossSpawnCooldown;
+    /** Whether boss has appeared. */
     private boolean bossSpawned;
     /** Height of the items separation line (above items). */
     private static final int ITEMS_SEPARATION_LINE_HEIGHT = 400;
 
     private static final int INPUT_DELAY = 6000;
+    private static final int LIFE_SCORE = 100;
     private static final int SEPARATION_LINE_HEIGHT = 45;
+    private static final int SCREEN_CHANGE_INTERVAL = 1500;
 
-    /** EnemyShip spawn interval - random between min and max */
-    private static final int MIN_SPAWN_INTERVAL = 500;
-    private static final int MAX_SPAWN_INTERVAL = 1500;
+    /** EnemyShip spawn interval :
+     * every 15 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds
+     * Every start begins with INITIAL_SPAWN_INTERVAL minus SPAWN_INTERVAL_DECREASE.*/
+    private static final int INITIAL_SPAWN_INTERVAL = 1300;
+    private static final int MIN_SPAWN_INTERVAL = 200;
+    private static final int SPAWN_INTERVAL_DECREASE = 100;
+    private static final int SPAWN_INTERVAL_DECREASE_TIME = 15000;
+    /** Boss spawn interval: 5 minute (300000 milliseconds) */
+    private static final int BOSS_SPAWN_INTERVAL = 300000;
+    private static int BOSS_SPAWN_COUNT = 0;
 
     private Cooldown enemySpawnCooldown;
+    private int currentSpawnInterval;
+    private Cooldown difficultyIncreaseCooldown;
     /** Returns the Y-coordinate of the bottom boundary for enemies (above items HUD) */
     public static int getItemsSeparationLineHeight() {return ITEMS_SEPARATION_LINE_HEIGHT;}
     /** Gotten coin. */
@@ -67,6 +80,11 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Health change popup. */
     private String healthPopupText;
     private Cooldown healthPopupCooldown;
+    /** Is the bullet on the screen erased */
+    private boolean is_cleared = false;
+    private long lastScoreAdded;
+    private static final int timeInterval = 1000;
+    private static final int pointsPerSecond = 10;
     /** Shop screen instance for infinite mode. */
     private ShopScreen shopScreen;
     /** Cooldown for shop toggle. */
@@ -78,11 +96,12 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private GameTimer gameTimer;
     /** Elapsed time since the game started. */
     private long elapsedTime;
-
     /** Custom formation manager for Infinite Mode enemies */
     private InfiniteEnemyFormation enemyManager;
     /** Random generator */
     private Random random;
+    /** Check Boss exists or not */
+    private boolean bossActive = false;
     /** Selected item in shop */
     private int selectedShopItem = 0;
     /** Shop selection cooldown */
@@ -129,6 +148,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         if (this.bonusLife) this.lives++;
         this.bulletsShot = gameState.getBulletsShot();
         this.shipsDestroyed = gameState.getShipsDestroyed();
+        this.gameTimer = new GameTimer();
         this.random = new Random();
     }
 
@@ -138,24 +158,40 @@ public class InfiniteScreen extends Screen implements CollisionContext {
 
         this.collisionManager = new CollisionManager(this);
         this.enemyManager = new InfiniteEnemyFormation();
-
-        this.ship = new Ship(this.width / 2, ITEMS_SEPARATION_LINE_HEIGHT - 20, Color.green);
+        /** Initialize the bullet Boss fired */
+        this.bossBullets = new HashSet<>();
+        this.ship = new Ship(this.width / 2, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
         this.ship.setPlayerId(1);
-        this.dropItems = new HashSet<DropItem>();
+        this.bossBullets = new HashSet<>();
         this.bullets = new HashSet<Bullet>();
+        this.dropItems = new HashSet<DropItem>();
 
         this.gameStartTime = System.currentTimeMillis();
         this.inputDelay = Core.getCooldown(INPUT_DELAY);
         this.inputDelay.reset();
 
-        // initialize spawn cooldown
-        int randomInterval = MIN_SPAWN_INTERVAL + random.nextInt(MAX_SPAWN_INTERVAL - MIN_SPAWN_INTERVAL);
-        this.enemySpawnCooldown = Core.getCooldown(randomInterval);
+        this.currentSpawnInterval = INITIAL_SPAWN_INTERVAL;
+        this.enemySpawnCooldown = Core.getCooldown(currentSpawnInterval);
+        this.difficultyIncreaseCooldown = Core.getCooldown(SPAWN_INTERVAL_DECREASE_TIME);
         this.enemySpawnCooldown.reset();
+
+        this.bossSpawnCooldown = Core.getCooldown(BOSS_SPAWN_INTERVAL);
+        this.bossSpawnCooldown.reset();
+        this.bossSpawned = false;
+        BOSS_SPAWN_COUNT = 0;
+
+        this.gameStartTime = System.currentTimeMillis();
+        this.inputDelay = Core.getCooldown(INPUT_DELAY);
+        this.inputDelay.reset();
 
         this.gameTimer = new GameTimer();
         this.elapsedTime = 0;
+        this.finalBoss = null;
+        this.omegaBoss = null;
+        this.enemySpawnCooldown = Core.getCooldown(INITIAL_SPAWN_INTERVAL);
+        this.enemySpawnCooldown.reset();
 
+        this.lastScoreAdded = System.currentTimeMillis();
         this.gameTimer.start();
 
         this.shopToggleCooldown = Core.getCooldown(300);
@@ -192,22 +228,24 @@ public class InfiniteScreen extends Screen implements CollisionContext {
 
         gameStartTime++;
         spawnEnemies();
-        scaleEnemyHealthOverTime();
-        spawnBossIfNeeded();
         updateScore();
-        manageItemUpgrades();
         drawInfiniteMode();
+        updateTime();
+        updateDifficulty();
+        scaleEnemyHealthOverTime();
+        spawnBoss();
 
         if (!DropItem.isTimeFreezeActive()) {
             this.enemyManager.update();
         }
+        this.enemyManager.shoot(this.bullets);
 
         if (this.lives > 0 && !this.ship.isDestroyed()) {
-            boolean p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D);
-            boolean p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A);
-            boolean p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W);
-            boolean p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S);
-            boolean p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE);
+            boolean p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
+            boolean p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_LEFT);
+            boolean p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_UP);
+            boolean p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_DOWN);
+            boolean p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_ENTER);
 
             boolean isRightBorder = this.ship.getPositionX()
                     + this.ship.getWidth() + this.ship.getSpeed() > this.width - 1;
@@ -228,24 +266,124 @@ public class InfiniteScreen extends Screen implements CollisionContext {
                 }
             }
         }
-
         this.ship.update();
         cleanItems();
         collisionManager.manageCollisions();
         cleanBullets();
+        updateScore();
 
-        if (this.lives == 0) {
+        if (this.lives <= 0) {
             if (this.gameTimer.isRunning()) {
                 this.gameTimer.stop();
             }
+            this.returnCode = 10;
+            this.isRunning = false;
         }
-
         drawInfiniteMode();
     }
 
-    /** Spawn enemies according to the elapsed time */
+    /** Scale enemy health over time to increase difficulty */
+    protected void scaleEnemyHealthOverTime() {
+        // TODO: increase each enemy's health based on elapsedTime
+    }
+
+    /** Spawn a boss if the conditions are met */
+    protected void spawnBoss() {
+        if (this.bossSpawnCooldown.checkFinished() && !this.bossSpawned) {
+            this.bossSpawnCooldown.reset();
+            this.enemyManager.clear();
+            if (BOSS_SPAWN_COUNT == 0) {
+                BOSS_SPAWN_COUNT ++;
+                this.omegaBoss = new OmegaBoss(Color.ORANGE, ITEMS_SEPARATION_LINE_HEIGHT);
+                this.omegaBoss.attach(this);
+                this.bossActive = true;
+                this.bossSpawned = true;
+                this.logger.info("Omega Boss has spawned!");
+            }
+            else {
+                 this.finalBoss = new FinalBoss(this.width / 2 - 50, 50, this.width, this.height);
+                 this.bossActive = true;
+                 this.bossSpawned = true;
+                 this.logger.info("Final Boss has spawned!");
+            }
+            this.logger.info("========== BOSS SPAWNED! ==========");
+            this.logger.info("Elapsed time: " + (this.gameStartTime/ 1000) + " seconds");
+            this.logger.info("All regular enemies have been cleared!");
+            this.logger.info("===================================");
+        }
+    }
+    private void updateBoss() {
+        if (this.omegaBoss != null && !this.omegaBoss.isDestroyed()) {
+            this.omegaBoss.update();
+        } else if (this.omegaBoss != null && this.omegaBoss.isDestroyed()) {
+            this.bossActive = false;
+            this.bossSpawned = false;
+            this.omegaBoss = null;
+            return;
+        }
+        if (this.finalBoss != null && !this.finalBoss.isDestroyed()) {
+            this.finalBoss.update();
+
+            if (this.finalBoss.getHealPoint() > this.finalBoss.getMaxHp() / 4) {
+                bossBullets.addAll(this.finalBoss.shoot1());
+                bossBullets.addAll(this.finalBoss.shoot2());
+            } else {
+                if (!is_cleared) {
+                    bossBullets.clear();
+                    is_cleared = true;
+                    logger.info("boss is angry");
+                } else {
+                    bossBullets.addAll(this.finalBoss.shoot3());
+                }
+            }
+
+            Set<BossBullet> bulletsToRemove = new HashSet<>();
+
+            for (BossBullet b : bossBullets) {
+                b.update();
+                if (b.isOffScreen(width, height)) {
+                    bulletsToRemove.add(b);
+                }
+            }
+            bossBullets.removeAll(bulletsToRemove);
+        } else if (this.finalBoss != null && this.finalBoss.isDestroyed()) {
+            this.finalBoss = null;
+            this.bossActive = false;
+            this.bossSpawned = false;
+            this.is_cleared = false;
+            this.logger.info("Boss defeated! Resuming normal spawning...");
+        }
+    }
+
+    protected void updateTime(){
+        if (this.gameTimer.isRunning()) {
+            this.elapsedTime = this.gameTimer.getElapsedTime();
+        }
+    }
+    protected void updateDifficulty(){
+        if (this.bossActive) {
+            updateBoss();
+        }
+        else {
+            spawnEnemies();
+        }
+    }
+    /** Spawn enemies with random intervals */
     protected void spawnEnemies() {
-        if (this.enemySpawnCooldown.checkFinished()) {
+        if (this.difficultyIncreaseCooldown.checkFinished()) {
+            if (this.currentSpawnInterval > MIN_SPAWN_INTERVAL) {
+                this.difficultyIncreaseCooldown.reset();
+                this.currentSpawnInterval -= SPAWN_INTERVAL_DECREASE;
+                if (this.currentSpawnInterval < MIN_SPAWN_INTERVAL) {
+                    this.currentSpawnInterval = MIN_SPAWN_INTERVAL;
+                }
+                this.enemySpawnCooldown.setMilliseconds(this.currentSpawnInterval);
+
+                this.logger.info("Difficulty increased! New spawn interval: " + this.currentSpawnInterval + "ms");
+            }
+        }
+        if (this.enemySpawnCooldown.checkFinished() && !this.bossActive) {
+            this.enemySpawnCooldown.reset();
             InfiniteEnemyShip.MovementPattern pattern;
             int x = 0, y = 0;
             int typeRoll = random.nextInt(3); // 0, 1, 2 (3 types)
@@ -281,55 +419,44 @@ public class InfiniteScreen extends Screen implements CollisionContext {
 
             InfiniteEnemyShip enemy = new InfiniteEnemyShip(x, y, pattern, this.width, this.height);
             this.enemyManager.addEnemy(enemy);
-
-            // Set random cooldown for next spawn
-            int randomInterval = MIN_SPAWN_INTERVAL + random.nextInt(MAX_SPAWN_INTERVAL - MIN_SPAWN_INTERVAL);
-            this.enemySpawnCooldown.setMilliseconds(randomInterval);
-            this.enemySpawnCooldown.reset();
         }
-    }
-    /** Scale enemy health over time to increase difficulty */
-    protected void scaleEnemyHealthOverTime() {
-        // TODO: increase each enemy's health based on elapsedTime
-    }
-
-    /** Spawn a boss if the conditions are met */
-    protected void spawnBossIfNeeded() {
-        if (!bossSpawned && gameStartTime > 300) { // Example: spawn boss after 5 minutes
-            // TODO: create and add boss enemy
-            bossSpawned = true;
-        }
-    }
-
-    /** Update the score based on defeated enemies or achievements */
-    protected void updateScore() {
-        // TODO: increment score based on enemy defeats or milestones
-    }
-
-    /** Handle item acquisition and player upgrades */
-    protected void manageItemUpgrades() {
-        // TODO: check if player collects items and apply upgrades
-    }
-
-    /** Return the current game state */
-    public GameState getInfiniteGameState() {
-        // TODO: return a GameState object representing current game situation
-        return null; // placeholder
     }
 
     /** Draw the current game screen */
     protected void drawInfiniteMode() {
         drawManager.initDrawing(this);
 
-        drawManager.drawEntity(ship, ship.getPositionX(), ship.getPositionY());
-        enemyManager.draw();
-        bullets.forEach(b -> drawManager.drawEntity(b, b.getPositionX(), b.getPositionY()));
-        dropItems.forEach(d -> drawManager.drawEntity(d, d.getPositionX(), d.getPositionY()));
+        drawManager.drawEntity(this.ship, this.ship.getPositionX(), this.ship.getPositionY());
+
+        this.enemyManager.draw();
+
+        if (this.omegaBoss != null && !this.omegaBoss.isDestroyed()) {
+            this.omegaBoss.draw(drawManager);
+            drawManager.drawBossHealthBar(this.omegaBoss.getPositionX(), this.omegaBoss.getPositionY(), "OMEGA",
+                    this.omegaBoss.getHealPoint(), this.omegaBoss.getMaxHp());
+        }
+
+        if (this.finalBoss != null && !this.finalBoss.isDestroyed()) {
+            // Draw boss bullets
+            for (BossBullet bossBullet : bossBullets) {
+                drawManager.drawEntity(bossBullet, bossBullet.getPositionX(), bossBullet.getPositionY());
+            }
+            drawManager.drawEntity(this.finalBoss, this.finalBoss.getPositionX(), this.finalBoss.getPositionY());
+            drawManager.drawBossHealthBar(this.finalBoss.getPositionX(), this.finalBoss.getPositionY(), "FINAL",
+                    this.finalBoss.getHealPoint(), this.finalBoss.getMaxHp());
+        }
+
+        for (Bullet bullet : this.bullets)
+            drawManager.drawEntity(bullet, bullet.getPositionX(), bullet.getPositionY());
+
+        for (DropItem dropItem : this.dropItems)
+            drawManager.drawEntity(dropItem, dropItem.getPositionX(), dropItem.getPositionY());
 
         // UI
-        drawManager.drawScore(this, score);
-        drawManager.drawLives(this, lives);
-        drawManager.drawCoin(this, coin);
+        drawManager.drawScore(this, this.score);
+        drawManager.drawLives(this, this.lives);
+        drawManager.drawCoin(this, this.coin);
+        drawManager.drawTime(this, this.elapsedTime);
         drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
         drawManager.drawHorizontalLine(this, ITEMS_SEPARATION_LINE_HEIGHT);
 
@@ -518,11 +645,51 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         return this.returnCode;
     }
 
+    public Color getColorForHealth(final int health, final int maxHealth) {
+        double ratio = (double) health / maxHealth;
+
+        if (ratio > 0.75) {
+            return new Color(0x3DDC84); // Green: Full HP
+        } else if (ratio > 0.5) {
+            return new Color(0xFFC107); // Yellow: Middle HP
+        } else if (ratio > 0.25) {
+            return new Color(0xFF9800); // Orange: Low HP
+        } else {
+            return new Color(0xF44336); // Red: Critical HP
+        }
+    }
+    private void updateScore() {
+        if (this.gameTimer.isRunning()) {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - this.lastScoreAdded >= timeInterval) {
+                this.score += pointsPerSecond;
+                this.lastScoreAdded = currentTime;
+            }
+        }
+    }
+
+    /**
+     * Returns a GameState object representing the status of the game.
+     * Used to pass score to the ScoreScreen.
+     */
+    public final GameState getGameState() {
+        return new GameState(
+                0,
+                this.score,
+                this.coin,
+                this.lives,
+                0,
+                this.bulletsShot,
+                this.shipsDestroyed,
+                false
+        );
+    }
+
     // CollisionContext interface implementations
     @Override
     public Set<Bullet> getBullets() { return this.bullets; }
     @Override
-    public Set<BossBullet> getBossBullets() { return new HashSet<>(); }
+    public Set<BossBullet> getBossBullets() { return this.bossBullets; }
     @Override
     public EnemyShipFormation getEnemyShipFormation() { return null; }
     @Override
@@ -540,9 +707,9 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     @Override
     public void gainLife() { if (this.lives < this.maxLives) this.lives++; }
     @Override
-    public MidBoss getOmegaBoss() { return null; }
+    public MidBoss getOmegaBoss() { return this.omegaBoss; }
     @Override
-    public FinalBoss getFinalBoss() { return null; }
+    public FinalBoss getFinalBoss() { return this.finalBoss; }
     @Override
     public void addPointsFor(Bullet b, int p) { this.score += p; }
     @Override
