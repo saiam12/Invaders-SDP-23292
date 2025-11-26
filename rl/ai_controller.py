@@ -64,6 +64,12 @@ def run_ai_controller():
 
     agent = Agent(state_size=STATE_SIZE)
 
+    # Variables for remembering the previous state
+    prev_state = None
+    prev_action = None
+    prev_score = 0
+    prev_lives = 3
+
     while True:
         try:
             # 1. Request game state (GET)
@@ -79,9 +85,42 @@ def run_ai_controller():
                 processed_state = preprocess_state(state_data)
                 action_packet = agent.get_action(processed_state)
 
+                curr_score = state_data['score']
+                curr_lives = state_data['playerHp']
+                done = (curr_lives <= 0)
+
+                if prev_state is not None:
+                    # (1) Cal reward : score ⬆️ : reward + , score ⬇️ : reward -
+                    reward = curr_score - prev_score
+                    if curr_lives < prev_lives:
+                        reward -= 100
+
+                    # (2) Save memories: (Old state, old behavior, rewards, now state, game over?)
+                    agent.append_sample(prev_state, prev_action, reward, processed_state, done)
+
+                    # (3) train model
+                    agent.train_model()
+
+
                 # 3. Send action (POST)
                 # action_packet : {"moveX": 1, "moveY": 0, "shoot": true}
                 requests.post(f"{JAVA_SERVER_URL}/action", json=action_packet)
+
+
+                # Update current status to 'previous status' (for next turn)
+                prev_state = processed_state
+                prev_action = action_packet
+                prev_score = curr_score
+                prev_lives = curr_lives
+
+                if done: # reset memory
+                    prev_state = None
+                    prev_score = 0
+                    prev_lives = 3
+                    if agent.epsilon > agent.epsilon_min: # save model each round
+                        agent.save_model()
+
+
 
                 # Print sent action (for debugging)
                 # Only print when there is actual movement or shooting to reduce log noise.
