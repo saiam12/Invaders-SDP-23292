@@ -46,6 +46,8 @@ public final class Core {
 	private static Handler fileHandler;
 	/** Logger handler for printing to console. */
 	private static ConsoleHandler consoleHandler;
+    /** True if AI is controlling */
+    public static boolean isAIMode = true;
 
 
 	/**

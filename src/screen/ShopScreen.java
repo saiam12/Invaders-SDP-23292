@@ -131,6 +131,11 @@ public class ShopScreen extends Screen {
      */
     protected final void update() {
         super.update();
+        /** True wihle RL AI is learning -> skip store */
+        if (Core.isAIMode) {
+            this.isRunning = false;
+            return;
+        }
 
         draw();
 
