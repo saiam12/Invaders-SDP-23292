@@ -93,7 +93,7 @@ def run_ai_controller():
                     # (1) Cal reward : score ⬆️ : reward + , score ⬇️ : reward -
                     reward = curr_score - prev_score
                     if curr_lives < prev_lives:
-                        reward -= 100
+                        reward -= 150
 
                     # (2) Save memories: (Old state, old behavior, rewards, now state, game over?)
                     agent.append_sample(prev_state, prev_action, reward, processed_state, done)
@@ -122,7 +122,7 @@ def run_ai_controller():
                 # Print sent action (for debugging)
                 # Only print when there is actual movement or shooting to reduce log noise.
                 if action_packet["moveX"] != 0 or action_packet["moveY"] != 0 or action_packet["shoot"]:
-                    print(f"🔥 [Action] Move: ({action_packet['moveX']}, {action_packet['moveY']}), Shoot: {action_packet['shoot']}")
+                    print(f"🔥 [Action] Move: ({action_packet['moveX']}, {action_packet['moveY']}), Shoot: {action_packet['shoot']}, train {agent.train_count} ")
 
             elif response.status_code == 503:
                 # Notify that the game is not currently active
