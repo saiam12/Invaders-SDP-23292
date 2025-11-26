@@ -161,15 +161,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     protected void update() {
         super.update();
 
-        if (this.gameTimer.isRunning()) {
-            this.elapsedTime = this.gameTimer.getElapsedTime();
-        }
-        if (this.bossActive) {
-            updateBoss();
-        }
-        else {
-            spawnEnemies();
-        }
+        updateTime();
+        updateDifficulty();
         scaleEnemyHealthOverTime();
         spawnBoss();
         updateScore();
@@ -178,6 +171,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         if (!DropItem.isTimeFreezeActive()) {
             this.enemyManager.update();
         }
+        this.enemyManager.shoot(this.bullets);
 
         if (this.lives > 0 && !this.ship.isDestroyed()) {
             boolean p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
@@ -250,18 +244,14 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     }
     private void updateBoss() {
         if (this.omegaBoss != null && !this.omegaBoss.isDestroyed()) {
-//            this.bossActive = true;
             this.omegaBoss.update();
         } else if (this.omegaBoss != null && this.omegaBoss.isDestroyed()) {
             this.bossActive = false;
             this.bossSpawned = false;
             this.omegaBoss = null;
-//            this.finalBoss = new FinalBoss(this.width / 2 - 50, 50, this.width, this.height);
-//            this.logger.info("Final Boss has spawned!");
             return;
         }
         if (this.finalBoss != null && !this.finalBoss.isDestroyed()) {
-//            this.bossActive = true;
             this.finalBoss.update();
 
             if (this.finalBoss.getHealPoint() > this.finalBoss.getMaxHp() / 4) {
@@ -298,6 +288,19 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Update the score based on defeated enemies or achievements */
     protected void updateScore() {
         // TODO: increment score based on enemy defeats or milestones
+    }
+    protected void updateTime(){
+        if (this.gameTimer.isRunning()) {
+            this.elapsedTime = this.gameTimer.getElapsedTime();
+        }
+    }
+    protected void updateDifficulty(){
+        if (this.bossActive) {
+            updateBoss();
+        }
+        else {
+            spawnEnemies();
+        }
     }
     /** Spawn enemies with random intervals */
     protected void spawnEnemies() {

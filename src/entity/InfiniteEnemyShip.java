@@ -40,7 +40,7 @@ public class InfiniteEnemyShip extends Entity {
     private static final double STRAIGHT_SPEED_Y = 4.0;
     private static final double ZIGZAG_SPEED_X = 3.0;
     private static final double ZIGZAG_SPEED_Y = 2.5;
-    private static final double HORIZONTAL_SPEED_X = 5.0;
+    private static final double HORIZONTAL_SPEED_X = 4.5;
 
     /** Point value when destroyed */
     private int pointValue;
@@ -51,6 +51,10 @@ public class InfiniteEnemyShip extends Entity {
     /** Health points */
     private int hp;
     private int maxHp;
+
+    private static final int SHOOTING_INTERVAL = 1500;
+
+    private Cooldown shootingCooldown;
 
     /** Animation cooldown */
     private Cooldown animationCooldown;
@@ -81,6 +85,9 @@ public class InfiniteEnemyShip extends Entity {
 
         this.animationCooldown = Core.getCooldown(500);
         this.explosionCooldown = Core.getCooldown(500);
+
+        this.shootingCooldown = Core.getCooldown(SHOOTING_INTERVAL);
+        this.shootingCooldown.reset();
 
         initializeByPattern();
     }
@@ -257,6 +264,19 @@ public class InfiniteEnemyShip extends Entity {
                 destroy();
             }
         }
+    }
+
+    public boolean canShoot() {
+        return (!isDestroyed && shootingCooldown.checkFinished());
+    }
+    public void resetShootingCooldown() {
+        shootingCooldown.reset();
+    }
+    public int getShootingPositionX() {
+        return this.positionX + this.width / 2;
+    }
+    public int getShootingPositionY() {
+        return this.positionY + this.height;
     }
 
     /**
