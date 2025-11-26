@@ -138,7 +138,7 @@ public class GameScreen extends Screen {
 
     // === External control state for HTTP/AI controller (Player 1) ===
     /** Whether external control is enabled for player 1. */
-    private boolean AImode = false;
+    private boolean isAIMode = false;
     /** Latest external horizontal movement (-1: left, 0: none, 1: right). */
     private int externalMoveX = 0;
     /** Latest external vertical movement (-1: up, 0: none, 1: down). */
@@ -185,6 +185,7 @@ public class GameScreen extends Screen {
 		this.bulletsShot = gameState.getBulletsShot();
 		this.shipsDestroyed = gameState.getShipsDestroyed();
 		this.isTwoPlayerMode = gameState.isTwoPlayerMode();
+        this.isAIMode = gameState.isAIMode();
 	}
 
 	/**
@@ -267,7 +268,7 @@ public class GameScreen extends Screen {
                 boolean p1Down  = false;
                 boolean p1Fire  = false;
 
-                if (this.AImode) {
+                if (this.isAIMode) {
                     if (externalMoveX == 1) {
                         p1Right = true;
                     } else if (externalMoveX == -1) {
@@ -591,7 +592,7 @@ public class GameScreen extends Screen {
 	            AchievementManager.getInstance().unlockAchievement("Mr. Greedy");
 	        }
 	        return new GameState(this.level, this.score, this.livesP1,this.livesP2,
-	                this.bulletsShot, this.shipsDestroyed,this.coin, this.isTwoPlayerMode);
+	                this.bulletsShot, this.shipsDestroyed,this.coin, this.isTwoPlayerMode, this.isAIMode);
 	    }
 	/**
 	 * Adds one life to the player.
@@ -696,14 +697,13 @@ public class GameScreen extends Screen {
      * @param shoot Whether the player should shoot.
      */
     public void handleExternalAction(final int moveX, final int moveY, final boolean shoot) {
-        this.setAImode(true);
         this.externalMoveX = moveX;
         this.externalMoveY = moveY;
         this.externalShoot = shoot;
     }
 
     public void setAImode(final boolean aimode) {
-        AImode = aimode;
+        isAIMode = aimode;
     }
 
     public StatePacket buildStatePacket() {
