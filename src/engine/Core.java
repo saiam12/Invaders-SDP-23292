@@ -311,6 +311,13 @@ public final class Core {
 					break;
                 default:
                     break;
+
+                // Get the gameState returned from InfiniteScreen
+                case 10:
+                    GameState finalState = ((InfiniteScreen) currentScreen).getGameState();
+                    currentScreen = new InfiniteScoreScreen(width, height, FPS, finalState);
+                    returnCode = frame.setScreen(currentScreen);
+                    break;
             }
 
         } while (returnCode != 0);

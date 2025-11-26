@@ -78,6 +78,9 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private FinalBoss finalBoss;
     /** OmegaBoss */
     private MidBoss omegaBoss;
+    private long lastScoreAdded;
+    private static final int timeInterval = 1000;
+    private static final int pointsPerSecond = 10;
 
     /** Timer to track elapsed time in infinite mode */
     private GameTimer gameTimer;
@@ -112,6 +115,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         if (this.bonusLife) this.lives++;
         this.bulletsShot = gameState.getBulletsShot();
         this.shipsDestroyed = gameState.getShipsDestroyed();
+        this.gameTimer = new GameTimer();
         this.random = new Random();
     }
 
@@ -154,7 +158,19 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.enemySpawnCooldown = Core.getCooldown(INITIAL_SPAWN_INTERVAL);
         this.enemySpawnCooldown.reset();
 
+        this.lastScoreAdded = System.currentTimeMillis();
         this.gameTimer.start();
+    }
+
+    /**
+     * Starts the action.
+     *
+     * @return Next screen code.
+     */
+    @Override
+    public final int run() {
+        super.run();
+        return this.returnCode;
     }
 
     /** Update game state (spawn enemies, update player, etc.) */
@@ -203,11 +219,14 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         cleanItems();
         collisionManager.manageCollisions();
         cleanBullets();
+        updateScore();
 
-        if (this.lives == 0) {
+        if (this.lives <= 0) {
             if (this.gameTimer.isRunning()) {
                 this.gameTimer.stop();
             }
+            this.returnCode = 10;
+            this.isRunning = false;
         }
         drawInfiniteMode();
     }
@@ -285,10 +304,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         }
     }
 
-    /** Update the score based on defeated enemies or achievements */
-    protected void updateScore() {
-        // TODO: increment score based on enemy defeats or milestones
-    }
     protected void updateTime(){
         if (this.gameTimer.isRunning()) {
             this.elapsedTime = this.gameTimer.getElapsedTime();
@@ -446,7 +461,34 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             return new Color(0xF44336); // Red: Critical HP
         }
     }
+    private void updateScore() {
+        if (this.gameTimer.isRunning()) {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - this.lastScoreAdded >= timeInterval) {
+                this.score += pointsPerSecond;
+                this.lastScoreAdded = currentTime;
+            }
+        }
+    }
 
+    /**
+     * Returns a GameState object representing the status of the game.
+     * Used to pass score to the ScoreScreen.
+     */
+    public final GameState getGameState() {
+        return new GameState(
+                0,
+                this.score,
+                this.coin,
+                this.lives,
+                0,
+                this.bulletsShot,
+                this.shipsDestroyed,
+                false
+        );
+    }
+
+    // CollisionContext interface implementations
     @Override
     public Set<Bullet> getBullets() { return this.bullets; }
     @Override
