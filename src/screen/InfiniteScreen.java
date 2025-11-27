@@ -43,7 +43,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private static final int SPAWN_INTERVAL_DECREASE = 100;
     private static final int SPAWN_INTERVAL_DECREASE_TIME = 10000;
     /** Boss spawn interval: 90 second(90000 milliseconds) */
-    private static final int BOSS_SPAWN_INTERVAL = 9000;
+    private static final int BOSS_SPAWN_INTERVAL = 90000;
     private static int BOSS_SPAWN_COUNT = 0;
     private long lastBossSpawnTime = 0;
 
@@ -281,10 +281,14 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         if (this.elapsedTime - this.lastBossSpawnTime >= BOSS_SPAWN_INTERVAL && !this.bossSpawned) {
             this.lastBossSpawnTime = this.elapsedTime;
             this.enemyManager.clear();
+            // Increases HP by 20% every minute
+            double timeMultiplier = 1.0 + (this.elapsedTime / 60000.0) * 0.2;
             if (BOSS_SPAWN_COUNT == 0) {
                 BOSS_SPAWN_COUNT ++;
                 this.omegaBoss = new OmegaBoss(Color.ORANGE, ITEMS_SEPARATION_LINE_HEIGHT);
                 this.omegaBoss.attach(this);
+                int newHp = (int) (this.omegaBoss.getMaxHp() * timeMultiplier);
+                this.omegaBoss.setHealth(newHp);
                 this.bossActive = true;
                 this.bossSpawned = true;
                 if (this.gameTimer.isRunning()) {
@@ -294,6 +298,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             }
             else {
                  this.finalBoss = new FinalBoss(this.width / 2 - 50, 50, this.width, this.height);
+                 int newHp = (int) (this.finalBoss.getMaxHp() * timeMultiplier);
+                 this.finalBoss.setHealth(newHp);
                  this.bossActive = true;
                  this.bossSpawned = true;
                  this.logger.info("Final Boss has spawned!");
@@ -418,6 +424,10 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             }
 
             InfiniteEnemyShip enemy = new InfiniteEnemyShip(x, y, pattern, this.width, this.height);
+            // Enemy health increases every 30 seconds
+            int plusHealth = (int) (this.elapsedTime / 30000);
+            int newHealth = enemy.getHealth() + plusHealth;
+            enemy.setHealth(newHealth);
             this.enemyManager.addEnemy(enemy);
         }
     }
