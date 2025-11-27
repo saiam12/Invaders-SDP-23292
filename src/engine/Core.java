@@ -296,7 +296,7 @@ public final class Core {
 					break;
 				case 9:
 					isTwoPlayerMode = false;
-					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0, 10000, isTwoPlayerMode);
+					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0, 0, isTwoPlayerMode);
 
 					SoundManager.stopAll();
 					SoundManager.playLoop("sfx/level1.wav");
