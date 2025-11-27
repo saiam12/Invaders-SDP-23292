@@ -316,15 +316,6 @@ public class InfiniteEnemyShip extends Entity {
     }
 
     /**
-     * Gets maximum health.
-     *
-     * @return Max HP
-     */
-    public int getMaxHealth() {
-        return this.maxHp;
-    }
-
-    /**
      * Gets movement pattern.
      *
      * @return Movement pattern

@@ -26,8 +26,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Moment the game starts. */
     private long gameStartTime;
     /** Whether boss has appeared. */
-    private Cooldown bossSpawnCooldown;
-    /** Whether boss has appeared. */
     private boolean bossSpawned;
     /** Height of the items separation line (above items). */
     private static final int ITEMS_SEPARATION_LINE_HEIGHT = 400;
@@ -38,15 +36,16 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private static final int SCREEN_CHANGE_INTERVAL = 1500;
 
     /** EnemyShip spawn interval :
-     * every 15 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds
+     * every 10 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds
      * Every start begins with INITIAL_SPAWN_INTERVAL minus SPAWN_INTERVAL_DECREASE.*/
     private static final int INITIAL_SPAWN_INTERVAL = 1300;
     private static final int MIN_SPAWN_INTERVAL = 200;
     private static final int SPAWN_INTERVAL_DECREASE = 100;
-    private static final int SPAWN_INTERVAL_DECREASE_TIME = 15000;
-    /** Boss spawn interval: 5 minute (300000 milliseconds) */
-    private static final int BOSS_SPAWN_INTERVAL = 300000;
+    private static final int SPAWN_INTERVAL_DECREASE_TIME = 10000;
+    /** Boss spawn interval: 90 second(90000 milliseconds) */
+    private static final int BOSS_SPAWN_INTERVAL = 90000;
     private static int BOSS_SPAWN_COUNT = 0;
+    private long lastBossSpawnTime = 0;
 
     /** Enemy speed scaling */
     private static final double INITIAL_SPEED_MULTIPLIER = 0.5;
@@ -182,9 +181,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.difficultyIncreaseCooldown = Core.getCooldown(SPAWN_INTERVAL_DECREASE_TIME);
         this.enemySpawnCooldown.reset();
 
-        this.bossSpawnCooldown = Core.getCooldown(BOSS_SPAWN_INTERVAL);
-        this.bossSpawnCooldown.reset();
         this.bossSpawned = false;
+        this.lastBossSpawnTime = 0;
         BOSS_SPAWN_COUNT = 0;
 
         this.gameStartTime = System.currentTimeMillis();
@@ -207,6 +205,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.shopSelectionCooldown.reset();
         this.isShopOpen = false;
         this.shopScreen = null;
+
+        this.gameTimer.start();
     }
 
     /** Update game state (spawn enemies, update player, etc.) */
@@ -218,26 +218,15 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             updateSpeedMultiplier();
         }
         handleShopToggle();
-
         // If shop is open, pause game and skip game logic
         if (isShopOpen) {
-            // Pause game timer
-            if (this.gameTimer.isRunning()) {
+            if (this.gameTimer.isRunning()) { // Pause game timer
                 this.gameTimer.stop();
             }
-            // Still draw game frame (so overlay is visible)
-            drawInfiniteMode();
-            // Handle shop-specific input (navigation, buy, close)
-            handleShopInput();
+            drawInfiniteMode(); // Still draw game frame (so overlay is visible)
+            handleShopInput(); // Handle shop-specific input (navigation, buy, close)
             return; // Skip all game logic
         }
-
-        // Resume game timer when shop closes
-        if (!this.gameTimer.isRunning()) {
-            this.gameTimer.start();
-        }
-
-        gameStartTime++;
         spawnEnemies();
         updateScore();
         drawInfiniteMode();
@@ -314,25 +303,37 @@ public class InfiniteScreen extends Screen implements CollisionContext {
 
     /** Spawn a boss if the conditions are met */
     protected void spawnBoss() {
-        if (this.bossSpawnCooldown.checkFinished() && !this.bossSpawned) {
-            this.bossSpawnCooldown.reset();
+        if (this.elapsedTime - this.lastBossSpawnTime >= BOSS_SPAWN_INTERVAL && !this.bossSpawned) {
+            this.lastBossSpawnTime = this.elapsedTime;
             this.enemyManager.clear();
+            // Increases HP by 20% every minute
+            double timeMultiplier = 1.0 + (this.elapsedTime / 60000.0) * 0.2;
             if (BOSS_SPAWN_COUNT == 0) {
                 BOSS_SPAWN_COUNT ++;
                 this.omegaBoss = new OmegaBoss(Color.ORANGE, ITEMS_SEPARATION_LINE_HEIGHT);
                 this.omegaBoss.attach(this);
+                int newHp = (int) (this.omegaBoss.getMaxHp() * timeMultiplier);
+                this.omegaBoss.setHealth(newHp);
                 this.bossActive = true;
                 this.bossSpawned = true;
+                if (this.gameTimer.isRunning()) {
+                    this.gameTimer.stop();
+                }
                 this.logger.info("Omega Boss has spawned!");
             }
             else {
                  this.finalBoss = new FinalBoss(this.width / 2 - 50, 50, this.width, this.height);
+                 int newHp = (int) (this.finalBoss.getMaxHp() * timeMultiplier);
+                 this.finalBoss.setHealth(newHp);
                  this.bossActive = true;
                  this.bossSpawned = true;
                  this.logger.info("Final Boss has spawned!");
+                if (this.gameTimer.isRunning()) {
+                    this.gameTimer.stop();
+                }
             }
             this.logger.info("========== BOSS SPAWNED! ==========");
-            this.logger.info("Elapsed time: " + (this.gameStartTime/ 1000) + " seconds");
+            this.logger.info("Elapsed time: " + (this.elapsedTime / 1000) + " seconds");
             this.logger.info("All regular enemies have been cleared!");
             this.logger.info("===================================");
         }
@@ -344,6 +345,9 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             this.bossActive = false;
             this.bossSpawned = false;
             this.omegaBoss = null;
+            if (!this.gameTimer.isRunning()) {
+                this.gameTimer.resume();
+            }
             return;
         }
         if (this.finalBoss != null && !this.finalBoss.isDestroyed()) {
@@ -376,7 +380,9 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             this.bossActive = false;
             this.bossSpawned = false;
             this.is_cleared = false;
-            this.logger.info("Boss defeated! Resuming normal spawning...");
+            if (!this.gameTimer.isRunning()) {
+                this.gameTimer.resume();
+            }
         }
     }
 
@@ -444,6 +450,10 @@ public class InfiniteScreen extends Screen implements CollisionContext {
 
             InfiniteEnemyShip enemy = new InfiniteEnemyShip(x, y, pattern, this.width, this.height);
             enemy.setSpeedMultiplier(this.currentSpeedMultiplier);
+            // Enemy health increases every 30 seconds
+            int plusHealth = (int) (this.elapsedTime / 30000);
+            int newHealth = enemy.getHealth() + plusHealth;
+            enemy.setHealth(newHealth);
             this.enemyManager.addEnemy(enemy);
         }
     }
@@ -500,7 +510,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
 
         drawManager.completeDrawing(this);
     }
-
     /**
      * Cleans bullets that go off screen.
      */
@@ -558,7 +567,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private void closeShop() {
         isShopOpen = false;
         logger.info("Shop closed");
-        if (!gameTimer.isRunning()) gameTimer.start();
+        if (!gameTimer.isRunning()) gameTimer.resume();
     }
 
     private void handleShopInput() {
@@ -627,7 +636,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
                 entity.ShopItem.setBulletSpeedLevel(entity.ShopItem.getBulletSpeedLevel() + 1);
                 break;
             case 4: // Ship Speed
-                entity.ShopItem.setSHIPSPEED(entity.ShopItem.getSHIPSpeedCOUNT() + 5);
+                entity.ShopItem.setSHIPSPEED(entity.ShopItem.getSHIPSpeedCOUNT()/5 + 1);
                 break;
         }
     }
