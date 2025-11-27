@@ -600,7 +600,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
                 entity.ShopItem.setBulletSpeedLevel(entity.ShopItem.getBulletSpeedLevel() + 1);
                 break;
             case 4: // Ship Speed
-                entity.ShopItem.setSHIPSPEED(entity.ShopItem.getSHIPSpeedCOUNT() + 5);
+                entity.ShopItem.setSHIPSPEED(entity.ShopItem.getSHIPSpeedCOUNT()/5 + 1);
                 break;
         }
     }
