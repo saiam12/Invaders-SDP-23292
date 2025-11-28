@@ -124,10 +124,10 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Item prices */
     private int[][] prices = {
             {30, 60, 100},              // MultiShot: Level 1-3
-            {25, 50, 75, 100, 150},     // Rapid Fire: Level 1-5
-            {40, 80},                   // Penetration: Level 1-2
-            {35, 70, 110},              // Bullet Speed: Level 1-3
-            {20, 40, 60, 80, 100}       // Ship Speed: Level 1-5
+            {15, 25, 40, 60, 80},       // Rapid Fire: Level 1-5
+            {30, 60},                   // Penetration: Level 1-2
+            {20, 40, 60},               // Bullet Speed: Level 1-3
+            {15, 30, 50, 75, 100}       // Ship Speed: Level 1-5
     };
 
     /**
@@ -306,8 +306,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         if (this.elapsedTime - this.lastBossSpawnTime >= BOSS_SPAWN_INTERVAL && !this.bossSpawned) {
             this.lastBossSpawnTime = this.elapsedTime;
             this.enemyManager.clear();
-            // Increases HP by 20% every minute
-            double timeMultiplier = 1.0 + (this.elapsedTime / 60000.0) * 0.2;
+            // Increases HP by 10% every minute
+            double timeMultiplier = 1.0 + (this.elapsedTime / 60000.0) * 0.1;
             if (BOSS_SPAWN_COUNT == 0) {
                 BOSS_SPAWN_COUNT ++;
                 this.omegaBoss = new OmegaBoss(Color.ORANGE, ITEMS_SEPARATION_LINE_HEIGHT);
@@ -567,7 +567,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private void closeShop() {
         isShopOpen = false;
         logger.info("Shop closed");
-        if (!gameTimer.isRunning()) gameTimer.resume();
+        if (!gameTimer.isRunning() && !bossActive) gameTimer.resume();
     }
 
     private void handleShopInput() {
@@ -678,20 +678,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         super.run();
         this.logger.info("Infinite mode ended with score: " + this.score);
         return this.returnCode;
-    }
-
-    public Color getColorForHealth(final int health, final int maxHealth) {
-        double ratio = (double) health / maxHealth;
-
-        if (ratio > 0.75) {
-            return new Color(0x3DDC84); // Green: Full HP
-        } else if (ratio > 0.5) {
-            return new Color(0xFFC107); // Yellow: Middle HP
-        } else if (ratio > 0.25) {
-            return new Color(0xFF9800); // Orange: Low HP
-        } else {
-            return new Color(0xF44336); // Red: Critical HP
-        }
     }
     private void updateScore() {
         if (this.gameTimer.isRunning()) {
