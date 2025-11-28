@@ -43,9 +43,15 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private static final int SPAWN_INTERVAL_DECREASE = 100;
     private static final int SPAWN_INTERVAL_DECREASE_TIME = 10000;
     /** Boss spawn interval: 90 second(90000 milliseconds) */
-    private static final int BOSS_SPAWN_INTERVAL = 9000;
+    private static final int BOSS_SPAWN_INTERVAL = 90000;
     private static int BOSS_SPAWN_COUNT = 0;
     private long lastBossSpawnTime = 0;
+
+    /** Enemy speed scaling */
+    private static final double INITIAL_SPEED_MULTIPLIER = 0.5;
+    private static final double MAX_SPEED_MULTIPLIER = 4.0;
+    private static final long SPEED_INCREASE_INTERVAL = 15000;
+    private double currentSpeedMultiplier;
 
     private Cooldown enemySpawnCooldown;
     private int currentSpawnInterval;
@@ -149,6 +155,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.shipsDestroyed = gameState.getShipsDestroyed();
         this.gameTimer = new GameTimer();
         this.random = new Random();
+        this.currentSpeedMultiplier = INITIAL_SPEED_MULTIPLIER;
     }
 
     /** Initializes basic screen properties, and adds necessary elements. */
@@ -206,6 +213,10 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     protected void update() {
         super.update();
 
+        if (this.gameTimer.isRunning()) {
+            this.elapsedTime = this.gameTimer.getElapsedTime();
+            updateSpeedMultiplier();
+        }
         handleShopToggle();
         // If shop is open, pause game and skip game logic
         if (isShopOpen) {
@@ -271,6 +282,20 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         drawInfiniteMode();
     }
 
+    /**
+     * Update speed multiplier based on elapsed time.
+     */
+    private void updateSpeedMultiplier() {
+        double timeInSeconds = this.elapsedTime / 1000.0;
+        double increaseSteps = Math.floor(timeInSeconds / (SPEED_INCREASE_INTERVAL / 1000.0));
+
+        this.currentSpeedMultiplier = INITIAL_SPEED_MULTIPLIER + (increaseSteps * 0.1);
+
+        if (this.currentSpeedMultiplier > MAX_SPEED_MULTIPLIER) {
+            this.currentSpeedMultiplier = MAX_SPEED_MULTIPLIER;
+        }
+    }
+
     /** Scale enemy health over time to increase difficulty */
     protected void scaleEnemyHealthOverTime() {
         // TODO: increase each enemy's health based on elapsedTime
@@ -281,10 +306,14 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         if (this.elapsedTime - this.lastBossSpawnTime >= BOSS_SPAWN_INTERVAL && !this.bossSpawned) {
             this.lastBossSpawnTime = this.elapsedTime;
             this.enemyManager.clear();
+            // Increases HP by 20% every minute
+            double timeMultiplier = 1.0 + (this.elapsedTime / 60000.0) * 0.2;
             if (BOSS_SPAWN_COUNT == 0) {
                 BOSS_SPAWN_COUNT ++;
                 this.omegaBoss = new OmegaBoss(Color.ORANGE, ITEMS_SEPARATION_LINE_HEIGHT);
                 this.omegaBoss.attach(this);
+                int newHp = (int) (this.omegaBoss.getMaxHp() * timeMultiplier);
+                this.omegaBoss.setHealth(newHp);
                 this.bossActive = true;
                 this.bossSpawned = true;
                 if (this.gameTimer.isRunning()) {
@@ -294,6 +323,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             }
             else {
                  this.finalBoss = new FinalBoss(this.width / 2 - 50, 50, this.width, this.height);
+                 int newHp = (int) (this.finalBoss.getMaxHp() * timeMultiplier);
+                 this.finalBoss.setHealth(newHp);
                  this.bossActive = true;
                  this.bossSpawned = true;
                  this.logger.info("Final Boss has spawned!");
@@ -418,6 +449,11 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             }
 
             InfiniteEnemyShip enemy = new InfiniteEnemyShip(x, y, pattern, this.width, this.height);
+            enemy.setSpeedMultiplier(this.currentSpeedMultiplier);
+            // Enemy health increases every 30 seconds
+            int plusHealth = (int) (this.elapsedTime / 30000);
+            int newHealth = enemy.getHealth() + plusHealth;
+            enemy.setHealth(newHealth);
             this.enemyManager.addEnemy(enemy);
         }
     }
@@ -600,7 +636,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
                 entity.ShopItem.setBulletSpeedLevel(entity.ShopItem.getBulletSpeedLevel() + 1);
                 break;
             case 4: // Ship Speed
-                entity.ShopItem.setSHIPSPEED(entity.ShopItem.getSHIPSpeedCOUNT() + 5);
+                entity.ShopItem.setSHIPSPEED(entity.ShopItem.getSHIPSpeedCOUNT()/5 + 1);
                 break;
         }
     }

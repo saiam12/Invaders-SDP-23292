@@ -101,7 +101,7 @@ public class InfiniteEnemyShip extends Entity {
                 this.speedX = 0;
                 this.speedY = STRAIGHT_SPEED_Y;
                 this.spriteType = SpriteType.EnemyShipA1;
-                this.color = Color.GREEN;
+                this.color = Color.BLUE;
                 this.pointValue = STRAIGHT_POINT_VALUE;
                 break;
 
@@ -313,15 +313,6 @@ public class InfiniteEnemyShip extends Entity {
      */
     public int getHealth() {
         return this.hp;
-    }
-
-    /**
-     * Gets maximum health.
-     *
-     * @return Max HP
-     */
-    public int getMaxHealth() {
-        return this.maxHp;
     }
 
     /**
