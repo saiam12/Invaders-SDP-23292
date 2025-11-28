@@ -711,11 +711,11 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         return new GameState(
                 0,
                 this.score,
-                this.coin,
                 this.lives,
                 0,
                 this.bulletsShot,
                 this.shipsDestroyed,
+                this.coin,
                 false
         );
     }
