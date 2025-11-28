@@ -179,16 +179,19 @@ public final class Core {
 					SoundManager.stopAll();
 					SoundManager.play("sfx/gameover.wav");
 //----------------------------------------------------------------------------------------------//
+
+                    if (!isAIMode){
+                    LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+                            + " score screen at " + FPS + " fps, with a score of "
+                            + gameState.getScore() + ", "
+                            + gameState.getLivesRemaining() + " lives remaining, "
+                            + gameState.getBulletsShot() + " bullets shot and "
+                            + gameState.getShipsDestroyed() + " ships destroyed.");
+                    currentScreen = new ScoreScreen(width, height, FPS, gameState);
+                    returnCode = frame.setScreen(currentScreen);
+                    LOGGER.info("Closing score screen.");}
                     // 강화학습 용으로 무한으로 다시 시작하는 코드 //
-//                    LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
-//                            + " score screen at " + FPS + " fps, with a score of "
-//                            + gameState.getScore() + ", "
-//                            + gameState.getLivesRemaining() + " lives remaining, "
-//                            + gameState.getBulletsShot() + " bullets shot and "
-//                            + gameState.getShipsDestroyed() + " ships destroyed.");
-//                    currentScreen = new ScoreScreen(width, height, FPS, gameState);
-//                    returnCode = frame.setScreen(currentScreen);
-//                    LOGGER.info("Closing score screen.");
+                    else{
                     LOGGER.info("Game Over. Restarting automatically in 1 second...");
                     try {
                         Thread.sleep(1000);
@@ -198,7 +201,7 @@ public final class Core {
 
                     // 1레벨부터 다시 시작하도록 설정
                     returnCode = 2;
-                    break;
+                    break;}
 //----------------------------------------------------------------------------------------------//
                 case 3:
                     // High scores
