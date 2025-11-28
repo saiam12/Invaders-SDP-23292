@@ -175,10 +175,10 @@ out/
 .gradle/
 build/
 
-##############
-# local-only
-##############
-gradle.properties
+###############
+## Python venv
+###############
+.venv/
 
 #############
 ## Custom
