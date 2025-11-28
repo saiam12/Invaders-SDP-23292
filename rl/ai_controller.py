@@ -166,11 +166,6 @@ def calc_reward(prev, curr, prev_action):
     prev_boss = prev.get('boss')
     curr_boss = curr.get('boss')
 
-    # ----------------------------------------------------------------------
-    #  ★ SCORE-BASED REWARD REMOVED ★
-    #  → score_diff 보상은 RL 왜곡을 일으켜 UFO 파밍 문제가 해결됨
-    # ----------------------------------------------------------------------
-
     # Convert enemies to sets to detect killed enemies
     prev_enemy_set = {(e[0], e[1], e[3]) for e in prev_enemies}
     curr_enemy_set = {(e[0], e[1], e[3]) for e in curr_enemies}
