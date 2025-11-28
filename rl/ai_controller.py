@@ -66,6 +66,7 @@ def run_ai_controller():
 
     # Variables for remembering the previous state
     prev_state = None
+    prev_raw_state = None
     prev_action = None
     prev_score = 0
     prev_lives = 3
@@ -90,10 +91,8 @@ def run_ai_controller():
                 done = (curr_lives <= 0)
 
                 if prev_state is not None:
-                    # (1) Cal reward : score ⬆️ : reward + , score ⬇️ : reward -
-                    reward = curr_score - prev_score
-                    if curr_lives < prev_lives:
-                        reward -= 150
+                    # (1) calc reward by compairing now-post
+                    reward = calc_reward(prev_raw_state, state_data, prev_action)
 
                     # (2) Save memories: (Old state, old behavior, rewards, now state, game over?)
                     agent.append_sample(prev_state, prev_action, reward, processed_state, done)
@@ -108,16 +107,19 @@ def run_ai_controller():
 
                 # Update current status to 'previous status' (for next turn)
                 prev_state = processed_state
+                prev_raw_state = state_data
                 prev_action = action_packet
                 prev_score = curr_score
                 prev_lives = curr_lives
 
-                if done: # reset memory
-                    prev_state = None
-                    prev_score = 0
-                    prev_lives = 3
-                    if agent.epsilon > agent.epsilon_min: # save model each round
-                        agent.save_model()
+                # save model
+                if done:
+                    agent.save_model(f"./save_model/episode_model.pth")
+
+                if agent.train_count % 50000 == 0 and agent.train_count > 0:
+                    agent.save_model(f"./save_model/model_{agent.train_count}.pth")
+
+
 
                 # Print sent action (for debugging)
                 # Only print when there is actual movement or shooting to reduce log noise.
@@ -141,6 +143,94 @@ def run_ai_controller():
 
         # Prevent too fast communication (Target approx 60 FPS)
         time.sleep(0.016)
+def calc_reward(prev, curr, prev_action):
+    reward = 0.0
+
+    # ---- 1. Survival reward ----
+    reward += 0.1
+
+    # ---- 2. Shooting reward ----
+    if prev_action and prev_action["shoot"]:
+        reward += 0.03
+
+    # ---- Extract needed info ----
+    prev_hp = prev['playerHp']
+    curr_hp = curr['playerHp']
+
+    prev_enemies = prev.get('enemies', [])
+    curr_enemies = curr.get('enemies', [])
+
+    prev_items = prev.get('items', [])
+    curr_items = curr.get('items', [])
+
+    prev_boss = prev.get('boss')
+    curr_boss = curr.get('boss')
+
+    # ----------------------------------------------------------------------
+    #  ★ SCORE-BASED REWARD REMOVED ★
+    #  → score_diff 보상은 RL 왜곡을 일으켜 UFO 파밍 문제가 해결됨
+    # ----------------------------------------------------------------------
+
+    # Convert enemies to sets to detect killed enemies
+    prev_enemy_set = {(e[0], e[1], e[3]) for e in prev_enemies}
+    curr_enemy_set = {(e[0], e[1], e[3]) for e in curr_enemies}
+
+    killed = prev_enemy_set - curr_enemy_set
+
+    # ---- 3. Enemy kill rewards (type-specific) ----
+    for (_, _, t) in killed:
+        if t == 1:          # enemyA (small)
+            reward += 10
+        elif t == 2:        # enemyB (medium)
+            reward += 25
+        elif t == 3:        # enemyC (strong)
+            reward += 40
+        elif t == 0:        # UFO / special → low reward
+            reward += 5
+
+    # ---- 4. Boss damage reward ----
+    if prev_boss and curr_boss:
+        prev_boss_hp = prev_boss[2]
+        curr_boss_hp = curr_boss[2]
+        if curr_boss_hp < prev_boss_hp:
+            reward += (prev_boss_hp - curr_boss_hp) * 0.5
+
+    # ---- 5. Boss kill reward ----
+    if prev_boss is not None and curr_boss is None:
+        reward += 200
+
+    # ---- 6. Player hit (bullet damage) ----
+    if curr_hp < prev_hp:
+        reward -= 30
+
+    # ---- 7. Collision detection ----
+    px, py = curr['playerX'], curr['playerY']
+    for ex, ey, _, _ in curr_enemies:
+        if abs(px - ex) < 20 and abs(py - ey) < 20:
+            reward -= 50
+            break
+
+    # ---- 8. Item pickup (item disappears) ----
+    prev_item_set = {(i[0], i[1], i[2]) for i in prev_items}
+    curr_item_set = {(i[0], i[1], i[2]) for i in curr_items}
+
+    picked = prev_item_set - curr_item_set
+
+    for (_, _, t) in picked:
+        if t == "HP":
+            reward += 15
+        elif t == "POWER":
+            reward += 20
+        elif t == "SPEED":
+            reward += 10
+        elif t == "BOMB":
+            reward += 40
+
+    # ---- 9. Death penalty ----
+    if curr_hp <= 0:
+        reward -= 100
+
+    return reward
 
 if __name__ == "__main__":
     run_ai_controller()
