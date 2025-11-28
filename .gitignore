@@ -169,13 +169,23 @@ pip-log.txt
 *.iml
 out/
 
+############
+## Gradle
+############
+.gradle/
+build/
+
+###############
+## Python venv
+###############
+.venv/
+
 #############
 ## Custom
 #############
 *.log
 log*/
 log*
-*.ttf
 .checkstyle
 production
 achievements.dat

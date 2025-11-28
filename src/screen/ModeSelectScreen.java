@@ -33,6 +33,11 @@ public class ModeSelectScreen extends Screen {
         super(width, height, fps);
 
         // Defaults to 1P mode.
+        // returnCode
+        // 1: Back
+        // 2: 1P Mode
+        // 7: 2P Mode
+        // 5: AI Mode
         this.returnCode = 2;
         this.selectionCooldown = Core.getCooldown(SELECTION_TIME);
         this.selectionCooldown.reset();
@@ -84,6 +89,8 @@ public class ModeSelectScreen extends Screen {
         if (this.returnCode == 2)
             this.returnCode = 7;
         else if (this.returnCode == 7)
+            this.returnCode = 5;
+        else if (this.returnCode == 5)
             this.returnCode = 1; // Return to title screen
         else if (this.returnCode == 1)
             this.returnCode = 2;
@@ -98,6 +105,8 @@ public class ModeSelectScreen extends Screen {
         if (this.returnCode == 2)
             this.returnCode = 1; // Return to title screen
         else if (this.returnCode == 1)
+            this.returnCode = 5;
+        else if (this.returnCode == 5)
             this.returnCode = 7;
         else if (this.returnCode == 7)
             this.returnCode = 2;

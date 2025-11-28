@@ -23,6 +23,8 @@ public class GameState {
     private int coin;
 	/** check 1p or 2p mode. */
 	private boolean isTwoPlayerMode;
+    /** check AI mode or not. */
+    private boolean isAIMode;
 
 
 	/**
@@ -44,10 +46,12 @@ public class GameState {
 	 *            Ships destroyed until now.
 	 * @param isTwoPlayerMode
 	 * 			  check 1p or 2p mode.
+     * @param isAIMode
+     *            check AI mode or not.
 	 */
 	public GameState(final int level, final int score,
 			final int livesRemaining,final int livesRemainingP2, final int bulletsShot,
-			final int shipsDestroyed, final int coin, final boolean isTwoPlayerMode) {
+			final int shipsDestroyed, final int coin, final boolean isTwoPlayerMode, final boolean isAIMode) {
 		this.level = level;
 		this.score = score;
 		this.livesRemaining = livesRemaining;
@@ -56,7 +60,10 @@ public class GameState {
         this.shipsDestroyed = shipsDestroyed;
         this.coin = coin;
 		this.isTwoPlayerMode = isTwoPlayerMode;
-		    }
+        this.isAIMode = isAIMode;
+    }
+
+    public final boolean isAIMode() { return isAIMode; }
 
 	public final boolean isTwoPlayerMode() { return isTwoPlayerMode; }
 
