@@ -124,10 +124,10 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Item prices */
     private int[][] prices = {
             {30, 60, 100},              // MultiShot: Level 1-3
-            {25, 50, 75, 100, 150},     // Rapid Fire: Level 1-5
-            {40, 80},                   // Penetration: Level 1-2
-            {35, 70, 110},              // Bullet Speed: Level 1-3
-            {20, 40, 60, 80, 100}       // Ship Speed: Level 1-5
+            {15, 25, 40, 60, 80},       // Rapid Fire: Level 1-5
+            {30, 60},                   // Penetration: Level 1-2
+            {20, 40, 60},               // Bullet Speed: Level 1-3
+            {15, 30, 50, 75, 100}       // Ship Speed: Level 1-5
     };
 
     /**
@@ -567,7 +567,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private void closeShop() {
         isShopOpen = false;
         logger.info("Shop closed");
-        if (!gameTimer.isRunning()) gameTimer.resume();
+        if (!gameTimer.isRunning() && !bossActive) gameTimer.resume();
     }
 
     private void handleShopInput() {
