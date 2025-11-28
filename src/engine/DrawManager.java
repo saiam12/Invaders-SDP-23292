@@ -374,6 +374,7 @@ public final class DrawManager {
 	public void drawModeSelect(final Screen screen, final int option) {
 		String playString1 = "1P Mode";
 		String playString2 = "2P Mode";
+        String AIMode = "AI Mode";
 		String backString = "Back";
 
 		// Pulsing color for selected item
@@ -388,9 +389,13 @@ public final class DrawManager {
 		else backBufferGraphics.setColor(Color.WHITE);
 		drawCenteredRegularString(screen, playString2, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 1);
 
+        if (option == 5) backBufferGraphics.setColor(pulseColor);
+        else backBufferGraphics.setColor(Color.WHITE);
+        drawCenteredRegularString(screen, AIMode, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
+
 		if (option == 1) backBufferGraphics.setColor(pulseColor);
 		else backBufferGraphics.setColor(Color.WHITE);
-		drawCenteredRegularString(screen, backString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
+		drawCenteredRegularString(screen, backString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 3);
 	}
 
 	/**

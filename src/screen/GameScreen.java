@@ -138,7 +138,7 @@ public class GameScreen extends Screen {
 
     // === External control state for HTTP/AI controller (Player 1) ===
     /** Whether external control is enabled for player 1. */
-    private boolean AImode = false;
+    private boolean isAIMode = false;
     /** Latest external horizontal movement (-1: left, 0: none, 1: right). */
     private int externalMoveX = 0;
     /** Latest external vertical movement (-1: up, 0: none, 1: down). */
@@ -185,6 +185,7 @@ public class GameScreen extends Screen {
 		this.bulletsShot = gameState.getBulletsShot();
 		this.shipsDestroyed = gameState.getShipsDestroyed();
 		this.isTwoPlayerMode = gameState.isTwoPlayerMode();
+        this.isAIMode = gameState.isAIMode();
 	}
 
 	/**
@@ -261,32 +262,11 @@ public class GameScreen extends Screen {
 
 			if (this.livesP1 > 0 && !this.ship.isDestroyed()) {
 
-                boolean p1Right = false;
-                boolean p1Left  = false;
-                boolean p1Up    = false;
-                boolean p1Down  = false;
-                boolean p1Fire  = false;
-
-                if (this.AImode) {
-                    if (externalMoveX == 1) {
-                        p1Right = true;
-                    } else if (externalMoveX == -1) {
-                        p1Left = true;
-                    }
-                    if (externalMoveY == 1) {
-                        p1Down = true;
-                    } else if (externalMoveY == -1) {
-                        p1Up = true;
-                    }
-                    p1Fire = externalShoot;
-                }
-                else {
-                    p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D);
-                    p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A);
-                    p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W);
-                    p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S);
-                    p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE);
-                }
+                boolean p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D);
+                boolean p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A);
+                boolean p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W);
+                boolean p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S);
+                boolean p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE);
 
 				boolean isRightBorder = this.ship.getPositionX()
 						+ this.ship.getWidth() + this.ship.getSpeed() > this.width - 1;
@@ -309,11 +289,32 @@ public class GameScreen extends Screen {
 			}
 
 			if (this.isTwoPlayerMode && this.shipP2 != null && this.livesP2 > 0 && !this.shipP2.isDestroyed()) {
-				boolean p2Right = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
-				boolean p2Left  = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_LEFT);
-				boolean p2Up    = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_UP);
-				boolean p2Down  = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_DOWN);
-				boolean p2Fire  = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_ENTER);
+				boolean p2Right = false;
+				boolean p2Left  = false;
+				boolean p2Up    = false;
+				boolean p2Down  = false;
+				boolean p2Fire  = false;
+
+                if (this.isAIMode) {
+                    if (externalMoveX == 1) {
+                        p2Right = true;
+                    } else if (externalMoveX == -1) {
+                        p2Left = true;
+                    }
+                    if (externalMoveY == 1) {
+                        p2Down = true;
+                    } else if (externalMoveY == -1) {
+                        p2Up = true;
+                    }
+                    p2Fire = externalShoot;
+                }
+                else {
+                    p2Right = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
+                    p2Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_LEFT);
+                    p2Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_UP);
+                    p2Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_DOWN);
+                    p2Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_ENTER);
+                }
 
 				boolean p2RightBorder = this.shipP2.getPositionX()
 						+ this.shipP2.getWidth() + this.shipP2.getSpeed() > this.width - 1;
@@ -591,7 +592,7 @@ public class GameScreen extends Screen {
 	            AchievementManager.getInstance().unlockAchievement("Mr. Greedy");
 	        }
 	        return new GameState(this.level, this.score, this.livesP1,this.livesP2,
-	                this.bulletsShot, this.shipsDestroyed,this.coin, this.isTwoPlayerMode);
+	                this.bulletsShot, this.shipsDestroyed,this.coin, this.isTwoPlayerMode, this.isAIMode);
 	    }
 	/**
 	 * Adds one life to the player.
@@ -696,14 +697,13 @@ public class GameScreen extends Screen {
      * @param shoot Whether the player should shoot.
      */
     public void handleExternalAction(final int moveX, final int moveY, final boolean shoot) {
-        this.setAImode(true);
         this.externalMoveX = moveX;
         this.externalMoveY = moveY;
         this.externalShoot = shoot;
     }
 
     public void setAImode(final boolean aimode) {
-        AImode = aimode;
+        isAIMode = aimode;
     }
 
     public StatePacket buildStatePacket() {
@@ -713,9 +713,9 @@ public class GameScreen extends Screen {
         packet.frame = (int)(System.currentTimeMillis() / 16);  // 대략 60fps 기준
 
         // 2. Player info
-        packet.playerX = this.ship.getPositionX();
-        packet.playerY = this.ship.getPositionY();
-        packet.playerHp = this.livesP1;
+        packet.playerX = this.shipP2.getPositionX();
+        packet.playerY = this.shipP2.getPositionY();
+        packet.playerHp = this.livesP2;
 
         // 3. Bullets info
         packet.bullets = new ArrayList<>();
@@ -785,7 +785,7 @@ public class GameScreen extends Screen {
         }
 
         // 7. Score
-        packet.score = this.score;
+        packet.score = this.scoreP2;
 
         return packet;
     }
