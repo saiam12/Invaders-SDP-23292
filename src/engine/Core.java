@@ -210,8 +210,8 @@ public final class Core {
                 case 5:
                     // AI Mode
                     isAIMode = true;
-                    isTwoPlayerMode = false;
-                    gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0,0, isTwoPlayerMode, isAIMode);
+                    isTwoPlayerMode = true;
+                    gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0,0, isTwoPlayerMode, isAIMode);
                     do {
                         // One extra life every few levels
                         boolean bonusLife = gameState.getLevel()
@@ -276,7 +276,7 @@ public final class Core {
                             );
                         }
                         // Loop while player still has lives and levels remaining
-                    } while (gameState.getLivesRemaining() > 0);
+                    } while (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0);
 
                     SoundManager.stopAll();
                     SoundManager.play("sfx/gameover.wav");
