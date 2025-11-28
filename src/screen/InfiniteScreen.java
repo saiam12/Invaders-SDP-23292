@@ -306,8 +306,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         if (this.elapsedTime - this.lastBossSpawnTime >= BOSS_SPAWN_INTERVAL && !this.bossSpawned) {
             this.lastBossSpawnTime = this.elapsedTime;
             this.enemyManager.clear();
-            // Increases HP by 20% every minute
-            double timeMultiplier = 1.0 + (this.elapsedTime / 60000.0) * 0.2;
+            // Increases HP by 10% every minute
+            double timeMultiplier = 1.0 + (this.elapsedTime / 60000.0) * 0.1;
             if (BOSS_SPAWN_COUNT == 0) {
                 BOSS_SPAWN_COUNT ++;
                 this.omegaBoss = new OmegaBoss(Color.ORANGE, ITEMS_SEPARATION_LINE_HEIGHT);
@@ -678,20 +678,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         super.run();
         this.logger.info("Infinite mode ended with score: " + this.score);
         return this.returnCode;
-    }
-
-    public Color getColorForHealth(final int health, final int maxHealth) {
-        double ratio = (double) health / maxHealth;
-
-        if (ratio > 0.75) {
-            return new Color(0x3DDC84); // Green: Full HP
-        } else if (ratio > 0.5) {
-            return new Color(0xFFC107); // Yellow: Middle HP
-        } else if (ratio > 0.25) {
-            return new Color(0xFF9800); // Orange: Low HP
-        } else {
-            return new Color(0xF44336); // Red: Critical HP
-        }
     }
     private void updateScore() {
         if (this.gameTimer.isRunning()) {
