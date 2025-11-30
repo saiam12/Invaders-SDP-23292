@@ -2,10 +2,13 @@ package screen;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import engine.Core;
 import engine.Score;
+import engine.User;
+import engine.FileManager;
 
 /**
  * Implements the high scores screen, it shows player records.
@@ -32,12 +35,8 @@ public class HighScoreScreen extends Screen {
 		super(width, height, fps);
 
 		this.returnCode = 1;
-
-		try {
-			this.highScores = Core.getFileManager().loadHighScores();
-		} catch (NumberFormatException | IOException e) {
-			logger.warning("Couldn't load high scores!");
-		}
+		// Now displays global high scores
+		this.highScores = Core.getFileManager().getHighScores();
 	}
 
 	/**

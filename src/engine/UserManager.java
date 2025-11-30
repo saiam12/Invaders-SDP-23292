@@ -2,6 +2,7 @@ package engine;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -15,18 +16,10 @@ public class UserManager {
             users = FileManager.getInstance().loadUsers();
             logger.info("User data loaded successfully.");
         } catch (IOException e) {
-            logger.severe("Failed to load user data: " + e.getMessage());
-            users = new HashMap<>(); // Fallback to an empty map
-        }
-        // Add a dummy user for testing only if no users are loaded
-        if (users.isEmpty()) {
-            users.put("test", new User("test", "1234"));
-            try {
-                FileManager.getInstance().saveUsers(users);
-                logger.info("Added default 'test' user and saved.");
-            } catch (IOException e) {
-                logger.severe("Failed to save default 'test' user: " + e.getMessage());
-            }
+            // If file doesn't exist or is unreadable, start with an empty user map.
+            // This is safer than auto-creating a default user and overwriting a potentially corrupted file.
+            logger.warning("Could not load user data (file may not exist yet): " + e.getMessage());
+            users = new HashMap<>();
         }
     }
 
@@ -66,7 +59,13 @@ public class UserManager {
             logger.warning("Registration failed for user '" + username + "': User already exists.");
             return false; // User already exists
         }
-        users.put(username, new User(username, password));
+        User newUser = new User(username, password);
+        // Initialize achievements for the new user
+        for (Achievement achievement : AchievementManager.getInstance().getAchievements()) {
+            newUser.getAchievements().put(achievement.getName(), false);
+        }
+
+        users.put(username, newUser);
         try {
             FileManager.getInstance().saveUsers(users); // Save updated user list
             logger.info("User '" + username + "' registered and data saved.");
@@ -77,5 +76,9 @@ public class UserManager {
             users.remove(username);
             return false;
         }
+    }
+
+    public Map<String, User> getUsers() {
+        return users;
     }
 }

@@ -103,7 +103,7 @@ public class CollisionManager {
                             this.gameScreen.setShipsDestroyed(this.gameScreen.getShipsDestroyed() + 1);
                             String enemyType = enemyShip.getEnemyType();
                             this.gameScreen.getEnemyShipFormation().destroy(enemyShip);
-                            AchievementManager.getInstance().onEnemyDefeated();
+                            AchievementManager.getInstance().checkKillAchievements(this.gameScreen.getGameState());
                             if (enemyType != null && this.gameScreen.getCurrentLevel().getItemDrops() != null) {
                                 List<engine.level.ItemDrop> potentialDrops = new ArrayList<>();
                                 for (engine.level.ItemDrop itemDrop : this.gameScreen.getCurrentLevel().getItemDrops()) {

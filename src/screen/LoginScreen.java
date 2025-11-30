@@ -6,6 +6,7 @@ import engine.Cooldown;
 import engine.Core;
 import engine.User;
 import engine.UserManager;
+import engine.AchievementManager;
 
 public class LoginScreen extends Screen {
 
@@ -114,6 +115,8 @@ public class LoginScreen extends Screen {
 
             if (loggedInUser != null) {
                 logger.info("Login successful for user: " + username);
+                Core.setCurrentUser(loggedInUser); // Set the current user in Core
+                AchievementManager.getInstance().syncAchievementsWithUser(loggedInUser); // Sync achievements
                 this.returnCode = 1; // Success code for login
                 this.isRunning = false; // Exit login screen
             } else {
