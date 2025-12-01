@@ -40,7 +40,7 @@ class Agent:
         self.gamma = gamma
 
         # target network update cycle
-        self.target_update_frequency = 1000
+        self.target_update_frequency = 10000
         self.train_count = 0
 
         # unified action space (3 x 3 x 2 = 18)
@@ -57,16 +57,16 @@ class Agent:
         self.target_model.load_state_dict(self.model.state_dict())
 
         # optimizer & loss
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
         self.criterion = nn.MSELoss()
 
         # replay buffer
-        self.memory = deque(maxlen=100000)
+        self.memory = deque(maxlen=500000)
 
         # epsilon-greedy settings
         self.epsilon = 1.0          # start exploration at 100%
         self.epsilon_min = 0.01     # minimum exploration rate
-        self.epsilon_decay = 0.9995 # decay per training step
+        self.epsilon_decay = 0.99990 # decay per training step
         self.train_start = 1000     # start training after N samples
 
         # gradient clipping for stability

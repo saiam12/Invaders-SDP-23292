@@ -175,11 +175,11 @@ def calc_reward(prev, curr, prev_action):
     # ---- 3. Enemy kill rewards (type-specific) ----
     for (_, _, t) in killed:
         if t == 1:          # enemyA (small)
-            reward += 10
-        elif t == 2:        # enemyB (medium)
             reward += 25
+        elif t == 2:        # enemyB (medium)
+            reward += 30
         elif t == 3:        # enemyC (strong)
-            reward += 40
+            reward += 35
         elif t == 0:        # UFO / special → low reward
             reward += 5
 
