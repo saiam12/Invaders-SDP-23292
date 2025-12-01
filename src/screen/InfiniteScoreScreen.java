@@ -168,7 +168,7 @@ public class InfiniteScoreScreen extends Screen{
                 this.isNewRecord);
         drawManager.drawResults(this, this.score, this.livesRemaining,
                 this.shipsDestroyed, (float) this.shipsDestroyed
-                        / this.bulletsShot, this.isNewRecord);
+                        / (this.bulletsShot > 0 ? this.bulletsShot : 1), this.isNewRecord);
 
         if (this.isNewRecord)
             drawManager.drawNameInput(this, this.name, this.nameCharSelected);

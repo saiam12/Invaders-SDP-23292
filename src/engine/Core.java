@@ -307,17 +307,14 @@ public final class Core {
 
 					returnCode = frame.setScreen(currentScreen);
 					LOGGER.info("Closing Infinite Mode screen.");
-
 					break;
-                default:
-                    break;
-
-                // Get the gameState returned from InfiniteScreen
-                case 10:
+                case 10: // Get the gameState returned from InfiniteScreen
                     GameState finalState = ((InfiniteScreen) currentScreen).getGameState();
                     currentScreen = new InfiniteScoreScreen(width, height, FPS, finalState);
                     returnCode = frame.setScreen(currentScreen);
                     break;
+				default:
+					break;
             }
 
         } while (returnCode != 0);

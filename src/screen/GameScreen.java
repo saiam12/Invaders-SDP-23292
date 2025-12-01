@@ -185,11 +185,13 @@ public class GameScreen extends Screen implements CollisionContext {
 		this.bossBullets = new HashSet<>();
         enemyShipFormation = new EnemyShipFormation(this.currentLevel);
 		enemyShipFormation.attach(this);
+//		this.scoreP1 = 0;
 		this.ship = new Ship(this.width / 2, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
 		this.ship.setPlayerId(1);   //=== [ADD] Player 1 ===
 
 		if(this.isTwoPlayerMode) {
 			this.ship.setPositionX(this.width / 2 - 100);
+//			this.scoreP2 = 0;
 			this.shipP2 = new Ship(this.width / 2 + 100, ITEMS_SEPARATION_LINE_HEIGHT - 20, Color.pink);
 			this.shipP2.setPlayerId(2); // === [ADD] Player2 ===
 		}

@@ -118,7 +118,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
 
     // Boss spawn constant
     /** Number of times the boss has spawned */
-    private static int BOSS_SPAWN_COUNT = 0;
+    private int BOSS_SPAWN_COUNT = 0;
     /** Boss spawn interval: 90 second(90000 milliseconds) */
     private static final int BOSS_SPAWN_INTERVAL = 90000;
 
@@ -226,13 +226,12 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             if (this.gameTimer.isRunning()) { // Pause game timer
                 this.gameTimer.stop();
             }
-            drawInfiniteMode(); // Still draw game frame (so overlay is visible)
             handleShopInput(); // Handle shop-specific input (navigation, buy, close)
+            drawInfiniteMode(); // Still draw game frame (so overlay is visible)
             return; // Skip all game logic
         }
         spawnEnemies();
         updateScore();
-        drawInfiniteMode();
         updateTime();
         updateDifficulty();
         spawnBoss();

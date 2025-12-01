@@ -480,6 +480,7 @@ public class CollisionManager {
                                 }
                             }
                             this.context.addPointsFor(null, pts2);
+                            this.context.setCoin(this.context.getCoin() + (pts2 / 10));
                             break;
                         case Slow:
                             if (this.context.getEnemyShipFormation() != null) {
