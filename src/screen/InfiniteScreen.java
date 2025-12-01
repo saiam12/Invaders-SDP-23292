@@ -14,89 +14,124 @@ import java.awt.event.KeyEvent;
 
 public class InfiniteScreen extends Screen implements CollisionContext {
 
-    // Fields for game state
-    /** Player score. */
-    private int score;
-    /** Player object. */
-    private Ship ship;
-    /** Whether boss has appeared. */
-    private boolean bossSpawned;
-    /** Height of the items separation line (above items). */
-    private static final int ITEMS_SEPARATION_LINE_HEIGHT = 400;
-    private static final int SEPARATION_LINE_HEIGHT = 45;
-
-    /** EnemyShip spawn interval :
-     * every 10 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds
-     * Every start begins with INITIAL_SPAWN_INTERVAL minus SPAWN_INTERVAL_DECREASE.*/
-    private static final int INITIAL_SPAWN_INTERVAL = 1300;
-    private static final int MIN_SPAWN_INTERVAL = 200;
-    private static final int SPAWN_INTERVAL_DECREASE = 100;
-    private static final int SPAWN_INTERVAL_DECREASE_TIME = 10000;
-    /** Boss spawn interval: 90 second(90000 milliseconds) */
-    private static final int BOSS_SPAWN_INTERVAL = 90000;
-    private static int BOSS_SPAWN_COUNT = 0;
-    private long lastBossSpawnTime = 0;
-
-    /** Enemy speed scaling */
-    private static final double INITIAL_SPEED_MULTIPLIER = 0.5;
-    private static final double MAX_SPEED_MULTIPLIER = 4.0;
-    private static final long SPEED_INCREASE_INTERVAL = 15000;
-    private double currentSpeedMultiplier;
-
-    private Cooldown enemySpawnCooldown;
-    private int currentSpawnInterval;
-    private Cooldown difficultyIncreaseCooldown;
-    /** Gotten coin. */
-    private int coin;
+    // ==================== Game State Fields ====================
     /** Player lives */
     private int lives;
+    /** Player score. */
+    private int score;
+    /** Gotten coin. */
+    private int coin;
+    /** Total bullets shot by the player. */
+    private int bulletsShot;
+    /** Total ships destroyed by the player. */
+    private int shipsDestroyed;
     /** Maximum lives player can have */
     private int maxLives;
     /** Get game information. */
     private GameState gameState;
-    /** Total bullets shot by the player. */
-    private int bulletsShot;
-    /** Set of all bullets fired by on-screen ships. */
-    private Set<Bullet> bullets;
-    /** bossBullets carry bullets which Boss fires */
-    private Set<BossBullet> bossBullets;
-    /** Total ships destroyed by the player. */
-    private int shipsDestroyed;
-    /** Manages collisions between entities. */
-    private CollisionManager collisionManager;
-    /** Set of all dropItems dropped by on screen ships. */
-    private Set<DropItem> dropItems;
+
+    // ==================== Entity Fields ====================
+    /** Player object. */
+    private Ship ship;
     /** Omega boss */
     private MidBoss omegaBoss;
     /** Final boss */
     private FinalBoss finalBoss;
-    /** Health change popup. */
-    private String healthPopupText;
-    private Cooldown healthPopupCooldown;
-    /** Is the bullet on the screen erased */
-    private boolean is_cleared = false;
-    private long lastScoreAdded;
-    private static final int timeInterval = 1000;
-    private static final int pointsPerSecond = 10;
-    /** Cooldown for shop toggle. */
-    private Cooldown shopToggleCooldown;
-    /** Whether shop is currently open. */
-    private boolean isShopOpen;
+    /** Custom formation manager for Infinite Mode enemies */
+    private InfiniteEnemyFormation enemyManager;
 
+    // ==================== Bullet & Item Fields ====================
+    /** Set of all bullets fired by on-screen ships. */
+    private Set<Bullet> bullets;
+    /** bossBullets carry bullets which Boss fires */
+    private Set<BossBullet> bossBullets;
+    /** Set of all dropItems dropped by on screen ships. */
+    private Set<DropItem> dropItems;
+
+    // ==================== Time Management Fields ====================
     /** Timer to track elapsed time in infinite mode */
     private GameTimer gameTimer;
     /** Elapsed time since the game started. */
     private long elapsedTime;
-    /** Custom formation manager for Infinite Mode enemies */
-    private InfiniteEnemyFormation enemyManager;
-    /** Random generator */
-    private Random random;
-    /** Check Boss exists or not */
-    private boolean bossActive = false;
+    /** Timestamp of the last score update. */
+    private long lastScoreAdded;
+
+    // Boss spawn timing
+    /** Timestamp of the last boss spawn time. */
+    private long lastBossSpawnTime = 0;
+
+    // Enemy spawn timing
+    /** Current interval between enemy spawns in milliseconds. */
+    private int currentSpawnInterval;
+    /** Cooldown for enemy spawn timing. */
+    private Cooldown enemySpawnCooldown;
+    /** Cooldown for difficulty increase timing. */
+    private Cooldown difficultyIncreaseCooldown;
+
+    // ==================== Enemyhship Speed Fields ====================
+    /** Current speed multiplier for enemies based on elapsed time. */
+    private double currentSpeedMultiplier;
+
+    // ==================== Shop Fields ====================
+    /** Whether shop is currently open. */
+    private boolean isShopOpen;
+    /** Cooldown for shop toggle. */
+    private Cooldown shopToggleCooldown;
     /** Selected item in shop */
     private int selectedShopItem = 0;
     /** Shop selection cooldown */
     private Cooldown shopSelectionCooldown;
+
+    // ==================== UI Fields ====================
+    /** Text for health change popup display. */
+    private String healthPopupText;
+    /** Cooldown for health popup display duration. */
+    private Cooldown healthPopupCooldown;
+    /** Check Boss exists or not in screen */
+    private boolean bossActive = false;
+    /** Whether boss has appeared. */
+    private boolean bossSpawned;
+    /** Is the bullet on the screen erased */
+    private boolean is_cleared = false;
+
+    // ==================== Collision Manager ====================
+    /** Manages collisions between entities. */
+    private CollisionManager collisionManager;
+
+    // ==================== Utility Fields ====================
+    /** Random generator */
+    private Random random;
+
+    // ==================== Constants ====================
+    /** Height of the items separation line (above items). */
+    private static final int ITEMS_SEPARATION_LINE_HEIGHT = 400;
+    private static final int SEPARATION_LINE_HEIGHT = 45;
+
+    // Enemy spawn constants
+    /** EnemyShip spawn interval :
+     * every 10 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds
+     * Starts at INITIAL_SPAWN_INTERVAL reduced once by SPAWN_INTERVAL_DECREASE.*/
+    private static final int INITIAL_SPAWN_INTERVAL = 1300;
+    private static final int MIN_SPAWN_INTERVAL = 200;
+    private static final int SPAWN_INTERVAL_DECREASE = 100;
+    private static final int SPAWN_INTERVAL_DECREASE_TIME = 10000;
+
+    // Boss spawn constant
+    /** Number of times the boss has spawned */
+    private static int BOSS_SPAWN_COUNT = 0;
+    /** Boss spawn interval: 90 second(90000 milliseconds) */
+    private static final int BOSS_SPAWN_INTERVAL = 90000;
+
+    // Speed scaling constants
+    private static final double INITIAL_SPEED_MULTIPLIER = 0.5;
+    private static final double MAX_SPEED_MULTIPLIER = 4.0;
+    private static final long SPEED_INCREASE_INTERVAL = 15000;
+
+    // Score constants
+    private static final int TIME_INTERVAL = 1000;
+    private static final int POINTS_PER_SECOND = 10;
+
+    // Shop constants
     /** Maximum levels for each item. */
     private static final int[] MAX_LEVELS = {3, 5, 2, 3, 5};
     /** Item levels */
@@ -204,7 +239,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         drawInfiniteMode();
         updateTime();
         updateDifficulty();
-        scaleEnemyHealthOverTime();
         spawnBoss();
 
         if (!DropItem.isTimeFreezeActive()) {
@@ -266,11 +300,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         if (this.currentSpeedMultiplier > MAX_SPEED_MULTIPLIER) {
             this.currentSpeedMultiplier = MAX_SPEED_MULTIPLIER;
         }
-    }
-
-    /** Scale enemy health over time to increase difficulty */
-    protected void scaleEnemyHealthOverTime() {
-        // TODO: increase each enemy's health based on elapsedTime
     }
 
     /** Spawn a boss if the conditions are met */
@@ -654,8 +683,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private void updateScore() {
         if (this.gameTimer.isRunning()) {
             long currentTime = System.currentTimeMillis();
-            if (currentTime - this.lastScoreAdded >= timeInterval) {
-                this.score += pointsPerSecond;
+            if (currentTime - this.lastScoreAdded >= TIME_INTERVAL) {
+                this.score += POINTS_PER_SECOND;
                 this.lastScoreAdded = currentTime;
             }
         }
