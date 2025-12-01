@@ -134,7 +134,7 @@ public class ShopScreen extends Screen {
     protected final void update() {
         super.update();
 
-        if (Core.isAIMode) {
+        if (Core.isAITraining) {
             aiSkipTimer--;
             if (aiSkipTimer <= 0) {
                 this.returnCode = 5;

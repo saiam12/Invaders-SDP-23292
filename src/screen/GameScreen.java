@@ -735,12 +735,14 @@ public class GameScreen extends Screen {
             List<Integer> bullet_info = new ArrayList<>();
             bullet_info.add(b.getPositionX());
             bullet_info.add(b.getPositionY());
+            bullet_info.add(b.getOwnerId());
             packet.bullets.add(bullet_info);
         }
         for (BossBullet b : this.bossBullets) {
             List<Integer> bullet_info = new ArrayList<>();
             bullet_info.add(b.getPositionX());
             bullet_info.add(b.getPositionY());
+            bullet_info.add(-1);
             packet.bullets.add(bullet_info);
         }
 
