@@ -303,7 +303,7 @@ public final class Core {
 
 					LOGGER.info("Starting Infinite Mode.");
 
-					currentScreen = new InfiniteScreen(gameState, false, MAX_LIVES,width,height,FPS);
+					currentScreen = new InfiniteScreen(gameState, MAX_LIVES,width,height,FPS);
 
 					returnCode = frame.setScreen(currentScreen);
 					LOGGER.info("Closing Infinite Mode screen.");

@@ -15,25 +15,15 @@ import java.awt.event.KeyEvent;
 public class InfiniteScreen extends Screen implements CollisionContext {
 
     // Fields for game state
-    /** Bonus life awarded this level. */
-    private boolean bonusLife;
-    /** Current lives of player. */
-    private int currentLives;
     /** Player score. */
     private int score;
     /** Player object. */
     private Ship ship;
-    /** Moment the game starts. */
-    private long gameStartTime;
     /** Whether boss has appeared. */
     private boolean bossSpawned;
     /** Height of the items separation line (above items). */
     private static final int ITEMS_SEPARATION_LINE_HEIGHT = 400;
-
-    private static final int INPUT_DELAY = 6000;
-    private static final int LIFE_SCORE = 100;
     private static final int SEPARATION_LINE_HEIGHT = 45;
-    private static final int SCREEN_CHANGE_INTERVAL = 1500;
 
     /** EnemyShip spawn interval :
      * every 10 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds
@@ -56,8 +46,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private Cooldown enemySpawnCooldown;
     private int currentSpawnInterval;
     private Cooldown difficultyIncreaseCooldown;
-    /** Returns the Y-coordinate of the bottom boundary for enemies (above items HUD) */
-    public static int getItemsSeparationLineHeight() {return ITEMS_SEPARATION_LINE_HEIGHT;}
     /** Gotten coin. */
     private int coin;
     /** Player lives */
@@ -90,8 +78,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     private long lastScoreAdded;
     private static final int timeInterval = 1000;
     private static final int pointsPerSecond = 10;
-    /** Shop screen instance for infinite mode. */
-    private ShopScreen shopScreen;
     /** Cooldown for shop toggle. */
     private Cooldown shopToggleCooldown;
     /** Whether shop is currently open. */
@@ -133,24 +119,21 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /**
      * Constructor, establishes the properties of the screen.
      *
-     * @param bonusLife Checks if a bonus life is awarded this level.
      * @param maxLives Maximum number of lives.
      * @param width  Screen width.
      * @param height Screen height.
      * @param fps    Frames per second, frame rate at which the game is run.
      */
     public InfiniteScreen(final GameState gameState,
-                          final boolean bonusLife, final int maxLives,
+                          final int maxLives,
                           final int width, final int height, final int fps) {
         super(width, height, fps);
 
-        this.bonusLife = bonusLife;
         this.maxLives = maxLives;
         this.score = gameState.getScore();
         this.coin = gameState.getCoin();
         this.lives = gameState.getLivesRemaining();
         this.gameState = gameState;
-        if (this.bonusLife) this.lives++;
         this.bulletsShot = gameState.getBulletsShot();
         this.shipsDestroyed = gameState.getShipsDestroyed();
         this.gameTimer = new GameTimer();
@@ -172,22 +155,12 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.bullets = new HashSet<Bullet>();
         this.dropItems = new HashSet<DropItem>();
 
-        this.gameStartTime = System.currentTimeMillis();
-        this.inputDelay = Core.getCooldown(INPUT_DELAY);
-        this.inputDelay.reset();
-
         this.currentSpawnInterval = INITIAL_SPAWN_INTERVAL;
-        this.enemySpawnCooldown = Core.getCooldown(currentSpawnInterval);
         this.difficultyIncreaseCooldown = Core.getCooldown(SPAWN_INTERVAL_DECREASE_TIME);
-        this.enemySpawnCooldown.reset();
 
         this.bossSpawned = false;
         this.lastBossSpawnTime = 0;
         BOSS_SPAWN_COUNT = 0;
-
-        this.gameStartTime = System.currentTimeMillis();
-        this.inputDelay = Core.getCooldown(INPUT_DELAY);
-        this.inputDelay.reset();
 
         this.gameTimer = new GameTimer();
         this.elapsedTime = 0;
@@ -204,7 +177,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.shopSelectionCooldown = Core.getCooldown(200);
         this.shopSelectionCooldown.reset();
         this.isShopOpen = false;
-        this.shopScreen = null;
 
         this.gameTimer.start();
     }
