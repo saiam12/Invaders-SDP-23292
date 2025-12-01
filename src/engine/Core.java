@@ -47,7 +47,7 @@ public final class Core {
 	/** Logger handler for printing to console. */
 	private static ConsoleHandler consoleHandler;
     /** True if AI is controlling */
-    public static boolean isAIMode = true;
+    public static boolean isAIMode;
 
 
 	/**
@@ -86,7 +86,7 @@ public final class Core {
 		levelManager = new LevelManager();
 		GameState gameState;
 		boolean isTwoPlayerMode = false;
-        boolean isAIMode = false;
+        isAIMode = false;
 
 
         int returnCode = 1;
@@ -182,9 +182,7 @@ public final class Core {
 
 					SoundManager.stopAll();
 					SoundManager.play("sfx/gameover.wav");
-//----------------------------------------------------------------------------------------------//
 
-                    if (!isAIMode){
                     LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
                             + " score screen at " + FPS + " fps, with a score of "
                             + gameState.getScore() + ", "
@@ -193,20 +191,8 @@ public final class Core {
                             + gameState.getShipsDestroyed() + " ships destroyed.");
                     currentScreen = new ScoreScreen(width, height, FPS, gameState);
                     returnCode = frame.setScreen(currentScreen);
-                    LOGGER.info("Closing score screen.");}
-                    // 강화학습 용으로 무한으로 다시 시작하는 코드 //
-                    else{
-                    LOGGER.info("Game Over. Restarting automatically in 1 second...");
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    LOGGER.info("Closing score screen.");
 
-                    // 1레벨부터 다시 시작하도록 설정
-                    returnCode = 2;
-                    break;}
-//----------------------------------------------------------------------------------------------//
                 case 3:
                     // High scores
                     currentScreen = new HighScoreScreen(width, height, FPS);
