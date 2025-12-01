@@ -1,5 +1,6 @@
 package engine.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,4 +19,5 @@ public class StatePacket {
     public List<List<String>> items;
     public List<Integer> boss;
     public int score;
+    public List<List<Integer>> enemyDamageEvents;
 }

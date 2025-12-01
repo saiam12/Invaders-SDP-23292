@@ -1,10 +1,7 @@
 package screen;
 
 import java.awt.Color;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 import engine.*;
@@ -718,6 +715,17 @@ public class GameScreen extends Screen {
         isAIMode = aimode;
     }
 
+    // === Enemy damage buffer for RL ===
+    private final List<List<Integer>> enemyDamageEvents = new ArrayList<>();
+
+    public void recordEnemyDamage(int enemyId, int damage) {
+        List<Integer> ev = new ArrayList<>();
+        ev.add(enemyId);
+        ev.add(damage);
+        enemyDamageEvents.add(ev);
+    }
+
+
     public StatePacket buildStatePacket() {
         StatePacket packet = new StatePacket();
 
@@ -800,6 +808,10 @@ public class GameScreen extends Screen {
 
         // 7. Score
         packet.score = this.scoreP2;
+
+        // === 8. Enemy Damage Events ===
+        packet.enemyDamageEvents = new ArrayList<>(enemyDamageEvents);
+        enemyDamageEvents.clear();
 
         return packet;
     }

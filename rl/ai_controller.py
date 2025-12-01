@@ -198,15 +198,16 @@ def calc_reward(prev, curr, prev_action):
     curr_boss = curr.get('boss')
 
     # ---- 1. corner penalty ----
-    margin_x = 40
+    margin_x = 50
     margin_top = 180
     margin_bottom = ITEMS_LINE - 20
 
     if px < margin_x or px > (WIDTH - margin_x):
-        reward -= 0.5
+        reward -= 0.6
 
-    if py < margin_top or py > margin_bottom:
-        reward -= 0.5
+    if py < margin_top:
+        reward -= 0.6
+        reward -= (margin_top - py) * 0.01
 
     # ---- 2. distance penalty ----
     if curr_enemies:
@@ -214,25 +215,35 @@ def calc_reward(prev, curr, prev_action):
         dist = abs(px - enemy_center_x) / WIDTH  # 0~1
         reward -= dist * 0.05
 
-    # ---- 3. Bullet avoidance penalty ----
+    # ---- 3. Bullet avoidance point ----
     for bx, by, owner in curr.get("bullets", []):
         if owner in [0, -1]:  # enemy or boss bullet
             dist_b = abs(px - bx) + abs(py - by)
 
-            if dist_b < 35:
-                reward -= 1.0
-            if dist_b < 20:
-                reward -= 3.0
+            prev_bullets = prev.get("bullets", [])
+            if not prev_bullets:
+                continue
+
+            prev_dist_b = min(
+                abs(prev['playerX'] - pbx) + abs(prev['playerY'] - pby)
+                for pbx, pby, _ in prev_bullets
+            )
+
+            if dist_b < 50:
+                if dist_b > prev_dist_b:
+                    reward += 0.5
+                else:
+                    reward -= 0.5
 
     # ---- 4. Score-based kill reward ----
     prev_score = prev.get('score', 0)
     curr_score = curr.get('score', 0)
     score_delta = curr_score - prev_score
     if score_delta > 0:
-        if score_delta == 100:     # ufo return only 5 points
-            reward += 5
+        if score_delta == 100:     # ufo return only 0.1 points
+            reward -= 0.1
         else:
-            reward += score_delta
+            reward += score_delta * 0.5
 
     # ---- 5. Boss damage reward ----
     if prev_boss and curr_boss:
@@ -247,7 +258,7 @@ def calc_reward(prev, curr, prev_action):
 
     # ---- 7. Player hit (bullet damage) ----
     if curr_hp < prev_hp:
-        reward -= 30
+        reward -= 50
 
     # ---- 8. Item pickup (item disappears) ----
     prev_item_set = {(i[0], i[1], i[2]) for i in prev_items}
@@ -275,17 +286,34 @@ def calc_reward(prev, curr, prev_action):
     curr_clear = (len(curr_enemies) == 0 and curr_boss is None)
 
     if (not prev_clear) and curr_clear:
-        reward += 400
+        reward += 150
         print(f"[STAGE CLEAR] +400 reward")
 
 
     # ---- 10. Death penalty ----
     if curr_hp <= 0:
         reward -= 100
-    if (abs(reward) > 2) or (abs(reward) < -2):
+
+    # ---- 11. bullet damage reward ----
+    damage_events = curr.get("enemyDamageEvents", [])
+    for (eid, dmg) in damage_events:
+        if eid >= 0:
+            reward += dmg * 3
+
+        elif eid == -1:
+            reward += dmg * 3
+
+        elif eid == -2:
+            reward += dmg * 3
+
+    if (abs(reward) > 2):
         print(f"[BIG REWARD] reward={reward}, score={curr_score}")
 
+
+
     return reward
+
+
 
 if __name__ == "__main__":
     run_ai_controller()
