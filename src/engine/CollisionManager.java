@@ -160,7 +160,7 @@ public class CollisionManager {
                                 this.context.getLogger().info("Infinite enemy destroyed! Points: " + pts);
 
                                 // inf mode item drop
-                                if (Math.random() < 0.2) {
+                                if (Math.random() < 0.15) {
                                     DropItem.ItemType droppedType = DropItem.ItemType.selectItemType();
                                     if (droppedType != null) {
                                         final int ITEM_DROP_SPEED = 2;

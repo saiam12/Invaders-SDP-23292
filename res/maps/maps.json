@@ -14,7 +14,8 @@
       ],
       "itemDrops": [
         { "enemyType": "enemyA", "itemId": "Heal", "dropChance": 0.15 },
-        { "enemyType": "enemyA", "itemId": "Shield", "dropChance": 0.05 }
+        { "enemyType": "enemyA", "itemId": "Shield", "dropChance": 0.05 },
+        { "enemyType": "enemyA", "itemId": "Explode", "dropChance": 0.8 }
       ],
       "completionBonus": { "currency": 10 }
     },
@@ -34,7 +35,8 @@
       "itemDrops": [
         { "enemyType": "enemyA", "itemId": "Heal", "dropChance": 0.15 },
         { "enemyType": "enemyA", "itemId": "Shield", "dropChance": 0.05 },
-        { "enemyType": "enemyB", "itemId": "Shield", "dropChance": 0.1 }
+        { "enemyType": "enemyB", "itemId": "Shield", "dropChance": 0.1 },
+        { "enemyType": "enemyA", "itemId": "Explode", "dropChance": 0.7 }
       ],
       "bossId": "omegaBoss",
       "completionBonus": { "currency": 20 }
