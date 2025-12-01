@@ -391,6 +391,18 @@ public class GameScreen extends Screen {
 		cleanBullets();
 		draw();
 
+        if (Core.isAITraining && this.livesP2 <= 0 && !this.levelFinished) {
+
+            // Core 루프 종료 위해 P1도 0으로 만들어준다
+            this.livesP1 = 0;
+
+            this.levelFinished = true;
+            this.screenFinishedCooldown.reset();
+            if (this.gameTimer.isRunning()) {
+                this.gameTimer.stop();
+            }
+        }
+
 		if ((this.livesP1 == 0 && (!this.isTwoPlayerMode || this.livesP2 == 0)) && !this.levelFinished) {
 			this.levelFinished = true;
 			this.screenFinishedCooldown.reset();

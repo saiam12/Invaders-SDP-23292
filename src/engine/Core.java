@@ -48,9 +48,10 @@ public final class Core {
 	private static ConsoleHandler consoleHandler;
     /** True if AI is controlling */
     public static boolean isAIMode = false;
+    /** True if AI training */
+    public static boolean isAITraining = true;
 
-
-	/**
+    /**
 	 * Test implementation.
 	 * 
 	 * @param args
@@ -280,7 +281,7 @@ public final class Core {
                     SoundManager.stopAll();
                     SoundManager.play("sfx/gameover.wav");
 
-                    if (!isAIMode) {
+                    if (!isAITraining) {
                         LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
                                 + " score screen at " + FPS + " fps, with a score of "
                                 + gameState.getScore() + ", "
@@ -298,7 +299,7 @@ public final class Core {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        returnCode = 5; // AI 모드로 다시 시작
+                        returnCode = 5; // restart with ai mode
                     }
 
                     break;
