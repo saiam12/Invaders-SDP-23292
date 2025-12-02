@@ -444,11 +444,10 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
     public final void shoot(final Set<Bullet> bullets) {
         if (this.shooters.isEmpty()) return;
 
-        int index = (int) (Math.random() * this.shooters.size());
-        EnemyShip shooter = this.shooters.get(index);
-
         if (this.shootingCooldown.checkFinished()) {
             this.shootingCooldown.reset();
+            int index = (int) (Math.random() * this.shooters.size());
+            EnemyShip shooter = this.shooters.get(index);
 
             Bullet b = BulletPool.getBullet(
                     shooter.getPositionX() + shooter.width / 2,
@@ -456,7 +455,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
                     BULLET_SPEED
             );
 
-            b.setOwnerId(0);
+            b.setOwnerId(-1);
             b.setSprite();
             bullets.add(b);
         }

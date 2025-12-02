@@ -13,7 +13,7 @@ import engine.DrawManager.SpriteType;
  * 
  */
 public class Bullet extends Entity {
-    // === [ADD] Owner flag: 1 = P1, 2 = P2, null for legacy compatibility ===
+    // === [ADD] Owner flag: 1 = P1, 2 = P2, 0 = enemy (default) ===
     private Integer ownerId = 0;
 
     public Integer getOwnerId() { return ownerId; }

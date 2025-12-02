@@ -287,7 +287,7 @@ def calc_reward(prev, curr, prev_action):
 
     if (not prev_clear) and curr_clear:
         reward += 150
-        print(f"[STAGE CLEAR] +400 reward")
+        print(f"[STAGE CLEAR] +150 reward")
 
 
     # ---- 10. Death penalty ----
