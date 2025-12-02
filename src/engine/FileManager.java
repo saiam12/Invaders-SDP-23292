@@ -269,6 +269,105 @@ public final class FileManager {
 				bufferedWriter.close();
 		}
 	}
+
+    /**
+     * Loads infinite mode high scores from file.
+     *
+     * @return Sorted list of scores - players.
+     * @throws IOException In case of loading problems.
+     */
+    public List<Score> loadInfiniteHighScores() throws IOException {
+        List<Score> highScores = new ArrayList<Score>();
+        InputStream inputStream = null;
+        BufferedReader bufferedReader = null;
+
+        try {
+            String jarPath = FileManager.class.getProtectionDomain()
+                    .getCodeSource().getLocation().getPath();
+            jarPath = URLDecoder.decode(jarPath, "UTF-8");
+
+            String scoresPath = new File(jarPath).getParent();
+            scoresPath += File.separator;
+            scoresPath += "infinite_scores"; // 파일명을 다르게 설정
+
+            File scoresFile = new File(scoresPath);
+            inputStream = new FileInputStream(scoresFile);
+            bufferedReader = new BufferedReader(new InputStreamReader(
+                    inputStream, Charset.forName("UTF-8")));
+
+            logger.info("Loading infinite mode high scores.");
+
+            Score highScore = null;
+            String name = bufferedReader.readLine();
+            String score = bufferedReader.readLine();
+
+            while ((name != null) && (score != null)) {
+                highScore = new Score(name, Integer.parseInt(score));
+                highScores.add(highScore);
+                name = bufferedReader.readLine();
+                score = bufferedReader.readLine();
+            }
+
+        } catch (FileNotFoundException e) {
+            // create new file if it doesn't exist
+            logger.info("Loading default infinite high scores (empty).");
+        } finally {
+            if (bufferedReader != null)
+                bufferedReader.close();
+        }
+
+        Collections.sort(highScores);
+        return highScores;
+    }
+
+    /**
+     * Saves infinite mode high scores to disk.
+     *
+     * @param highScores High scores to save.
+     * @throws IOException In case of loading problems.
+     */
+    public void saveInfiniteHighScores(final List<Score> highScores) throws IOException {
+        OutputStream outputStream = null;
+        BufferedWriter bufferedWriter = null;
+
+        try {
+            String jarPath = FileManager.class.getProtectionDomain()
+                    .getCodeSource().getLocation().getPath();
+            jarPath = URLDecoder.decode(jarPath, "UTF-8");
+
+            String scoresPath = new File(jarPath).getParent();
+            scoresPath += File.separator;
+            scoresPath += "infinite_scores"; // 파일명을 다르게 설정
+
+            File scoresFile = new File(scoresPath);
+
+            if (!scoresFile.exists())
+                scoresFile.createNewFile();
+
+            outputStream = new FileOutputStream(scoresFile);
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(
+                    outputStream, Charset.forName("UTF-8")));
+
+            logger.info("Saving infinite mode high scores.");
+
+            // Saves 7 or less scores.
+            int savedCount = 0;
+            for (Score score : highScores) {
+                if (savedCount >= 7) // MAX_SCORES 상수 대신 숫자 사용 또는 상수 접근 필요
+                    break;
+                bufferedWriter.write(score.getName());
+                bufferedWriter.newLine();
+                bufferedWriter.write(Integer.toString(score.getScore()));
+                bufferedWriter.newLine();
+                savedCount++;
+            }
+
+        } finally {
+            if (bufferedWriter != null)
+                bufferedWriter.close();
+        }
+    }
+
 	/**
 	 * Loads achievement unlock status from file and returns it as a map.
 	 *
