@@ -307,10 +307,10 @@ public class GameScreen extends Screen {
                 }
                 else {
                     p2Right = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
-                    p2Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_LEFT);
-                    p2Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_UP);
-                    p2Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_DOWN);
-                    p2Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_ENTER);
+                    p2Left  = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_LEFT);
+                    p2Up    = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_UP);
+                    p2Down  = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_DOWN);
+                    p2Fire  = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_ENTER);
                 }
 
 				boolean p2RightBorder = this.shipP2.getPositionX()

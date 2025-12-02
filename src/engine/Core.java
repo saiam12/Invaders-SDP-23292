@@ -191,6 +191,7 @@ public final class Core {
                     currentScreen = new ScoreScreen(width, height, FPS, gameState);
                     returnCode = frame.setScreen(currentScreen);
                     LOGGER.info("Closing score screen.");
+                    break;
 
                 case 3:
                     // High scores
