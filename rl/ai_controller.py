@@ -267,13 +267,17 @@ def calc_reward(prev, curr, prev_action):
     picked = prev_item_set - curr_item_set
 
     for (_, _, t) in picked:
-        if t == "HP":
+        if t == "Explode":
+            reward += 50
+        elif t == "Slow":
             reward += 15
-        elif t == "POWER":
+        elif t == "Stop":
             reward += 20
-        elif t == "SPEED":
-            reward += 10
-        elif t == "BOMB":
+        elif t == "Push":
+            reward += 20
+        elif t == "Shield":
+            reward += 35
+        elif t == "Heal":
             reward += 40
 
     # ---- 9. Stage clear reward ----
