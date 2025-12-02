@@ -15,9 +15,9 @@ import engine.dto.*;
 
 /**
  * Implements core game logic.
- * 
+ *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
- * 
+ *
  */
 public final class Core {
 
@@ -47,12 +47,12 @@ public final class Core {
 	/** Logger handler for printing to console. */
 	private static ConsoleHandler consoleHandler;
     /** True if AI is controlling */
-    public static boolean isAIMode = true;
+    public static boolean isAIMode;
 
 
 	/**
 	 * Test implementation.
-	 * 
+	 *
 	 * @param args
 	 *            Program args, ignored.
 	 */
@@ -86,7 +86,7 @@ public final class Core {
 		levelManager = new LevelManager();
 		GameState gameState;
 		boolean isTwoPlayerMode = false;
-        boolean isAIMode = false;
+        isAIMode = false;
 
 
         int returnCode = 1;
@@ -182,9 +182,7 @@ public final class Core {
 
 					SoundManager.stopAll();
 					SoundManager.play("sfx/gameover.wav");
-//----------------------------------------------------------------------------------------------//
 
-                    if (!isAIMode){
                     LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
                             + " score screen at " + FPS + " fps, with a score of "
                             + gameState.getScore() + ", "
@@ -193,20 +191,9 @@ public final class Core {
                             + gameState.getShipsDestroyed() + " ships destroyed.");
                     currentScreen = new ScoreScreen(width, height, FPS, gameState);
                     returnCode = frame.setScreen(currentScreen);
-                    LOGGER.info("Closing score screen.");}
-                    // 강화학습 용으로 무한으로 다시 시작하는 코드 //
-                    else{
-                    LOGGER.info("Game Over. Restarting automatically in 1 second...");
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    LOGGER.info("Closing score screen.");
+                    break;
 
-                    // 1레벨부터 다시 시작하도록 설정
-                    returnCode = 2;
-                    break;}
-//----------------------------------------------------------------------------------------------//
                 case 3:
                     // High scores
                     currentScreen = new HighScoreScreen(width, height, FPS);
@@ -424,7 +411,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the logger.
-	 * 
+	 *
 	 * @return Application logger.
 	 */
 	public static Logger getLogger() {
@@ -433,7 +420,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the drawing manager.
-	 * 
+	 *
 	 * @return Application draw manager.
 	 */
 	public static DrawManager getDrawManager() {
@@ -442,7 +429,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the input manager.
-	 * 
+	 *
 	 * @return Application input manager.
 	 */
 	public static InputManager getInputManager() {
@@ -451,7 +438,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the file manager.
-	 * 
+	 *
 	 * @return Application file manager.
 	 */
 	public static FileManager getFileManager() {
@@ -460,7 +447,7 @@ public final class Core {
 
 	/**
 	 * Controls creation of new cooldowns.
-	 * 
+	 *
 	 * @param milliseconds
 	 *            Duration of the cooldown.
 	 * @return A new cooldown.
@@ -471,7 +458,7 @@ public final class Core {
 
 	/**
 	 * Controls creation of new cooldowns with variance.
-	 * 
+	 *
 	 * @param milliseconds
 	 *            Duration of the cooldown.
 	 * @param variance
