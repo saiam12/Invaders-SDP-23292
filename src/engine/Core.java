@@ -15,9 +15,9 @@ import engine.dto.*;
 
 /**
  * Implements core game logic.
- * 
+ *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
- * 
+ *
  */
 public final class Core {
 
@@ -46,14 +46,14 @@ public final class Core {
 	private static Handler fileHandler;
 	/** Logger handler for printing to console. */
 	private static ConsoleHandler consoleHandler;
-    /** True if AI is controlling */
-    public static boolean isAIMode = false;
-    /** True if AI training */
-    public static boolean isAITraining = true;
+  /** True if AI is controlling */
+  public static boolean isAIMode = false;
+  /** True if AI training */
+  public static boolean isAITraining = true;
 
     /**
 	 * Test implementation.
-	 * 
+	 *
 	 * @param args
 	 *            Program args, ignored.
 	 */
@@ -87,7 +87,6 @@ public final class Core {
 		levelManager = new LevelManager();
 		GameState gameState;
 		boolean isTwoPlayerMode = false;
-
 
         int returnCode = 1;
 		do {
@@ -422,7 +421,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the logger.
-	 * 
+	 *
 	 * @return Application logger.
 	 */
 	public static Logger getLogger() {
@@ -431,7 +430,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the drawing manager.
-	 * 
+	 *
 	 * @return Application draw manager.
 	 */
 	public static DrawManager getDrawManager() {
@@ -440,7 +439,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the input manager.
-	 * 
+	 *
 	 * @return Application input manager.
 	 */
 	public static InputManager getInputManager() {
@@ -449,7 +448,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the file manager.
-	 * 
+	 *
 	 * @return Application file manager.
 	 */
 	public static FileManager getFileManager() {
@@ -458,7 +457,7 @@ public final class Core {
 
 	/**
 	 * Controls creation of new cooldowns.
-	 * 
+	 *
 	 * @param milliseconds
 	 *            Duration of the cooldown.
 	 * @return A new cooldown.
@@ -469,7 +468,7 @@ public final class Core {
 
 	/**
 	 * Controls creation of new cooldowns with variance.
-	 * 
+	 *
 	 * @param milliseconds
 	 *            Duration of the cooldown.
 	 * @param variance

@@ -19,6 +19,8 @@ public class ModeSelectScreen extends Screen {
     /** Animated background. */
     private AnimatedBackground animatedBackground;
 
+    private Cooldown feedbackCooldown;
+
     /**
      * Constructor, establishes the properties of the screen.
      *
@@ -41,6 +43,8 @@ public class ModeSelectScreen extends Screen {
         this.returnCode = 2;
         this.selectionCooldown = Core.getCooldown(SELECTION_TIME);
         this.selectionCooldown.reset();
+
+        this.feedbackCooldown = Core.getCooldown(2000);
         this.animatedBackground = new AnimatedBackground(width, height);
     }
 
@@ -51,7 +55,6 @@ public class ModeSelectScreen extends Screen {
      */
     public final int run() {
         super.run();
-
         return this.returnCode;
     }
 
@@ -76,7 +79,11 @@ public class ModeSelectScreen extends Screen {
                 this.selectionCooldown.reset();
             }
             if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
-                this.isRunning = false;
+                if (returnCode == 5){
+                    feedbackCooldown.reset();
+                } else {
+                    this.isRunning = false;
+                }
             }
         }
     }
@@ -121,6 +128,10 @@ public class ModeSelectScreen extends Screen {
 
         this.animatedBackground.draw(drawManager, this);
         drawManager.drawModeSelect(this, this.returnCode);
+
+        if (!feedbackCooldown.checkFinished()) {
+            drawManager.drawShopFeedback(this, "AI Mode Coming Soon");
+        }
 
         drawManager.completeDrawing(this);
     }
