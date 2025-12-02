@@ -374,6 +374,7 @@ public final class DrawManager {
 	public void drawModeSelect(final Screen screen, final int option) {
 		String playString1 = "1P Mode";
 		String playString2 = "2P Mode";
+		String playStringInfinite = "Infinite Mode";
 		String backString = "Back";
 
 		// Pulsing color for selected item
@@ -388,9 +389,13 @@ public final class DrawManager {
 		else backBufferGraphics.setColor(Color.WHITE);
 		drawCenteredRegularString(screen, playString2, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 1);
 
+		if(option == 9) backBufferGraphics.setColor(pulseColor);
+		else backBufferGraphics.setColor(Color.WHITE);
+		drawCenteredRegularString(screen, playStringInfinite, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
+
 		if (option == 1) backBufferGraphics.setColor(pulseColor);
 		else backBufferGraphics.setColor(Color.WHITE);
-		drawCenteredRegularString(screen, backString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
+		drawCenteredRegularString(screen, backString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 3);
 	}
 
 	/**
@@ -789,7 +794,11 @@ public final class DrawManager {
 				barY + barHeight - 5);
 	}
 
-	private Color getHealthBarColor(float healthPercent) {
+    public Graphics getBackBufferGraphics() {
+        return backBufferGraphics;
+    }
+
+    private Color getHealthBarColor(float healthPercent) {
 		if (healthPercent > 0.90f) {
 			// 100% - 90%: Green
 			return new Color(0, 255, 0);

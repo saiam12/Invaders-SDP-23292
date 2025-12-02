@@ -84,7 +84,9 @@ public class ModeSelectScreen extends Screen {
         if (this.returnCode == 2)
             this.returnCode = 7;
         else if (this.returnCode == 7)
-            this.returnCode = 1; // Return to title screen
+            this.returnCode = 9; // Return to title screen
+        else if (this.returnCode == 9)
+            this.returnCode = 1;
         else if (this.returnCode == 1)
             this.returnCode = 2;
         this.animatedBackground.rotateRight();
@@ -98,6 +100,8 @@ public class ModeSelectScreen extends Screen {
         if (this.returnCode == 2)
             this.returnCode = 1; // Return to title screen
         else if (this.returnCode == 1)
+            this.returnCode = 9;
+        else if (this.returnCode == 9)
             this.returnCode = 7;
         else if (this.returnCode == 7)
             this.returnCode = 2;

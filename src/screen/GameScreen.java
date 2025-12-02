@@ -1,8 +1,6 @@
 package screen;
 
 import java.awt.Color;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -19,7 +17,7 @@ import engine.level.Level;
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  *
  */
-public class GameScreen extends Screen {
+public class GameScreen extends Screen implements CollisionContext {
 
 	/** Milliseconds until the screen accepts user input. */
 	private static final int INPUT_DELAY = 6000;
@@ -187,11 +185,13 @@ public class GameScreen extends Screen {
 		this.bossBullets = new HashSet<>();
         enemyShipFormation = new EnemyShipFormation(this.currentLevel);
 		enemyShipFormation.attach(this);
+//		this.scoreP1 = 0;
 		this.ship = new Ship(this.width / 2, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
 		this.ship.setPlayerId(1);   //=== [ADD] Player 1 ===
 
 		if(this.isTwoPlayerMode) {
 			this.ship.setPositionX(this.width / 2 - 100);
+//			this.scoreP2 = 0;
 			this.shipP2 = new Ship(this.width / 2 + 100, ITEMS_SEPARATION_LINE_HEIGHT - 20, Color.pink);
 			this.shipP2.setPlayerId(2); // === [ADD] Player2 ===
 		}
@@ -254,6 +254,13 @@ public class GameScreen extends Screen {
 				boolean p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W);
 				boolean p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S);
 				boolean p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE);
+				if (!this.isTwoPlayerMode) {
+					p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
+					p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_LEFT);
+					p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_UP);
+					p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_DOWN);
+					p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_ENTER);
+				}
 
 				boolean isRightBorder = this.ship.getPositionX()
 						+ this.ship.getWidth() + this.ship.getSpeed() > this.width - 1;
@@ -522,7 +529,6 @@ public class GameScreen extends Screen {
         this.dropItems.removeAll(recyclable);
         ItemPool.recycle(recyclable);
     }
-
     /**
      * Shows an achievement popup message on the HUD.
      *
@@ -656,12 +662,16 @@ public class GameScreen extends Screen {
     }
 
     // Getters and Setters for CollisionManager
+	@Override
+	public InfiniteEnemyFormation getInfiniteEnemyFormation() {
+		return null;
+	}
     public Set<Bullet> getBullets() { return this.bullets; }
     public Set<BossBullet> getBossBullets() { return this.bossBullets; }
     public int getLivesP1() { return this.livesP1; }
     public void setLivesP1(int lives) { this.livesP1 = lives; }
     public Ship getShip() { return this.ship; }
-    public boolean isLevelFinished() { return this.levelFinished; }
+    public boolean isLevelFinished() { return !this.levelFinished; }
     public Logger getLogger() { return this.logger; }
     public boolean isTwoPlayerMode() { return this.isTwoPlayerMode; }
     public Ship getShipP2() { return this.shipP2; }
