@@ -738,9 +738,16 @@ public class GameScreen extends Screen implements CollisionContext {
         packet.frame = (int)(System.currentTimeMillis() / 16);  // 대략 60fps 기준
 
         // 2. Player info
-        packet.playerX = this.shipP2.getPositionX();
-        packet.playerY = this.shipP2.getPositionY();
-        packet.playerHp = this.livesP2;
+        if (this.shipP2 != null) {
+            packet.playerX = this.shipP2.getPositionX();
+            packet.playerY = this.shipP2.getPositionY();
+            packet.playerHp = this.livesP2;
+        } else {
+            // fallback or safe default
+            packet.playerX = -1;
+            packet.playerY = -1;
+            packet.playerHp = 0;
+        }
 
         // 3. Bullets info
         packet.bullets = new ArrayList<>();
