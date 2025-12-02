@@ -32,6 +32,9 @@ public class ShopScreen extends Screen {
     /** Total number of items available (5 items). */
     private static final int TOTAL_ITEMS = 5;
 
+    /** Time in frames before auto-skipping shop during AI training (~1 second at 60 FPS). */
+    private static final int AI_SKIP_FRAMES = 60;
+
     /** Item index constants. */
     private static final int ITEM_MULTISHOT = 0;
     private static final int ITEM_RAPID_FIRE = 1;
@@ -129,7 +132,9 @@ public class ShopScreen extends Screen {
     /**
      * Updates the elements on screen and checks for events.
      */
-    private int aiSkipTimer = 60;
+
+    // remaining time until auto skip
+    private int aiSkipTimer = AI_SKIP_FRAMES;
 
     protected final void update() {
         super.update();

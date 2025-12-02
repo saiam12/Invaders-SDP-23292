@@ -401,8 +401,27 @@ public final class Core {
 					LOGGER.info("Starting " + currentScreen.getClass().getSimpleName() + " screen.");
 					returnCode = frame.setScreen(currentScreen);
 					break;
-                default:
+				case 9:
+					isTwoPlayerMode = false;
+					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0, 0, isTwoPlayerMode, isAIMode);
+
+					SoundManager.stopAll();
+					SoundManager.playLoop("sfx/level1.wav");
+
+					LOGGER.info("Starting Infinite Mode.");
+
+					currentScreen = new InfiniteScreen(gameState, MAX_LIVES,width,height,FPS);
+
+					returnCode = frame.setScreen(currentScreen);
+					LOGGER.info("Closing Infinite Mode screen.");
+					break;
+                case 10: // Get the gameState returned from InfiniteScreen
+                    GameState finalState = ((InfiniteScreen) currentScreen).getGameState();
+                    currentScreen = new InfiniteScoreScreen(width, height, FPS, finalState);
+                    returnCode = frame.setScreen(currentScreen);
                     break;
+				default:
+					break;
             }
 
         } while (returnCode != 0);

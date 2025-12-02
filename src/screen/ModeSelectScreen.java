@@ -55,6 +55,7 @@ public class ModeSelectScreen extends Screen {
      */
     public final int run() {
         super.run();
+
         return this.returnCode;
     }
 
@@ -96,6 +97,8 @@ public class ModeSelectScreen extends Screen {
         if (this.returnCode == 2)
             this.returnCode = 7;
         else if (this.returnCode == 7)
+            this.returnCode = 9;
+        else if (this.returnCode == 9)
             this.returnCode = 5;
         else if (this.returnCode == 5)
             this.returnCode = 1; // Return to title screen
@@ -114,6 +117,8 @@ public class ModeSelectScreen extends Screen {
         else if (this.returnCode == 1)
             this.returnCode = 5;
         else if (this.returnCode == 5)
+            this.returnCode = 9;
+        else if (this.returnCode == 9)
             this.returnCode = 7;
         else if (this.returnCode == 7)
             this.returnCode = 2;
