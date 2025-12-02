@@ -129,11 +129,17 @@ public class ShopScreen extends Screen {
     /**
      * Updates the elements on screen and checks for events.
      */
+    private int aiSkipTimer = 60;
+
     protected final void update() {
         super.update();
-        /** True wihle RL AI is learning -> skip store */
-        if (Core.isAIMode) {
-            this.isRunning = false;
+
+        if (Core.isAITraining) {
+            aiSkipTimer--;
+            if (aiSkipTimer <= 0) {
+                this.returnCode = 5;
+                this.isRunning = false;
+            }
             return;
         }
 
@@ -143,14 +149,13 @@ public class ShopScreen extends Screen {
                 && this.inputDelay.checkFinished()) {
 
             if (selectionMode == 0) {
-                // Item selection mode
                 handleItemSelection();
             } else {
-                // Level selection mode
                 handleLevelSelection();
             }
         }
     }
+
 
     /**
      * Handles input when selecting items.

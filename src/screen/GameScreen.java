@@ -1,10 +1,7 @@
 package screen;
 
 import java.awt.Color;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 import engine.*;
@@ -310,10 +307,10 @@ public class GameScreen extends Screen {
                 }
                 else {
                     p2Right = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
-                    p2Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_LEFT);
-                    p2Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_UP);
-                    p2Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_DOWN);
-                    p2Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_ENTER);
+                    p2Left  = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_LEFT);
+                    p2Up    = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_UP);
+                    p2Down  = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_DOWN);
+                    p2Fire  = inputManager.isP2KeyDown(java.awt.event.KeyEvent.VK_ENTER);
                 }
 
 				boolean p2RightBorder = this.shipP2.getPositionX()
@@ -390,6 +387,18 @@ public class GameScreen extends Screen {
         collisionManager.manageCollisions();
 		cleanBullets();
 		draw();
+
+        if (Core.isAITraining && this.livesP2 <= 0 && !this.levelFinished) {
+
+            // Core 루프 종료 위해 P1도 0으로 만들어준다
+            this.livesP1 = 0;
+
+            this.levelFinished = true;
+            this.screenFinishedCooldown.reset();
+            if (this.gameTimer.isRunning()) {
+                this.gameTimer.stop();
+            }
+        }
 
 		if ((this.livesP1 == 0 && (!this.isTwoPlayerMode || this.livesP2 == 0)) && !this.levelFinished) {
 			this.levelFinished = true;
@@ -706,6 +715,17 @@ public class GameScreen extends Screen {
         isAIMode = aimode;
     }
 
+    // === Enemy damage buffer for RL ===
+    private final List<List<Integer>> enemyDamageEvents = new ArrayList<>();
+
+    public void recordEnemyDamage(int enemyId, int damage) {
+        List<Integer> ev = new ArrayList<>();
+        ev.add(enemyId);
+        ev.add(damage);
+        enemyDamageEvents.add(ev);
+    }
+
+
     public StatePacket buildStatePacket() {
         StatePacket packet = new StatePacket();
 
@@ -723,12 +743,14 @@ public class GameScreen extends Screen {
             List<Integer> bullet_info = new ArrayList<>();
             bullet_info.add(b.getPositionX());
             bullet_info.add(b.getPositionY());
+            bullet_info.add(b.getOwnerId());
             packet.bullets.add(bullet_info);
         }
         for (BossBullet b : this.bossBullets) {
             List<Integer> bullet_info = new ArrayList<>();
             bullet_info.add(b.getPositionX());
             bullet_info.add(b.getPositionY());
+            bullet_info.add(-1);
             packet.bullets.add(bullet_info);
         }
 
@@ -786,6 +808,10 @@ public class GameScreen extends Screen {
 
         // 7. Score
         packet.score = this.scoreP2;
+
+        // === 8. Enemy Damage Events ===
+        packet.enemyDamageEvents = new ArrayList<>(enemyDamageEvents);
+        enemyDamageEvents.clear();
 
         return packet;
     }

@@ -83,20 +83,28 @@ public class CollisionManager {
 					}
 				}
 			} else {
-				for (EnemyShip enemyShip : this.gameScreen.getEnemyShipFormation())
-					if (!enemyShip.isDestroyed()
-							&& checkCollision(bullet, enemyShip)) {
+                for (EnemyShip enemyShip : this.gameScreen.getEnemyShipFormation())
+                    if (!enemyShip.isDestroyed()
+                            && checkCollision(bullet, enemyShip)) {
 
-                        boolean beforeHit = enemyShip.getHealth() != 0;
-						if (!bullet.checkAlreadyHit(enemyShip)) {
-							bullet.addEnemyShip(enemyShip);
-							enemyShip.takeDamage(1); // Implement user ship damage
-						}
-						else
-							break;
-                        boolean afterHit = enemyShip.getHealth() == 0;
+                        int beforeHp = enemyShip.getHealth();
 
-                        if (beforeHit && afterHit) {
+                        if (!bullet.checkAlreadyHit(enemyShip)) {
+                            bullet.addEnemyShip(enemyShip);
+                            enemyShip.takeDamage(1);
+                        } else {
+                            break;
+                        }
+
+                        int afterHp = enemyShip.getHealth();
+
+                        if (afterHp < beforeHp) {
+                            gameScreen.recordEnemyDamage(enemyShip.hashCode(), beforeHp - afterHp);
+                        }
+
+                        boolean afterHit = (afterHp == 0);
+
+                        if (afterHit) {
                             int pts = enemyShip.getPointValue();
                             this.gameScreen.addPointsFor(bullet, pts);
                             this.gameScreen.setCoin(this.gameScreen.getCoin() + (pts / 10));
@@ -104,6 +112,7 @@ public class CollisionManager {
                             String enemyType = enemyShip.getEnemyType();
                             this.gameScreen.getEnemyShipFormation().destroy(enemyShip);
                             AchievementManager.getInstance().onEnemyDefeated();
+
                             if (enemyType != null && this.gameScreen.getCurrentLevel().getItemDrops() != null) {
                                 List<engine.level.ItemDrop> potentialDrops = new ArrayList<>();
                                 for (engine.level.ItemDrop itemDrop : this.gameScreen.getCurrentLevel().getItemDrops()) {
@@ -138,13 +147,13 @@ public class CollisionManager {
                             }
                         }
 
-						if (!bullet.penetration()) {
-							recyclable.add(bullet);
-							break;
-						}
-					}
+                        if (!bullet.penetration()) {
+                            recyclable.add(bullet);
+                            break;
+                        }
+                    }
 
-				// special enemy bullet event
+                // special enemy bullet event
 				for (EnemyShip enemyShipSpecial : this.gameScreen.getEnemyShipSpecialFormation())
 					if (enemyShipSpecial != null && !enemyShipSpecial.isDestroyed()
 							&& checkCollision(bullet, enemyShipSpecial)) {
@@ -155,33 +164,55 @@ public class CollisionManager {
 						this.gameScreen.getEnemyShipSpecialFormation().destroy(enemyShipSpecial);
 						recyclable.add(bullet);
 					}
-				if (this.gameScreen.getOmegaBoss() != null
-						&& !this.gameScreen.getOmegaBoss().isDestroyed()
-						&& checkCollision(bullet, this.gameScreen.getOmegaBoss())) {
-					this.gameScreen.getOmegaBoss().takeDamage(2);
-					if(this.gameScreen.getOmegaBoss().getHealPoint() <= 0) {
-						this.gameScreen.setShipsDestroyed(this.gameScreen.getShipsDestroyed() + 1);
+                if (this.gameScreen.getOmegaBoss() != null &&
+                        !this.gameScreen.getOmegaBoss().isDestroyed() &&
+                        checkCollision(bullet, this.gameScreen.getOmegaBoss())) {
+
+                    int beforeHp = this.gameScreen.getOmegaBoss().getHealPoint();
+                    this.gameScreen.getOmegaBoss().takeDamage(2);
+                    int afterHp = this.gameScreen.getOmegaBoss().getHealPoint();
+
+                    if (afterHp < beforeHp) {
+                        gameScreen.recordEnemyDamage(-2, beforeHp - afterHp);  // -2 = OmegaBoss ID
+                    }
+
+                    if (afterHp <= 0) {
+                        this.gameScreen.setShipsDestroyed(this.gameScreen.getShipsDestroyed() + 1);
                         int pts = this.gameScreen.getOmegaBoss().getPointValue();
                         this.gameScreen.addPointsFor(bullet, pts);
                         this.gameScreen.setCoin(this.gameScreen.getCoin() + (pts / 10));
                         this.gameScreen.getOmegaBoss().destroy();
-						AchievementManager.getInstance().unlockAchievement("Boss Slayer");
-					}
-					recyclable.add(bullet);
-				}
+                        AchievementManager.getInstance().unlockAchievement("Boss Slayer");
+                    }
 
-				/** when final boss collide with bullet */
-				if(this.gameScreen.getFinalBoss() != null && !this.gameScreen.getFinalBoss().isDestroyed() && checkCollision(bullet,this.gameScreen.getFinalBoss())){
-					this.gameScreen.getFinalBoss().takeDamage(1);
-					if(this.gameScreen.getFinalBoss().getHealPoint() <= 0){
+                    recyclable.add(bullet);
+                }
+
+
+                /** when final boss collide with bullet */
+                if (this.gameScreen.getFinalBoss() != null &&
+                        !this.gameScreen.getFinalBoss().isDestroyed() &&
+                        checkCollision(bullet, this.gameScreen.getFinalBoss())) {
+
+                    int beforeHp = this.gameScreen.getFinalBoss().getHealPoint();
+                    this.gameScreen.getFinalBoss().takeDamage(1);
+                    int afterHp = this.gameScreen.getFinalBoss().getHealPoint();
+
+                    if (afterHp < beforeHp) {
+                        gameScreen.recordEnemyDamage(-1, beforeHp - afterHp);  // -1 = FinalBoss ID
+                    }
+
+                    if (afterHp <= 0) {
                         int pts = this.gameScreen.getFinalBoss().getPointValue();
                         this.gameScreen.addPointsFor(bullet, pts);
                         this.gameScreen.setCoin(this.gameScreen.getCoin() + (pts / 10));
-						this.gameScreen.getFinalBoss().destroy();
+                        this.gameScreen.getFinalBoss().destroy();
                         AchievementManager.getInstance().unlockAchievement("Boss Slayer");
-					}
-					recyclable.add(bullet);
-				}
+                    }
+
+                    recyclable.add(bullet);
+                }
+
             }
         this.gameScreen.getBullets().removeAll(recyclable);
         BulletPool.recycle(recyclable);

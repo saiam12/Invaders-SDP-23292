@@ -441,20 +441,28 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
 	 * @param bullets
 	 *            Bullets set to add the bullet being shot.
 	 */
-	public final void shoot(final Set<Bullet> bullets) {
-		// For now, only ships in the bottom row are able to shoot.
-		if (this.shooters.isEmpty()) {return; }
-		int index = (int) (Math.random() * this.shooters.size());
-		EnemyShip shooter = this.shooters.get(index);
+    public final void shoot(final Set<Bullet> bullets) {
+        if (this.shooters.isEmpty()) return;
 
-		if (this.shootingCooldown.checkFinished()) {
-			this.shootingCooldown.reset();
-			bullets.add(BulletPool.getBullet(shooter.getPositionX()
-					+ shooter.width / 2, shooter.getPositionY(), BULLET_SPEED));
-		}
-	}
+        if (this.shootingCooldown.checkFinished()) {
+            this.shootingCooldown.reset();
+            int index = (int) (Math.random() * this.shooters.size());
+            EnemyShip shooter = this.shooters.get(index);
 
-	/**
+            Bullet b = BulletPool.getBullet(
+                    shooter.getPositionX() + shooter.width / 2,
+                    shooter.getPositionY(),
+                    BULLET_SPEED
+            );
+
+            b.setOwnerId(-1);
+            b.setSprite();
+            bullets.add(b);
+        }
+    }
+
+
+    /**
 	 * Destroys a ship.
 	 *
 	 * @param destroyedShip
