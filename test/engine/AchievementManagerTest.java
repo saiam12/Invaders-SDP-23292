@@ -187,8 +187,8 @@ public class AchievementManagerTest {
     @DisplayName("syncAchievementsWithUser should unlock specified achievements")
     public void testSyncAchievementsUnlocksSpecified() {
         User user = new User("testUser", "testPass");
-        user.getAchievements().put("First Blood", true);
-        user.getAchievements().put("Bad Sniper", false);
+        user.setAchievementStatus("First Blood", true);
+        user.setAchievementStatus("Bad Sniper", false);
 
         manager.syncAchievementsWithUser(user);
 
@@ -214,7 +214,7 @@ public class AchievementManagerTest {
     @DisplayName("Multiple syncs should update achievement state correctly")
     public void testMultipleSyncs() {
         User user1 = new User("user1", "pass1");
-        user1.getAchievements().put("First Blood", true);
+        user1.setAchievementStatus("First Blood", true);
 
         manager.syncAchievementsWithUser(user1);
 
@@ -228,7 +228,7 @@ public class AchievementManagerTest {
 
         // Sync with different user
         User user2 = new User("user2", "pass2");
-        user2.getAchievements().put("First Blood", false);
+        user2.setAchievementStatus("First Blood", false);
 
         manager.syncAchievementsWithUser(user2);
 

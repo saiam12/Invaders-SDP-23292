@@ -89,7 +89,7 @@ public class AchievementManager {
         for (Achievement achievement : achievements) {
             if (achievement.getName().equals(name) && !achievement.isUnlocked()) {
                 achievement.unlock();
-                currentUser.getAchievements().put(name, true);
+                currentUser.setAchievementStatus(name, true);
 
                 // Persist the change
                 try {
