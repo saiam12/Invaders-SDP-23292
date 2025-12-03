@@ -233,6 +233,7 @@ def calc_reward(prev, curr, prev_action):
     
     Returns:
         float: Accumulated reward for the transition. Positive values indicate desirable events (e.g., damaging or killing enemies, picking up items, clearing a stage); negative values indicate undesirable events (e.g., time penalty, being near screen edges, getting hit, dying).
+    """
     reward = 0.0
 
     # ---- 0. Time penalty ----
