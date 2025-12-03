@@ -15,6 +15,8 @@ public class LoginScreen extends Screen {
     /** Cooldown time for typing characters and backspace. */
     private static final int TYPING_COOLDOWN = 125;
     private static final int ERROR_DISPLAY_COOLDOWN = 2000; // 2 seconds
+    private static final int MIN_INPUT_LENGTH = 1;
+    private static final int MAX_INPUT_LENGTH = 12;
 
     private String username = "";
     private String password = "";
@@ -110,6 +112,17 @@ public class LoginScreen extends Screen {
 
         // Login Button Action
         if (selectedField == 2 && (inputManager.isKeyDown(KeyEvent.VK_ENTER) || inputManager.isKeyDown(KeyEvent.VK_SPACE))) {
+            if (username.length() < MIN_INPUT_LENGTH) {
+                this.errorMessage = "Username must be at least " + MIN_INPUT_LENGTH + " characters.";
+                this.errorCooldown.reset();
+                return;
+            }
+            if (password.length() < MIN_INPUT_LENGTH) {
+                this.errorMessage = "Password must be at least " + MIN_INPUT_LENGTH + " characters.";
+                this.errorCooldown.reset();
+                return;
+            }
+
             logger.info("Login button pressed!");
             User loggedInUser = UserManager.getInstance().login(username, password);
 
@@ -128,6 +141,11 @@ public class LoginScreen extends Screen {
     }
 
     private void appendCharacter(char c) {
+        String currentText = (selectedField == 0) ? username : password;
+        if (currentText.length() >= MAX_INPUT_LENGTH) {
+            return; // Do not append if max length is reached
+        }
+
         if (!inputManager.isKeyDown(KeyEvent.VK_SHIFT)) {
             c = Character.toLowerCase(c);
         }
