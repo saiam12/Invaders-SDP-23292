@@ -3,8 +3,8 @@ name: Java CI/CD with Gradle
 # 언제 실행할지 정의 (main 브랜치에 푸시하거나 PR을 보낼 때)
 # Define triggers (Run on push or PR to main/develop branches)
 on:
-#  push:
-#    branches: [ "master", "develop" ]
+  push:
+    branches: [ "master", "develop" ]
   pull_request:
     branches: [ "master", "develop" ]
 
