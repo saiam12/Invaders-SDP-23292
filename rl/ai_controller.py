@@ -277,23 +277,21 @@ def calc_reward(prev, curr, prev_action):
 
     # ---- 3. Bullet avoidance point ----
     for bx, by, owner in curr.get("bullets", []):
-        if owner in [0, -1]:  # enemy or boss bullet
+        if owner in [-1, -2]:
             dist_b = abs(px - bx) + abs(py - by)
 
             prev_bullets = prev.get("bullets", [])
-            if not prev_bullets:
-                continue
+            if prev_bullets:
+                prev_dist_b = min(
+                    abs(prev['playerX'] - pbx) + abs(prev['playerY'] - pby)
+                    for pbx, pby, _ in prev_bullets
+                )
 
-            prev_dist_b = min(
-                abs(prev['playerX'] - pbx) + abs(prev['playerY'] - pby)
-                for pbx, pby, _ in prev_bullets
-            )
-
-            if dist_b < 50:
-                if dist_b > prev_dist_b:
-                    reward += 0.5
-                else:
-                    reward -= 0.5
+                if dist_b < 50:
+                    if dist_b > prev_dist_b:
+                        reward += 0.5
+                    else:
+                        reward -= 0.5
 
     # ---- 4. Score-based kill reward ----
     prev_score = prev.get('score', 0)
@@ -373,5 +371,9 @@ def calc_reward(prev, curr, prev_action):
     return reward
 
 if __name__ == "__main__":
-    #run_ai_controller(train=True)
-    run_ai_controller(train=False, model_path="save_model/model_3500000(V1).pth")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train", action="store_true", help="Enable training mode")
+    parser.add_argument("--model", type=str, default="save_model/model_3500000(V1).pth", help="Path to model file")
+    args = parser.parse_args()
+    run_ai_controller(train=args.train, model_path=args.model)
