@@ -81,6 +81,14 @@ public final class Core {
 
         ApiServer.start(8000); // start http server
 
+        // Add shutdown hook to ensure AI process is terminated on unexpected exits
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (aiProcess != null && aiProcess.isAlive()) {
+                aiProcess.destroy();
+                System.out.println("[AI] Shutdown hook: ai_controller.py stopped");
+            }
+        }));
+
         frame = new Frame(WIDTH, HEIGHT);
 		DrawManager.getInstance().setFrame(frame);
 		int width = frame.getWidth();
@@ -223,108 +231,104 @@ public final class Core {
                         aiProcess = pb.start();
                         System.out.println("[AI] ai_controller.py started.");
 
+                        gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0, 0, isTwoPlayerMode, isAIMode);
+
+                        do {
+                            // One extra life every few levels
+                            boolean bonusLife = gameState.getLevel() % EXTRA_LIFE_FRECUENCY == 0
+                                    && gameState.getLivesRemaining() < MAX_LIVES;
+
+                            // Load level data
+                            engine.level.Level currentLevel = levelManager.getLevel(gameState.getLevel());
+
+                            if (currentLevel == null) {
+                                // No more levels defined — exit the loop or restart
+                                break;
+                            }
+
+                            // Music for the level
+                            SoundManager.stopAll();
+                            SoundManager.playLoop("sfx/level" + gameState.getLevel() + ".wav");
+
+                            // Start the level
+                            currentScreen = new GameScreen(
+                                    gameState,
+                                    currentLevel,
+                                    bonusLife,
+                                    MAX_LIVES,
+                                    width,
+                                    height,
+                                    FPS
+                            );
+
+                            LOGGER.info("Starting " + WIDTH + "x" + HEIGHT + " game screen at " + FPS + " fps.");
+                            frame.setScreen(currentScreen);
+                            LOGGER.info("Closing game screen.");
+
+                            // Get updated game state from game screen
+                            gameState = ((GameScreen) currentScreen).getGameState();
+
+                            // If any player is alive, go to shop and next level
+                            if (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0) {
+                                SoundManager.stopAll();
+                                SoundManager.play("sfx/levelup.wav");
+
+                                LOGGER.info("Opening shop screen with " + gameState.getCoin() + " coins.");
+
+                                currentScreen = new ShopScreen(gameState, width, height, FPS, true);
+                                frame.setScreen(currentScreen);
+                                LOGGER.info("Closing shop screen.");
+
+                                // Advance to next level with updated state
+                                gameState = new GameState(
+                                        gameState.getLevel() + 1,
+                                        gameState.getScore(),
+                                        gameState.getLivesRemaining(),
+                                        gameState.getLivesRemainingP2(),
+                                        gameState.getBulletsShot(),
+                                        gameState.getShipsDestroyed(),
+                                        gameState.getCoin(),
+                                        isTwoPlayerMode,
+                                        isAIMode
+                                );
+                            }
+
+                        } while (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0);
+
+                        // Game Over
+                        SoundManager.stopAll();
+                        SoundManager.play("sfx/gameover.wav");
+
+                        if (!isAITraining) {
+                            LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+                                    + " score screen at " + FPS + " fps, with a score of "
+                                    + gameState.getScore() + ", "
+                                    + gameState.getLivesRemaining() + " lives remaining, "
+                                    + gameState.getBulletsShot() + " bullets shot and "
+                                    + gameState.getShipsDestroyed() + " ships destroyed.");
+
+                            currentScreen = new ScoreScreen(width, height, FPS, gameState);
+                            returnCode = frame.setScreen(currentScreen);
+                            LOGGER.info("Closing score screen.");
+                        } else {
+                            LOGGER.info("AI Mode: Game Over. Restarting automatically in 1 second...");
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            returnCode = 5; // restart with ai mode
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                         System.out.println("[AI] Failed to start ai_controller.py");
-                    }
-
-
-                    gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0, 0, isTwoPlayerMode, isAIMode);
-
-                    do {
-                        // One extra life every few levels
-                        boolean bonusLife = gameState.getLevel() % EXTRA_LIFE_FRECUENCY == 0
-                                && gameState.getLivesRemaining() < MAX_LIVES;
-
-                        // Load level data
-                        engine.level.Level currentLevel = levelManager.getLevel(gameState.getLevel());
-
-                        if (currentLevel == null) {
-                            // No more levels defined — exit the loop or restart
-                            break;
+                    } finally {
+                        if (aiProcess != null) {
+                            aiProcess.destroy();
+                            aiProcess = null;
+                            System.out.println("[AI] ai_controller.py stopped");
                         }
-
-                        // Music for the level
-                        SoundManager.stopAll();
-                        SoundManager.playLoop("sfx/level" + gameState.getLevel() + ".wav");
-
-                        // Start the level
-                        currentScreen = new GameScreen(
-                                gameState,
-                                currentLevel,
-                                bonusLife,
-                                MAX_LIVES,
-                                width,
-                                height,
-                                FPS
-                        );
-
-                        LOGGER.info("Starting " + WIDTH + "x" + HEIGHT + " game screen at " + FPS + " fps.");
-                        frame.setScreen(currentScreen);
-                        LOGGER.info("Closing game screen.");
-
-                        // Get updated game state from game screen
-                        gameState = ((GameScreen) currentScreen).getGameState();
-
-                        // If any player is alive, go to shop and next level
-                        if (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0) {
-                            SoundManager.stopAll();
-                            SoundManager.play("sfx/levelup.wav");
-
-                            LOGGER.info("Opening shop screen with " + gameState.getCoin() + " coins.");
-
-                            currentScreen = new ShopScreen(gameState, width, height, FPS, true);
-                            frame.setScreen(currentScreen);
-                            LOGGER.info("Closing shop screen.");
-
-                            // Advance to next level with updated state
-                            gameState = new GameState(
-                                    gameState.getLevel() + 1,
-                                    gameState.getScore(),
-                                    gameState.getLivesRemaining(),
-                                    gameState.getLivesRemainingP2(),
-                                    gameState.getBulletsShot(),
-                                    gameState.getShipsDestroyed(),
-                                    gameState.getCoin(),
-                                    isTwoPlayerMode,
-                                    isAIMode
-                            );
-                        }
-
-                    } while (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0);
-
-                    // Game Over
-                    SoundManager.stopAll();
-                    SoundManager.play("sfx/gameover.wav");
-
-                    if (!isAITraining) {
-                        LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
-                                + " score screen at " + FPS + " fps, with a score of "
-                                + gameState.getScore() + ", "
-                                + gameState.getLivesRemaining() + " lives remaining, "
-                                + gameState.getBulletsShot() + " bullets shot and "
-                                + gameState.getShipsDestroyed() + " ships destroyed.");
-
-                        currentScreen = new ScoreScreen(width, height, FPS, gameState);
-                        returnCode = frame.setScreen(currentScreen);
-                        LOGGER.info("Closing score screen.");
-                    } else {
-                        LOGGER.info("AI Mode: Game Over. Restarting automatically in 1 second...");
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        returnCode = 5; // restart with ai mode
                     }
-
-                    if (aiProcess != null) {
-                        aiProcess.destroy();
-                        aiProcess = null;
-                        System.out.println("[AI] ai_controller.py stopped");
-                    }
-
-
                     break;
 
                 case 6:
