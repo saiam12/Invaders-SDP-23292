@@ -1,21 +1,27 @@
 name: Java CI with Gradle
 
+# 언제 실행할지 설정 (master 브랜치 기준)
 on:
   push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
+# 테스트 리포트 작성을 위한 권한 설정 (이게 있어야 PR에 결과가 예쁘게 달립니다)
 permissions:
   contents: read
+  checks: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # 1. 코드 가져오기
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      # 2. 자바 21 설정
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -23,8 +29,30 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      # 3. Gradle Wrapper 검증 (보안상 추천)
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      # 4. 권한 부여
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 5. 빌드 및 테스트 실행 (build 하나면 테스트까지 다 됩니다)
       - name: Build with Gradle Wrapper
-        run: ./gradlew build
+        run: ./gradlew build --info
+
+      # 6. 테스트 결과 리포트 발행 (성공하든 실패하든 실행)
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure()
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+          check_name: Test Results # 깃허브 PR 탭에 이 이름으로 뜹니다
+
+      # 7. (선택사항) 빌드된 Jar 파일 업로드 (팀원들이 다운로드 가능)
+      - name: Upload Build Artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-build-file
+          path: build/libs/*.jar
