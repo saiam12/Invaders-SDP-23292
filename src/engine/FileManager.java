@@ -21,6 +21,12 @@ import java.util.logging.Logger;
 import engine.DrawManager.SpriteType;
 import engine.level.JsonLoader;
 
+/**
+ * Manages files used in the application.
+ * 
+ * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
+ * 
+ */
 public final class FileManager {
 
     private static FileManager instance;
@@ -49,12 +55,21 @@ public final class FileManager {
             instance = new FileManager();
         return instance;
     }
-	
+
     public List<Score> getHighScores() {
 		return highScores;
 	}
 
-    public void loadSprite(final Map<SpriteType, boolean[][]> spriteMap)
+	/**
+	 * Loads sprites from disk.
+	 *
+	 * @param spriteMap
+	 *            Mapping of sprite type and empty boolean matrix that will
+	 *            contain the image.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 */
+	public void loadSprite(final Map<SpriteType, boolean[][]> spriteMap)
 			throws IOException {
 		InputStream inputStream = null;
 
@@ -63,6 +78,7 @@ public final class FileManager {
                     .getResourceAsStream("graphics");
             char c;
 
+			// Sprite loading.
 			for (Map.Entry<SpriteType, boolean[][]> sprite : spriteMap
 					.entrySet()) {
 				for (int i = 0; i < sprite.getValue().length; i++)
@@ -86,12 +102,24 @@ public final class FileManager {
 		}
 	}
 
+	/**
+	 * Loads a font of a given size.
+	 * 
+	 * @param size
+	 *            Point size of the font.
+	 * @return New font.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 * @throws FontFormatException
+	 *             In case of incorrect font format.
+	 */
 	public Font loadFont(final float size) throws IOException,
 			FontFormatException {
 		InputStream inputStream = null;
 		Font font;
 
 		try {
+			// Font loading.
 			inputStream = FileManager.class.getClassLoader()
 					.getResourceAsStream("font.ttf");
 			font = Font.createFont(Font.TRUETYPE_FONT, inputStream).deriveFont(
@@ -178,6 +206,115 @@ public final class FileManager {
 		}
 	}
 
+    /**
+     * Loads infinite mode high scores from file.
+     *
+     * @return Sorted list of scores - players.
+     * @throws IOException In case of loading problems.
+     */
+    public List<Score> loadInfiniteHighScores() throws IOException {
+        List<Score> highScores = new ArrayList<Score>();
+        InputStream inputStream = null;
+        BufferedReader bufferedReader = null;
+
+        try {
+            String jarPath = FileManager.class.getProtectionDomain()
+                    .getCodeSource().getLocation().getPath();
+            jarPath = URLDecoder.decode(jarPath, "UTF-8");
+
+            String scoresPath = new File(jarPath).getParent();
+            scoresPath += File.separator;
+            scoresPath += "infinite_scores"; // 파일명을 다르게 설정
+
+            File scoresFile = new File(scoresPath);
+            inputStream = new FileInputStream(scoresFile);
+            bufferedReader = new BufferedReader(new InputStreamReader(
+                    inputStream, Charset.forName("UTF-8")));
+
+            logger.info("Loading infinite mode high scores.");
+
+            Score highScore = null;
+            String name = bufferedReader.readLine();
+            String score = bufferedReader.readLine();
+
+            while ((name != null) && (score != null)) {
+                highScore = new Score(name, Integer.parseInt(score));
+                highScores.add(highScore);
+                name = bufferedReader.readLine();
+                score = bufferedReader.readLine();
+            }
+
+        } catch (FileNotFoundException e) {
+            // create new file if it doesn't exist
+            logger.info("Loading default infinite high scores (empty).");
+        } finally {
+            if (bufferedReader != null)
+                bufferedReader.close();
+        }
+
+        Collections.sort(highScores);
+        return highScores;
+    }
+
+    /**
+     * Saves infinite mode high scores to disk.
+     *
+     * @param highScores High scores to save.
+     * @throws IOException In case of loading problems.
+     */
+    public void saveInfiniteHighScores(final List<Score> highScores) throws IOException {
+        OutputStream outputStream = null;
+        BufferedWriter bufferedWriter = null;
+
+        try {
+            String jarPath = FileManager.class.getProtectionDomain()
+                    .getCodeSource().getLocation().getPath();
+            jarPath = URLDecoder.decode(jarPath, "UTF-8");
+
+            String scoresPath = new File(jarPath).getParent();
+            scoresPath += File.separator;
+            scoresPath += "infinite_scores"; // 파일명을 다르게 설정
+
+            File scoresFile = new File(scoresPath);
+
+            if (!scoresFile.exists())
+                scoresFile.createNewFile();
+
+            outputStream = new FileOutputStream(scoresFile);
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(
+                    outputStream, Charset.forName("UTF-8")));
+
+            logger.info("Saving infinite mode high scores.");
+
+            // Saves 7 or less scores.
+            int savedCount = 0;
+            for (Score score : highScores) {
+                if (savedCount >= 7) // MAX_SCORES 상수 대신 숫자 사용 또는 상수 접근 필요
+                    break;
+                bufferedWriter.write(score.getName());
+                bufferedWriter.newLine();
+                bufferedWriter.write(Integer.toString(score.getScore()));
+                bufferedWriter.newLine();
+                savedCount++;
+            }
+
+        } finally {
+            if (bufferedWriter != null)
+                bufferedWriter.close();
+        }
+    }
+
+	/**
+	 * Loads achievement unlock status from file and returns it as a map.
+	 *
+	 * @return Map of achievement names and their unlocked status.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 */
+	public Map<String, Boolean> loadAchievements() throws IOException {
+		Map<String, Boolean> unlockedStatus = new HashMap<>();
+		String path = "achievements.dat";
+
 	@SuppressWarnings("unchecked")
 	private void loadHighScores() {
 		highScores = new ArrayList<>();
@@ -238,6 +375,7 @@ public final class FileManager {
 			writer.write(jsonBuilder.toString());
 		}
 	}
+
 
 	private String escapeJson(String str) {
 		if (str == null) return "";

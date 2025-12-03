@@ -187,6 +187,7 @@ gradle.properties
 log*/
 log*
 !LoginScreen.java
+*.ttf
 .checkstyle
 production
 achievements.dat
