@@ -316,8 +316,6 @@ def calc_reward(prev, curr, prev_action):
 
     return reward
 
-da
-
 if __name__ == "__main__":
     #run_ai_controller(train=True)
     run_ai_controller(train=False, model_path="save_model/model_3500000(V1).pth")

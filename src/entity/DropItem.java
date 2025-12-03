@@ -4,7 +4,7 @@ import java.awt.Color;
 import engine.DrawManager.SpriteType;
 import java.util.Random;
 
-public class DropItem extends Entity {model
+public class DropItem extends Entity {
     public enum ItemType {
         Explode(1),
         Slow(10),
