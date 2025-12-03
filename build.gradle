@@ -3,6 +3,9 @@ plugins {
     id 'application'
 }
 
+group = 'KWAK'
+version = '1.0-SNAPSHOT'
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
@@ -17,13 +20,24 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.11.0'
     implementation 'io.javalin:javalin:6.7.0'
     implementation 'org.slf4j:slf4j-simple:2.0.16'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 sourceSets {
     main {
         java { srcDirs = ['src'] }
         resources { srcDirs = ['res'] }
+    }
+    test {
+        java {
+            srcDirs = ['test']
+        }
+        resources {
+            srcDirs = ['res']
+        }
     }
 }
 
@@ -33,4 +47,14 @@ test {
 
 application {
     mainClass = 'engine.Core'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'engine.Core'
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
