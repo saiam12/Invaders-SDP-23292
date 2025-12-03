@@ -11,12 +11,13 @@ import java.util.logging.Logger;
 import entity.ShopItem;
 import engine.level.LevelManager;
 import screen.*;
+import engine.dto.*;
 
 /**
  * Implements core game logic.
- * 
+ *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
- * 
+ *
  */
 public final class Core {
 
@@ -45,11 +46,14 @@ public final class Core {
 	private static Handler fileHandler;
 	/** Logger handler for printing to console. */
 	private static ConsoleHandler consoleHandler;
+  /** True if AI is controlling */
+  public static boolean isAIMode = false;
+  /** True if AI training */
+  public static boolean isAITraining = false;
 
-
-	/**
+    /**
 	 * Test implementation.
-	 * 
+	 *
 	 * @param args
 	 *            Program args, ignored.
 	 */
@@ -73,7 +77,9 @@ public final class Core {
 			e.printStackTrace();
 		}
 
-		frame = new Frame(WIDTH, HEIGHT);
+        ApiServer.start(8000); // start http server
+
+        frame = new Frame(WIDTH, HEIGHT);
 		DrawManager.getInstance().setFrame(frame);
 		int width = frame.getWidth();
 		int height = frame.getHeight();
@@ -81,7 +87,6 @@ public final class Core {
 		levelManager = new LevelManager();
 		GameState gameState;
 		boolean isTwoPlayerMode = false;
-
 
         int returnCode = 1;
 		do {
@@ -104,8 +109,10 @@ public final class Core {
 					}
                     break;
                 case 2:
+                    // 1P Mode
+                    isAIMode = false;
 					isTwoPlayerMode = false;
-					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0,0, isTwoPlayerMode);
+					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0,0, isTwoPlayerMode, isAIMode);
                     do {
                         // One extra life every few levels
                         boolean bonusLife = gameState.getLevel()
@@ -165,7 +172,8 @@ public final class Core {
                                     gameState.getBulletsShot(),        // Keep bullets fired
                                     gameState.getShipsDestroyed(),     // Keep ships destroyed
                                     gameState.getCoin(),                // Keep current coins
-									isTwoPlayerMode
+									isTwoPlayerMode,
+                                    isAIMode
                             );
                         }
                         // Loop while player still has lives and levels remaining
@@ -179,11 +187,11 @@ public final class Core {
                             + gameState.getLivesRemaining() + " lives remaining, "
                             + gameState.getBulletsShot() + " bullets shot and "
                             + gameState.getShipsDestroyed() + " ships destroyed.");
-
                     currentScreen = new ScoreScreen(width, height, FPS, gameState);
                     returnCode = frame.setScreen(currentScreen);
                     LOGGER.info("Closing score screen.");
                     break;
+
                 case 3:
                     // High scores
                     currentScreen = new HighScoreScreen(width, height, FPS);
@@ -194,12 +202,108 @@ public final class Core {
                     break;
                 case 4:
                     // Shop opened manually from main menu
-					gameState = new GameState(1, 0, MAX_LIVES,MAX_LIVES, 0, 0, 0, isTwoPlayerMode);
+					gameState = new GameState(1, 0, MAX_LIVES,MAX_LIVES, 0, 0, 0, isTwoPlayerMode, isAIMode);
                     currentScreen = new ShopScreen(gameState, width, height, FPS, false);
                     LOGGER.info("Starting shop screen (menu) with " + gameState.getCoin() + " coins.");
                     returnCode = frame.setScreen(currentScreen);
                     LOGGER.info("Closing shop screen (menu).");
                     break;
+                case 5:
+                    // AI Mode
+                    isAIMode = true;
+                    isTwoPlayerMode = true;
+
+                    gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0, 0, isTwoPlayerMode, isAIMode);
+
+                    do {
+                        // One extra life every few levels
+                        boolean bonusLife = gameState.getLevel() % EXTRA_LIFE_FRECUENCY == 0
+                                && gameState.getLivesRemaining() < MAX_LIVES;
+
+                        // Load level data
+                        engine.level.Level currentLevel = levelManager.getLevel(gameState.getLevel());
+
+                        if (currentLevel == null) {
+                            // No more levels defined — exit the loop or restart
+                            break;
+                        }
+
+                        // Music for the level
+                        SoundManager.stopAll();
+                        SoundManager.playLoop("sfx/level" + gameState.getLevel() + ".wav");
+
+                        // Start the level
+                        currentScreen = new GameScreen(
+                                gameState,
+                                currentLevel,
+                                bonusLife,
+                                MAX_LIVES,
+                                width,
+                                height,
+                                FPS
+                        );
+
+                        LOGGER.info("Starting " + WIDTH + "x" + HEIGHT + " game screen at " + FPS + " fps.");
+                        frame.setScreen(currentScreen);
+                        LOGGER.info("Closing game screen.");
+
+                        // Get updated game state from game screen
+                        gameState = ((GameScreen) currentScreen).getGameState();
+
+                        // If any player is alive, go to shop and next level
+                        if (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0) {
+                            SoundManager.stopAll();
+                            SoundManager.play("sfx/levelup.wav");
+
+                            LOGGER.info("Opening shop screen with " + gameState.getCoin() + " coins.");
+
+                            currentScreen = new ShopScreen(gameState, width, height, FPS, true);
+                            frame.setScreen(currentScreen);
+                            LOGGER.info("Closing shop screen.");
+
+                            // Advance to next level with updated state
+                            gameState = new GameState(
+                                    gameState.getLevel() + 1,
+                                    gameState.getScore(),
+                                    gameState.getLivesRemaining(),
+                                    gameState.getLivesRemainingP2(),
+                                    gameState.getBulletsShot(),
+                                    gameState.getShipsDestroyed(),
+                                    gameState.getCoin(),
+                                    isTwoPlayerMode,
+                                    isAIMode
+                            );
+                        }
+
+                    } while (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0);
+
+                    // Game Over
+                    SoundManager.stopAll();
+                    SoundManager.play("sfx/gameover.wav");
+
+                    if (!isAITraining) {
+                        LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+                                + " score screen at " + FPS + " fps, with a score of "
+                                + gameState.getScore() + ", "
+                                + gameState.getLivesRemaining() + " lives remaining, "
+                                + gameState.getBulletsShot() + " bullets shot and "
+                                + gameState.getShipsDestroyed() + " ships destroyed.");
+
+                        currentScreen = new ScoreScreen(width, height, FPS, gameState);
+                        returnCode = frame.setScreen(currentScreen);
+                        LOGGER.info("Closing score screen.");
+                    } else {
+                        LOGGER.info("AI Mode: Game Over. Restarting automatically in 1 second...");
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        returnCode = 5; // restart with ai mode
+                    }
+
+                    break;
+
                 case 6:
                     // Achievements
                     currentScreen = new AchievementScreen(width, height, FPS);
@@ -209,8 +313,10 @@ public final class Core {
                     LOGGER.info("Closing achievement screen.");
                     break;
 				case 7:
+                    // 2P Mode
+                    isAIMode = false;
 					isTwoPlayerMode = true;
-					gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0,0, isTwoPlayerMode);
+					gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0,0, isTwoPlayerMode, isAIMode);
 					do {
 						// One extra life every few levels
 						boolean bonusLife = gameState.getLevel()
@@ -270,7 +376,8 @@ public final class Core {
 									gameState.getBulletsShot(),        // Keep bullets fired
 									gameState.getShipsDestroyed(),     // Keep ships destroyed
 									gameState.getCoin(),                // Keep current coins
-									isTwoPlayerMode
+									isTwoPlayerMode,
+                                    isAIMode
 							);
 						}
 						// Loop while player still has lives and levels remaining
@@ -296,7 +403,7 @@ public final class Core {
 					break;
 				case 9:
 					isTwoPlayerMode = false;
-					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0, 0, isTwoPlayerMode);
+					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0, 0, isTwoPlayerMode, isAIMode);
 
 					SoundManager.stopAll();
 					SoundManager.playLoop("sfx/level1.wav");
@@ -333,7 +440,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the logger.
-	 * 
+	 *
 	 * @return Application logger.
 	 */
 	public static Logger getLogger() {
@@ -342,7 +449,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the drawing manager.
-	 * 
+	 *
 	 * @return Application draw manager.
 	 */
 	public static DrawManager getDrawManager() {
@@ -351,7 +458,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the input manager.
-	 * 
+	 *
 	 * @return Application input manager.
 	 */
 	public static InputManager getInputManager() {
@@ -360,7 +467,7 @@ public final class Core {
 
 	/**
 	 * Controls access to the file manager.
-	 * 
+	 *
 	 * @return Application file manager.
 	 */
 	public static FileManager getFileManager() {
@@ -369,7 +476,7 @@ public final class Core {
 
 	/**
 	 * Controls creation of new cooldowns.
-	 * 
+	 *
 	 * @param milliseconds
 	 *            Duration of the cooldown.
 	 * @return A new cooldown.
@@ -380,7 +487,7 @@ public final class Core {
 
 	/**
 	 * Controls creation of new cooldowns with variance.
-	 * 
+	 *
 	 * @param milliseconds
 	 *            Duration of the cooldown.
 	 * @param variance
@@ -391,4 +498,33 @@ public final class Core {
 			final int variance) {
 		return new Cooldown(milliseconds, variance);
 	}
+
+    /**
+     * Handle external action packet coming from HTTP API.
+     *
+     * Movement is represented as axis values and shoot flag.
+     *
+     * @param packet ActionPacket received from external controller (Python).
+     */
+    public static void handleExternalAction(final ActionPacket packet) {
+        // Only handle actions when the current screen is a game screen.
+        if (!(currentScreen instanceof GameScreen)) {
+            return;
+        }
+
+        GameScreen gameScreen = (GameScreen) currentScreen;
+
+        // Map axis-based movement and attack to the game screen.
+        gameScreen.handleExternalAction(
+                packet.moveX,  // -1: left, 0: none, 1: right
+                packet.moveY,    // -1: up, 0: none, 1: down
+                packet.shoot       // true: shoot, false: no shoot
+        );
+    }
+    public static GameScreen getCurrentGameScreen(){
+        if  (currentScreen instanceof GameScreen) {
+            return (GameScreen) currentScreen;
+        }
+        return null;
+    }
 }

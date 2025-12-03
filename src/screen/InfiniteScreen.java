@@ -704,6 +704,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
                 this.bulletsShot,
                 this.shipsDestroyed,
                 this.coin,
+                false,
                 false
         );
     }
