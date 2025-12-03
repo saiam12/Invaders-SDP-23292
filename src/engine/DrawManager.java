@@ -689,7 +689,7 @@ public final class DrawManager {
 				currX += textWidth + spaceBetween;
 			}
 		}
-	    }
+	}
 	
 		/**
 		 * Draws the login screen.

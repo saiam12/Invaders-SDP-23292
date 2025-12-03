@@ -20,6 +20,8 @@ public class AchievementManagerTest {
     @BeforeEach
     public void setUp() {
         manager = AchievementManager.getInstance();
+        // Reset all achievements to locked state before each test
+        manager.syncAchievementsWithUser(null);
     }
 
     @Test
