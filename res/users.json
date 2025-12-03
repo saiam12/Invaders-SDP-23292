@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "username": "aa",
+      "password": "aa",
+      "achievements": {
+        "First Blood": true,
+        "Bad Sniper": false,
+        "Beginner": false,
+        "Bear Grylls": false,
+        "Intermediate": false,
+        "Conqueror": false,
+        "Mr. Greedy": false,
+        "Boss Slayer": false
+      }
+    },
+    {
+      "username": "test",
+      "password": "1234",
+      "achievements": {
+        "First Blood": true,
+        "Bad Sniper": false,
+        "Beginner": false,
+        "Bear Grylls": false,
+        "Intermediate": false,
+        "Conqueror": false,
+        "Mr. Greedy": false,
+        "Boss Slayer": false
+      }
+    }
+  ]
+}
