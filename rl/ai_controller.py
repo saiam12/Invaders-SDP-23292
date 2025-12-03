@@ -11,7 +11,24 @@ STATE_SIZE = 120
 
 def preprocess_state(state_json):
     """
-    Converts the JSON state sent by Java into a 'fixed-size 1D array' that the AI can understand.
+    Convert a game state JSON from the Java server into a fixed-length 1D NumPy array suitable for the agent.
+    
+    Parameters:
+        state_json (dict): Parsed JSON-like dictionary from the Java game server containing keys such as
+            'playerX', 'playerY', 'playerHp', 'score', 'enemies', and 'bullets'.
+    
+    Description:
+        - Encodes player information as four normalized values: x / 448.0, y / 520.0, hp / 3.0, score / 10000.0.
+        - Encodes up to 10 enemies, each as four normalized values [x / 448.0, y / 520.0, hp / 50.0, type / 3.0];
+          the enemy block is flattened, padded with zeros if fewer than 10 enemies, and truncated if more.
+        - Splits bullets into three owner categories (owner==2: my bullets, owner==-1: enemy bullets, owner==-2: boss bullets),
+          normalizes each bullet position as [x / 448.0, y / 520.0], and pads each category to 10 bullets (two values per bullet).
+        - Concatenates fields in this order: player_info, my_bullets, enemy_bullets, boss_bullets, enemies_flat.
+        - Pads or trims the final vector to exactly STATE_SIZE elements.
+    
+    Returns:
+        np.ndarray: 1D NumPy array of length STATE_SIZE containing the normalized and fixed-size state representation.
+        In case of an exception during preprocessing, returns a zero-filled array of length STATE_SIZE.
     """
     try:
         # 1. Extract fixed information (4 items)
@@ -56,12 +73,22 @@ def preprocess_state(state_json):
         for bx, by, owner in bullets:
             if owner == 2:  # AI bullet
                 my_bullets.append([bx/448, by/520])
-            elif owner == 0:  # Enemy bullet
+            elif owner == -1:  # Enemy bullet
                 enemy_bullets.append([bx/448, by/520])
-            elif owner == -1:  # Boss bullet
+            elif owner == -2:  # Boss bullet
                 boss_bullets.append([bx/448, by/520])
 
         def pad(arr, size=10):
+            """
+            Flatten a sequence of (x, y) pairs into a fixed-length list and pad with zeros.
+            
+            Parameters:
+                arr (Iterable[tuple[float, float]]): Sequence of (x, y) pairs; only the first `size` pairs are used.
+                size (int): Number of pairs to output (default 10).
+            
+            Returns:
+                list: A list of length `size * 2` containing the flattened x,y values for the first `size` pairs from `arr`, padded with zeros if `arr` has fewer than `size` pairs.
+            """
             flat = []
             for (x,y) in arr[:size]:
                 flat += [x, y]
@@ -86,10 +113,31 @@ def preprocess_state(state_json):
         print(f"Preprocessing error: {e}")
         return np.zeros(STATE_SIZE) # Return array filled with 0s on error
 
-def run_ai_controller():
+def run_ai_controller(train=True, model_path=None):
+    """
+    Start and run the AI controller loop that interacts with the Java game server to obtain game states, choose actions via the Agent, optionally train the agent, and persist models.
+    
+    This function opens a persistent loop that:
+    - Polls the configured Java server for game state.
+    - Uses the Agent to select actions from a preprocessed state.
+    - When `train` is True, appends experience samples and triggers training; when False and a `model_path` is provided, the specified model is loaded at startup.
+    - Sends chosen actions back to the server and saves model checkpoints when training.
+    
+    Parameters:
+        train (bool): If True, the agent records experiences, trains, and saves models. If False, training is disabled.
+        model_path (str | None): Path to a saved model file to load when `train` is False; ignored when `train` is True.
+    
+    Side effects:
+        - Performs network requests to the Java game server and may block indefinitely while the loop runs.
+        - Writes model files to the local filesystem when training and checkpoints are triggered.
+        - Handles transient connection errors internally and continues retrying.
+    """
     print(f"AI Controller starting... (Attempting to connect to {JAVA_SERVER_URL})")
 
     agent = Agent(state_size=STATE_SIZE)
+    if not train and model_path:
+        agent.load_model(model_path)
+        print(f"Loaded model from {model_path}")
 
     # Variables for remembering the previous state
     prev_state = None
@@ -121,11 +169,12 @@ def run_ai_controller():
                     # (1) calc reward by compairing now-post
                     reward = calc_reward(prev_raw_state, state_data, prev_action)
 
-                    # (2) Save memories: (Old state, old behavior, rewards, now state, game over?)
-                    agent.append_sample(prev_state, prev_action, reward, processed_state, done)
+                    if train:
+                        # (2) Save memories: (Old state, old behavior, rewards, now state, game over?)
+                        agent.append_sample(prev_state, prev_action, reward, processed_state, done)
 
-                    # (3) train model
-                    agent.train_model()
+                        # (3) train model
+                        agent.train_model()
 
 
                 # 3. Send action (POST)
@@ -140,10 +189,10 @@ def run_ai_controller():
                 prev_lives = curr_lives
 
                 # save model
-                if done:
+                if train and done:
                     agent.save_model(f"./save_model/episode_model.pth")
 
-                if agent.train_count % 50000 == 0 and agent.train_count > 0:
+                if train and agent.train_count % 50000 == 0 and agent.train_count > 0:
                     agent.save_model(f"./save_model/model_{agent.train_count}.pth")
 
 
@@ -174,6 +223,16 @@ def run_ai_controller():
         time.sleep(0.016)
 
 def calc_reward(prev, curr, prev_action):
+    """
+    Compute the scalar reward for a transition from a previous game state to the current game state.
+    
+    Parameters:
+        prev (dict): Previous raw game state JSON-like object.
+        curr (dict): Current raw game state JSON-like object.
+        prev_action: The action taken in the previous state (kept for context; not required to be a specific type).
+    
+    Returns:
+        float: Accumulated reward for the transition. Positive values indicate desirable events (e.g., damaging or killing enemies, picking up items, clearing a stage); negative values indicate undesirable events (e.g., time penalty, being near screen edges, getting hit, dying).
     reward = 0.0
 
     # ---- 0. Time penalty ----
@@ -267,13 +326,17 @@ def calc_reward(prev, curr, prev_action):
     picked = prev_item_set - curr_item_set
 
     for (_, _, t) in picked:
-        if t == "HP":
+        if t == "Explode":
+            reward += 50
+        elif t == "Slow":
             reward += 15
-        elif t == "POWER":
+        elif t == "Stop":
             reward += 20
-        elif t == "SPEED":
-            reward += 10
-        elif t == "BOMB":
+        elif t == "Push":
+            reward += 20
+        elif t == "Shield":
+            reward += 35
+        elif t == "Heal":
             reward += 40
 
     # ---- 9. Stage clear reward ----
@@ -298,22 +361,16 @@ def calc_reward(prev, curr, prev_action):
     damage_events = curr.get("enemyDamageEvents", [])
     for (eid, dmg) in damage_events:
         if eid >= 0:
-            reward += dmg * 3
+            reward += dmg * 5
 
         elif eid == -1:
-            reward += dmg * 3
+            reward += dmg * 5
 
         elif eid == -2:
-            reward += dmg * 3
-
-    if (abs(reward) > 2):
-        print(f"[BIG REWARD] reward={reward}, score={curr_score}")
-
-
+            reward += dmg * 5
 
     return reward
 
-
-
 if __name__ == "__main__":
-    run_ai_controller()
+    #run_ai_controller(train=True)
+    run_ai_controller(train=False, model_path="save_model/model_3500000(V1).pth")
