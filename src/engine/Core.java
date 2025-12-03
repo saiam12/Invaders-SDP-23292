@@ -49,7 +49,7 @@ public final class Core {
   /** True if AI is controlling */
   public static boolean isAIMode = false;
   /** True if AI training */
-  public static boolean isAITraining = true;
+  public static boolean isAITraining = false;
 
     /**
 	 * Test implementation.

@@ -79,11 +79,7 @@ public class ModeSelectScreen extends Screen {
                 this.selectionCooldown.reset();
             }
             if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
-                if (returnCode == 5){
-                    feedbackCooldown.reset();
-                } else {
                     this.isRunning = false;
-                }
             }
         }
     }

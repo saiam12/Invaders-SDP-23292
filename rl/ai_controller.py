@@ -56,9 +56,9 @@ def preprocess_state(state_json):
         for bx, by, owner in bullets:
             if owner == 2:  # AI bullet
                 my_bullets.append([bx/448, by/520])
-            elif owner == 0:  # Enemy bullet
+            elif owner == -1:  # Enemy bullet
                 enemy_bullets.append([bx/448, by/520])
-            elif owner == -1:  # Boss bullet
+            elif owner == -2:  # Boss bullet
                 boss_bullets.append([bx/448, by/520])
 
         def pad(arr, size=10):
@@ -86,10 +86,13 @@ def preprocess_state(state_json):
         print(f"Preprocessing error: {e}")
         return np.zeros(STATE_SIZE) # Return array filled with 0s on error
 
-def run_ai_controller():
+def run_ai_controller(train=True, model_path=None):
     print(f"AI Controller starting... (Attempting to connect to {JAVA_SERVER_URL})")
 
     agent = Agent(state_size=STATE_SIZE)
+    if not train and model_path:
+        agent.load_model(model_path)
+        print(f"Loaded model from {model_path}")
 
     # Variables for remembering the previous state
     prev_state = None
@@ -121,11 +124,12 @@ def run_ai_controller():
                     # (1) calc reward by compairing now-post
                     reward = calc_reward(prev_raw_state, state_data, prev_action)
 
-                    # (2) Save memories: (Old state, old behavior, rewards, now state, game over?)
-                    agent.append_sample(prev_state, prev_action, reward, processed_state, done)
+                    if train:
+                        # (2) Save memories: (Old state, old behavior, rewards, now state, game over?)
+                        agent.append_sample(prev_state, prev_action, reward, processed_state, done)
 
-                    # (3) train model
-                    agent.train_model()
+                        # (3) train model
+                        agent.train_model()
 
 
                 # 3. Send action (POST)
@@ -140,10 +144,10 @@ def run_ai_controller():
                 prev_lives = curr_lives
 
                 # save model
-                if done:
+                if train and done:
                     agent.save_model(f"./save_model/episode_model.pth")
 
-                if agent.train_count % 50000 == 0 and agent.train_count > 0:
+                if train and agent.train_count % 50000 == 0 and agent.train_count > 0:
                     agent.save_model(f"./save_model/model_{agent.train_count}.pth")
 
 
@@ -302,22 +306,18 @@ def calc_reward(prev, curr, prev_action):
     damage_events = curr.get("enemyDamageEvents", [])
     for (eid, dmg) in damage_events:
         if eid >= 0:
-            reward += dmg * 3
+            reward += dmg * 5
 
         elif eid == -1:
-            reward += dmg * 3
+            reward += dmg * 5
 
         elif eid == -2:
-            reward += dmg * 3
-
-    if (abs(reward) > 2):
-        print(f"[BIG REWARD] reward={reward}, score={curr_score}")
-
-
+            reward += dmg * 5
 
     return reward
 
-
+da
 
 if __name__ == "__main__":
-    run_ai_controller()
+    #run_ai_controller(train=True)
+    run_ai_controller(train=False, model_path="save_model/model_3500000(V1).pth")
