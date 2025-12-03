@@ -46,10 +46,12 @@ public final class Core {
 	private static Handler fileHandler;
 	/** Logger handler for printing to console. */
 	private static ConsoleHandler consoleHandler;
-  /** True if AI is controlling */
-  public static boolean isAIMode = false;
-  /** True if AI training */
-  public static boolean isAITraining = false;
+    /** True if AI is controlling */
+    public static boolean isAIMode = false;
+    /** True if AI training */
+    public static boolean isAITraining = false;
+    /** True if ai_controller.py is running */
+    public static Process aiProcess = null;
 
     /**
 	 * Test implementation.
@@ -213,6 +215,20 @@ public final class Core {
                     isAIMode = true;
                     isTwoPlayerMode = true;
 
+                    try {
+                        ProcessBuilder pb = new ProcessBuilder("python", "rl/ai_controller.py");
+                        pb.redirectErrorStream(true);
+                        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+
+                        aiProcess = pb.start();   // ← Core.aiProcess (지역변수 X)
+                        System.out.println("[AI] ai_controller.py started.");
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.out.println("[AI] Failed to start ai_controller.py");
+                    }
+
+
                     gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0, 0, isTwoPlayerMode, isAIMode);
 
                     do {
@@ -301,6 +317,13 @@ public final class Core {
                         }
                         returnCode = 5; // restart with ai mode
                     }
+
+                    if (aiProcess != null) {
+                        aiProcess.destroy();
+                        aiProcess = null;
+                        System.out.println("[AI] ai_controller.py stopped");
+                    }
+
 
                     break;
 
