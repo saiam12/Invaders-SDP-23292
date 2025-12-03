@@ -111,7 +111,11 @@ public class ScoreScreen extends Screen {
 					saveScore();
 			} else if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
 				// Play again.
-				this.returnCode = 2;
+                if (Core.isAIMode){
+                    this.returnCode = 5;
+                } else {
+                    this.returnCode = 2;
+                }
 				this.isRunning = false;
 				if (this.isNewRecord)
 					saveScore();
