@@ -1,13 +1,22 @@
 package screen;
 
 import java.awt.event.KeyEvent;
-import engine.GameState;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
+import engine.Cooldown;
+import engine.Core;
+import engine.GameState;
+import engine.Score;
 
 /**
  * Implements the score screen for Infinite Mode.
  */
 public class InfiniteScoreScreen extends Screen{
+
+    /** Milliseconds between changes in user selection. */
+    private static final int SELECTION_TIME = 200;
 
     /** Current score. */
     private int score;
@@ -18,8 +27,6 @@ public class InfiniteScoreScreen extends Screen{
     /** Total ships destroyed by the player. */
     private int shipsDestroyed;
     /** Checks if current score is a new high score. */
-    /** 1p mode의 highscore만 기록하기로 계획했기 때문에 isNewRecord는 항상 false
-     *  추후 기록하기로 변동되면 사용 */
     private boolean isNewRecord;
 
     /**

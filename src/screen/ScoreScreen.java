@@ -33,6 +33,8 @@ public class ScoreScreen extends Screen {
 	private List<Score> highScores;
 	/** Checks if current score is a new high score. */
 	private boolean isNewRecord;
+	/** Current logged-in user. */
+	private User currentUser;
 
 	/**
 	 * Constructor, establishes the properties of the screen.
@@ -55,6 +57,7 @@ public class ScoreScreen extends Screen {
 		this.bulletsShot = gameState.getBulletsShot();
 		this.shipsDestroyed = gameState.getShipsDestroyed();
 		this.isNewRecord = false;
+		this.currentUser = Core.getCurrentUser(); // Current user is still needed for achievement logic if any, and for name.
 
 		// Check against global high scores
 		this.highScores = new ArrayList<>(Core.getFileManager().getHighScores());

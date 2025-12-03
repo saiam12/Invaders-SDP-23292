@@ -1,9 +1,14 @@
 package screen;
 
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
 import engine.Core;
 import engine.Score;
+import engine.User;
+import engine.FileManager;
 
 /**
  * Implements the high scores screen, it shows player records.
