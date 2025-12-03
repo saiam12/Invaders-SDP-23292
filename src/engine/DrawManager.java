@@ -374,6 +374,7 @@ public final class DrawManager {
 	public void drawModeSelect(final Screen screen, final int option) {
 		String playString1 = "1P Mode";
 		String playString2 = "2P Mode";
+        String AIMode = "AI Mode";
 		String playStringInfinite = "Infinite Mode";
 		String backString = "Back";
 
@@ -393,9 +394,13 @@ public final class DrawManager {
 		else backBufferGraphics.setColor(Color.WHITE);
 		drawCenteredRegularString(screen, playStringInfinite, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
 
+        if (option == 5) backBufferGraphics.setColor(pulseColor);
+        else backBufferGraphics.setColor(Color.WHITE);
+        drawCenteredRegularString(screen, AIMode, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 3);
+
 		if (option == 1) backBufferGraphics.setColor(pulseColor);
 		else backBufferGraphics.setColor(Color.WHITE);
-		drawCenteredRegularString(screen, backString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 3);
+		drawCenteredRegularString(screen, backString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 4);
 	}
 
 	/**

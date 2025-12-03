@@ -5,7 +5,7 @@ import entity.*;
 import java.util.Set;
 import java.util.logging.Logger;
 
-public interface CollisionContext {
+public interface    CollisionContext {
     Set<Bullet> getBullets();
     Set<BossBullet> getBossBullets();
     EnemyShipFormation getEnemyShipFormation();
