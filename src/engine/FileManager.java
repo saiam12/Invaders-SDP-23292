@@ -34,7 +34,6 @@ public final class FileManager {
 
     private static FileManager instance;
     private static Logger logger;
-    private static final int MAX_SCORES = 7;
     private static final String USERS_DIR = "res";
     private static final String USERS_FILE_PATH = USERS_DIR + java.io.File.separator + "users.json";
     private static final String HIGHSCORES_FILE_PATH = USERS_DIR + java.io.File.separator + "highscores.json";

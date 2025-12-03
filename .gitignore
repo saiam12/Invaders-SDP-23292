@@ -186,7 +186,6 @@ build/
 *.log
 log*/
 log*
-!LoginScreen.java
 *.ttf
 .checkstyle
 production

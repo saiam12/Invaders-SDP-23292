@@ -204,8 +204,8 @@ public final class Core {
 						highScores.add(newScore);
 						java.util.Collections.sort(highScores);
 
-						// Trim the list if it exceeds the max number of scores
-						if (highScores.size() > 7) { // Using hardcoded MAX_SCORES
+						// Trim the list if it exceeds the max number(7) of scores
+						if (highScores.size() > 7) {
 							highScores.subList(7, highScores.size()).clear();
 						}
 

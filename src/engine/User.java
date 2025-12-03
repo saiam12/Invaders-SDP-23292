@@ -1,9 +1,8 @@
 package engine;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 public class User {
     private String username;
@@ -25,8 +24,11 @@ public class User {
     }
 
 
-
     public Map<String, Boolean> getAchievements() {
-        return achievements;
+        return Collections.unmodifiableMap(achievements);
+    }
+
+    public void setAchievementStatus(String name, boolean unlocked) {
+        achievements.put(name, unlocked);
     }
 }
