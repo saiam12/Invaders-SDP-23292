@@ -85,7 +85,7 @@ public final class Core {
 		boolean isTwoPlayerMode = false;
 
 
-        int returnCode = 9;
+        int returnCode = 11;
 		do {
 			ShopItem.resetAllItems();
 			switch (returnCode) {
@@ -334,15 +334,6 @@ public final class Core {
 					returnCode = frame.setScreen(currentScreen);
 					break;
 				case 9:
-					// Login screen
-					currentScreen = new LoginScreen(width, height, FPS);
-					LOGGER.info("Starting " + WIDTH + "x" + HEIGHT + " login screen at " + FPS + " fps.");
-					returnCode = frame.setScreen(currentScreen);
-					LOGGER.info("Closing login screen.");
-					break;
-                default:
-                    break;
-				case 9:
 					isTwoPlayerMode = false;
 					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0, 0, isTwoPlayerMode);
 
@@ -361,6 +352,13 @@ public final class Core {
                     currentScreen = new InfiniteScoreScreen(width, height, FPS, finalState);
                     returnCode = frame.setScreen(currentScreen);
                     break;
+				case 11:
+					// Login screen
+					currentScreen = new LoginScreen(width, height, FPS);
+					LOGGER.info("Starting " + WIDTH + "x" + HEIGHT + " login screen at " + FPS + " fps.");
+					returnCode = frame.setScreen(currentScreen);
+					LOGGER.info("Closing login screen.");
+					break;
 				default:
 					break;
             }

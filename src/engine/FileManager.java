@@ -11,7 +11,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -303,17 +306,6 @@ public final class FileManager {
                 bufferedWriter.close();
         }
     }
-
-	/**
-	 * Loads achievement unlock status from file and returns it as a map.
-	 *
-	 * @return Map of achievement names and their unlocked status.
-	 * @throws IOException
-	 *             In case of loading problems.
-	 */
-	public Map<String, Boolean> loadAchievements() throws IOException {
-		Map<String, Boolean> unlockedStatus = new HashMap<>();
-		String path = "achievements.dat";
 
 	@SuppressWarnings("unchecked")
 	private void loadHighScores() {

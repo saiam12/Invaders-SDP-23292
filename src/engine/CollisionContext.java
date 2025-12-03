@@ -35,6 +35,7 @@ public interface CollisionContext {
     void setShipsDestroyed(int v);
     int getShipsDestroyed();
 
+    GameState getGameState();
     Logger getLogger();
     Level getCurrentLevel();
     void showHealthPopup(String msg);
