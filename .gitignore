@@ -186,7 +186,6 @@ gradle.properties
 *.log
 log*/
 log*
-*.ttf
 .checkstyle
 production
 achievements.dat
