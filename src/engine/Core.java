@@ -220,7 +220,7 @@ public final class Core {
                         pb.redirectErrorStream(true);
                         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
-                        aiProcess = pb.start();   // ← Core.aiProcess (지역변수 X)
+                        aiProcess = pb.start();
                         System.out.println("[AI] ai_controller.py started.");
 
                     } catch (Exception e) {
