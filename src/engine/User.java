@@ -25,9 +25,8 @@ public class User {
 
 
     public Map<String, Boolean> getAchievements() {
-        return Collections.unmodifiableMap(achievements);
+        return achievements; // 그냥 원본 맵을 반환해야 외부에서 put이 가능합니다.
     }
-
     public void setAchievementStatus(String name, boolean unlocked) {
         achievements.put(name, unlocked);
     }

@@ -13,14 +13,20 @@ public class UserManager {
 
     private UserManager() {
         try {
-            users = FileManager.getInstance().loadUsers();
+            Map<String, User> loadedData = FileManager.getInstance().loadUsers();
+            if (loadedData != null) {
+                users = new HashMap<>(loadedData);
+            } else {
+                users = new HashMap<>();
+            }
+
             logger.info("User data loaded successfully.");
+
         } catch (IOException e) {
-            // If file doesn't exist or is unreadable, start with an empty user map.
-            // This is safer than auto-creating a default user and overwriting a potentially corrupted file.
             logger.warning("Could not load user data (file may not exist yet): " + e.getMessage());
             users = new HashMap<>();
         }
+        logger.info("Current Map Type: " + users.getClass().getName());
     }
 
     public static UserManager getInstance() {
