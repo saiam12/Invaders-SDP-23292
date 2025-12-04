@@ -56,11 +56,6 @@ public final class Core {
 	/** Currently logged-in user. */
 	private static User currentUser;
 
-  /** True if AI is controlling */
-  public static boolean isAIMode = false;
-  /** True if AI training */
-  public static boolean isAITraining = false;
-
     /**
 	 * Test implementation.
 	 *
