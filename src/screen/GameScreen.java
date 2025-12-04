@@ -286,7 +286,6 @@ public class GameScreen extends Screen implements CollisionContext {
 				if (p1Fire) {
 					if (this.ship.shoot(this.bullets)) {
 						this.bulletsShot++;
-						AchievementManager.getInstance().onShotFired();
 					}
 				}
 			}
@@ -334,7 +333,6 @@ public class GameScreen extends Screen implements CollisionContext {
 				if (p2Fire) {
 					if (this.shipP2.shoot(this.bullets)) {
 						this.bulletsShot++;
-						AchievementManager.getInstance().onShotFired();
 					}
 				}
 			}
