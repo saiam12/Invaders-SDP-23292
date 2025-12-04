@@ -53,6 +53,13 @@ public final class Core {
     public static boolean isAITraining = false;
     /** True if ai_controller.py is running */
     public static Process aiProcess = null;
+	/** Currently logged-in user. */
+	private static User currentUser;
+
+  /** True if AI is controlling */
+  public static boolean isAIMode = false;
+  /** True if AI training */
+  public static boolean isAITraining = false;
 
     /**
 	 * Test implementation.
@@ -99,7 +106,8 @@ public final class Core {
 		GameState gameState;
 		boolean isTwoPlayerMode = false;
 
-        int returnCode = 1;
+
+        int returnCode = 11;
 		do {
 			ShopItem.resetAllItems();
 			switch (returnCode) {
@@ -120,8 +128,6 @@ public final class Core {
 					}
                     break;
                 case 2:
-                    // 1P Mode
-                    isAIMode = false;
 					isTwoPlayerMode = false;
 					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0,0, isTwoPlayerMode, isAIMode);
                     do {
@@ -189,6 +195,43 @@ public final class Core {
                         }
                         // Loop while player still has lives and levels remaining
                     } while (gameState.getLivesRemaining() > 0);
+
+					// Save score to global high scores
+					{
+						String playerName = (currentUser != null) ? currentUser.getUsername() : "GUEST";
+
+						// Calculate accuracy
+						float accuracy = 0;
+						if (gameState.getBulletsShot() > 0) {
+							accuracy = (float) gameState.getShipsDestroyed() / gameState.getBulletsShot() * 100;
+						}
+
+						Score newScore = new Score(
+								playerName,
+								gameState.getScore(),
+								gameState.getLevel(),
+								gameState.getShipsDestroyed(),
+								gameState.getBulletsShot(),
+								accuracy
+						);
+
+						java.util.List<Score> highScores = FileManager.getInstance().getHighScores();
+						highScores.add(newScore);
+						java.util.Collections.sort(highScores);
+
+						// Trim the list if it exceeds the max number(7) of scores
+						if (highScores.size() > 7) {
+							highScores.subList(7, highScores.size()).clear();
+						}
+
+						// Save the updated global high scores
+						try {
+							FileManager.getInstance().saveHighScores();
+							LOGGER.info("Saved global high score " + gameState.getScore() + " for player " + playerName);
+						} catch (java.io.IOException e) {
+							LOGGER.warning("Could not save global high scores: " + e.getMessage());
+						}
+					}
 
 					SoundManager.stopAll();
 					SoundManager.play("sfx/gameover.wav");
@@ -463,6 +506,13 @@ public final class Core {
                     currentScreen = new InfiniteScoreScreen(width, height, FPS, finalState);
                     returnCode = frame.setScreen(currentScreen);
                     break;
+				case 11:
+					// Login screen
+					currentScreen = new LoginScreen(width, height, FPS);
+					LOGGER.info("Starting " + WIDTH + "x" + HEIGHT + " login screen at " + FPS + " fps.");
+					returnCode = frame.setScreen(currentScreen);
+					LOGGER.info("Closing login screen.");
+					break;
 				default:
 					break;
             }
@@ -540,6 +590,22 @@ public final class Core {
 	public static Cooldown getVariableCooldown(final int milliseconds,
 			final int variance) {
 		return new Cooldown(milliseconds, variance);
+	}
+
+	/**
+	 *
+	 * @return The currently logged-in user.
+	 */
+	public static User getCurrentUser() {
+		return currentUser;
+	}
+
+	/**
+	 *
+	 * @param user The user to set as the current user.
+	 */
+	public static void setCurrentUser(final User user) {
+		currentUser = user;
 	}
 
     /**
