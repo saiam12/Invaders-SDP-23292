@@ -46,6 +46,7 @@ public class ScoreScreen extends Screen {
 	/** Time between changes in user selection. */
 	private Cooldown selectionCooldown;
 
+	private boolean CheckTwoplayermode;
 	/**
 	 * Constructor, establishes the properties of the screen.
 	 * 
@@ -62,10 +63,11 @@ public class ScoreScreen extends Screen {
 			final GameState gameState) {
 		super(width, height, fps);
 
-		this.score = gameState.getScore();
+		this.score = gameState.getScoreP1() + gameState.getScoreP2();
 		this.livesRemaining = gameState.getLivesRemaining();
 		this.bulletsShot = gameState.getBulletsShot();
 		this.shipsDestroyed = gameState.getShipsDestroyed();
+		this.CheckTwoplayermode = gameState.isTwoPlayerMode();
 		this.isNewRecord = false;
 		this.name = "AAA".toCharArray();
 		this.nameCharSelected = 0;
@@ -111,7 +113,10 @@ public class ScoreScreen extends Screen {
 					saveScore();
 			} else if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
 				// Play again.
-				this.returnCode = 2;
+				if (!CheckTwoplayermode)
+					this.returnCode = 2;
+				else
+					this.returnCode = 7;
 				this.isRunning = false;
 				if (this.isNewRecord)
 					saveScore();

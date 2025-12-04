@@ -103,7 +103,7 @@ public final class Core {
 						LOGGER.info("Closing mode select screen.");
 					}
                     break;
-                case 2:
+                case 2: // 1p mode
 					isTwoPlayerMode = false;
 					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0,0, isTwoPlayerMode);
                     do {
@@ -208,9 +208,9 @@ public final class Core {
                     returnCode = frame.setScreen(currentScreen);
                     LOGGER.info("Closing achievement screen.");
                     break;
-				case 7:
+				case 7: // 2p mode
 					isTwoPlayerMode = true;
-					gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0,0, isTwoPlayerMode);
+					gameState = new GameState(1, 0, 0, 0, MAX_LIVES, MAX_LIVES, 0, 0, 0, isTwoPlayerMode);
 					do {
 						// One extra life every few levels
 						boolean bonusLife = gameState.getLevel()
@@ -265,6 +265,8 @@ public final class Core {
 							gameState = new GameState(
 									gameState.getLevel() + 1,          // Increment level
 									gameState.getScore(),              // Keep current score
+									gameState.getScoreP1(),            // Keep current scoreP1
+									gameState.getScoreP2(),			   // Keep current scoreP2
 									gameState.getLivesRemaining(),     // Keep remaining lives
 									gameState.getLivesRemainingP2(),   // Keep remaining livesP2
 									gameState.getBulletsShot(),        // Keep bullets fired

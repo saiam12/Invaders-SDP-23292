@@ -159,16 +159,21 @@ public class GameScreen extends Screen implements CollisionContext {
 		this.bonusLife = bonusLife;
         this.currentlevel = level;
         this.maxLives = maxLives;
-		        this.level = gameState.getLevel();
-		        this.score = gameState.getScore();
-                this.coin = gameState.getCoin();
-		        this.livesP1 = gameState.getLivesRemaining();
-				this.livesP2 = gameState.getLivesRemainingP2();
-		        this.gameState = gameState;
-				if (this.bonusLife) {
-					this.livesP1++;
-					this.livesP2++;
-				}
+		this.level = gameState.getLevel();
+		this.score = gameState.getScore();
+		this.scoreP1 = gameState.getScoreP1();
+		if (gameState.isTwoPlayerMode())
+			this.scoreP2 = gameState.getScoreP2();
+		else
+			this.scoreP2 = 0;
+        this.coin = gameState.getCoin();
+	    this.livesP1 = gameState.getLivesRemaining();
+		this.livesP2 = gameState.getLivesRemainingP2();
+		this.gameState = gameState;
+		if (this.bonusLife) {
+			this.livesP1++;
+			this.livesP2++;
+		}
 		this.bulletsShot = gameState.getBulletsShot();
 		this.shipsDestroyed = gameState.getShipsDestroyed();
 		this.isTwoPlayerMode = gameState.isTwoPlayerMode();
@@ -185,16 +190,16 @@ public class GameScreen extends Screen implements CollisionContext {
 		this.bossBullets = new HashSet<>();
         enemyShipFormation = new EnemyShipFormation(this.currentLevel);
 		enemyShipFormation.attach(this);
-//		this.scoreP1 = 0;
 		this.ship = new Ship(this.width / 2, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
 		this.ship.setPlayerId(1);   //=== [ADD] Player 1 ===
 
 		if(this.isTwoPlayerMode) {
 			this.ship.setPositionX(this.width / 2 - 100);
-//			this.scoreP2 = 0;
 			this.shipP2 = new Ship(this.width / 2 + 100, ITEMS_SEPARATION_LINE_HEIGHT - 20, Color.pink);
 			this.shipP2.setPlayerId(2); // === [ADD] Player2 ===
 		}
+//		this.scoreP1 = gameState.getScoreP1();
+//		this.scoreP2 = gameState.getScoreP2();
         // special enemy initial
 		enemyShipSpecialFormation = new EnemyShipSpecialFormation(this.currentLevel,
 				Core.getVariableCooldown(BONUS_SHIP_INTERVAL, BONUS_SHIP_VARIANCE),
@@ -227,11 +232,13 @@ public class GameScreen extends Screen implements CollisionContext {
 	public final int run() {
 		super.run();
 
+		this.scoreP1 += LIFE_SCORE * (this.livesP1 - 1);
 		this.score += LIFE_SCORE * (this.livesP1 - 1);
 		if(this.isTwoPlayerMode) {
+			this.scoreP2 += LIFE_SCORE * (this.livesP2 - 1);
 			this.score += LIFE_SCORE * (this.livesP2 - 1);
 		}
-		this.logger.info("Screen cleared with a score of " + this.score);
+		this.logger.info("@@Screen cleared with a score of " + this.scoreP1 + ",2p :" + this.scoreP2 + ", total :" + this.score);
 
 		return this.returnCode;
 	}
@@ -563,7 +570,7 @@ public class GameScreen extends Screen implements CollisionContext {
 	        if (this.coin > 2000) {
 	            AchievementManager.getInstance().unlockAchievement("Mr. Greedy");
 	        }
-	        return new GameState(this.level, this.score, this.livesP1,this.livesP2,
+	        return new GameState(this.level, this.score, this.scoreP1, this.scoreP2, this.livesP1,this.livesP2,
 	                this.bulletsShot, this.shipsDestroyed,this.coin, this.isTwoPlayerMode);
 	    }
 	/**
