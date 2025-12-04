@@ -113,7 +113,7 @@ def preprocess_state(state_json):
         print(f"Preprocessing error: {e}")
         return np.zeros(STATE_SIZE) # Return array filled with 0s on error
 
-def run_ai_controller(train=True, model_path=None):
+def run_ai_controller(train=False, model_path=None):
     """
     Start and run the AI controller loop that interacts with the Java game server to obtain game states, choose actions via the Agent, optionally train the agent, and persist models.
     
@@ -374,6 +374,6 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", action="store_true", help="Enable training mode")
-    parser.add_argument("--model", type=str, default="rl/save_model/model_3500000(V1).pth", help="Path to model file")
+    parser.add_argument("--model", type=str, default="./rl/save_model/model_3500000(V1).pth", help="Path to model file")
     args = parser.parse_args()
     run_ai_controller(train=args.train, model_path=args.model)
