@@ -41,8 +41,7 @@ public final class Core {
 	/** Level manager for loading level settings. */
 	private static LevelManager levelManager;
 	/** Application logger. */
-	private static final Logger LOGGER = Logger.getLogger(Core.class
-			.getSimpleName());
+	private static final Logger LOGGER = Logger.getLogger(Core.class.getSimpleName());
 	/** Logger handler for printing to disk. */
 	private static Handler fileHandler;
 	/** Logger handler for printing to console. */
@@ -53,8 +52,8 @@ public final class Core {
     public static boolean isAITraining = false;
     /** True if ai_controller.py is running */
     public static Process aiProcess = null;
-	/** Currently logged-in user. */
-	private static User currentUser;
+    /** Currently logged-in user. */
+    private static User currentUser;
 
     /**
 	 * Test implementation.
