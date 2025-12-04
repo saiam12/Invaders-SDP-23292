@@ -194,8 +194,8 @@ class Agent:
         else:
             print("Saved model not found")
 
-    def save_model(self, filepath="./save_model/model.pth"):
-        if not os.path.exists("./save_model"):
-            os.makedirs("./save_model")
+    def save_model(self, filepath="./rl/save_model/model.pth"):
+        if not os.path.exists("./rl/save_model"):
+            os.makedirs("./rl/save_model")
         torch.save(self.model.state_dict(), filepath)
         print(f"Model saved to {filepath}")

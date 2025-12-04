@@ -374,6 +374,6 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", action="store_true", help="Enable training mode")
-    parser.add_argument("--model", type=str, default="save_model/model_3500000(V1).pth", help="Path to model file")
+    parser.add_argument("--model", type=str, default="rl/save_model/model_3500000(V1).pth", help="Path to model file")
     args = parser.parse_args()
     run_ai_controller(train=args.train, model_path=args.model)
