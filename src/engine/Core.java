@@ -336,6 +336,8 @@ public final class Core {
                     } catch (Exception e) {
                         e.printStackTrace();
                         System.out.println("[AI] Failed to start ai_controller.py");
+                        isAIMode = false;
+                        returnCode = 1; // return to main menu, prevent infinite loop
                     } finally {
                         if (aiProcess != null) {
                             aiProcess.destroy();
