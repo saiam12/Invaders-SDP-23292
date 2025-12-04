@@ -190,7 +190,7 @@ def run_ai_controller(train=True, model_path=None):
 
                 # save model
                 if train and done:
-                    agent.save_model(f"./save_model/episode_model.pth")
+                    agent.save_model("./save_model/episode_model.pth")
 
                 if train and agent.train_count % 50000 == 0 and agent.train_count > 0:
                     agent.save_model(f"./save_model/model_{agent.train_count}.pth")
