@@ -68,7 +68,7 @@ public class UserManager {
         User newUser = new User(username, password);
         // Initialize achievements for the new user
         for (Achievement achievement : AchievementManager.getInstance().getAchievements()) {
-            newUser.getAchievements().put(achievement.getName(), false);
+            newUser.setAchievementStatus(achievement.getName(), false);
         }
 
         users.put(username, newUser);

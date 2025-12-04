@@ -25,7 +25,7 @@ public class User {
 
 
     public Map<String, Boolean> getAchievements() {
-        return achievements;
+        return Collections.unmodifiableMap(achievements);
     }
     public void setAchievementStatus(String name, boolean unlocked) {
         achievements.put(name, unlocked);
