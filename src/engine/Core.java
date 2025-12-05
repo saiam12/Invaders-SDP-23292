@@ -262,7 +262,6 @@ public final class Core {
                     isTwoPlayerMode = true;
 
                     try {
-                        /**
                         // Detect python executable name
                         String pythonExec = System.getProperty("os.name").toLowerCase().contains("win")
                                 ? "python"
@@ -279,9 +278,8 @@ public final class Core {
                         pb.redirectErrorStream(true);
                         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
-                        aiProcess = pb.start();
+                        //aiProcess = pb.start();
                         System.out.println("[AI] ai_controller.py started.");
-                         **/
 
 
                         gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0, 0, isTwoPlayerMode, isAIMode);
