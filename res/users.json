@@ -46,8 +46,6 @@
       "username": "k",
       "password": "k",
       "achievements": {
-        "First Blood": true,
-        "Bad Sniper": true,
         "First Blood": false,
         "Bad Sniper": false,
         "Beginner": false,
