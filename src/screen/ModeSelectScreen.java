@@ -60,7 +60,12 @@ public class ModeSelectScreen extends Screen {
     }
 
     /**
-     * Updates the elements on screen and checks for events.
+     * Updates visual state, renders the screen, and handles menu navigation input.
+     *
+     * Updates the animated background and redraws the screen, then—if the selection
+     * cooldown and input delay have finished—processes keyboard input:
+     * UP or W selects the previous menu item, DOWN or S selects the next menu item,
+     * and SPACE stops the screen run loop.
      */
     protected final void update() {
         super.update();
@@ -80,11 +85,7 @@ public class ModeSelectScreen extends Screen {
                 this.selectionCooldown.reset();
             }
             if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
-                if (returnCode == 5){
-                    feedbackCooldown.reset();
-                } else {
                     this.isRunning = false;
-                }
             }
         }
     }

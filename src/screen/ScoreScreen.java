@@ -91,10 +91,14 @@ public class ScoreScreen extends Screen {
 				this.isRunning = false;
 			} else if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
 				// Play again.
-				if (!CheckTwoplayermode)
-					this.returnCode = 2;
+                if (Core.isAIMode){
+                    this.returnCode = 5;
+                }
+				else if (CheckTwoplayermode) {
+                    this.returnCode = 7;
+                }
 				else
-					this.returnCode = 7;
+					this.returnCode = 2;
 				this.isRunning = false;
 			}
 		}

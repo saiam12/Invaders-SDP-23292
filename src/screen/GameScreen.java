@@ -1,14 +1,16 @@
 package screen;
 
-import java.awt.Color;
-import java.util.*;
-import java.util.logging.Logger;
-
 import engine.*;
-import entity.*;
 import engine.dto.StatePacket;
-
 import engine.level.Level;
+import entity.*;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 
 
 /**
@@ -612,7 +614,7 @@ public class GameScreen extends Screen implements CollisionContext {
 	        if (this.coin > 2000) {
 	            AchievementManager.getInstance().unlockAchievement("Mr. Greedy");
 	        }
-	        return new GameState(this.level, this.score, this.livesP1,this.livesP2,
+	        return new GameState(this.level, this.score, this.scoreP1,this.scoreP2,this.livesP1,this.livesP2,
 	                this.bulletsShot, this.shipsDestroyed,this.coin, this.isTwoPlayerMode, this.isAIMode);
 	    }
 	/**

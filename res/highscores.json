@@ -1,6 +1,14 @@
 {
   "highScores": [
     {
+      "name": "qwe",
+      "score": 340,
+      "stage": 2,
+      "killed": 24,
+      "bullets": 27,
+      "accuracy": 88.88889
+    },
+    {
       "name": "kk",
       "score": 220,
       "stage": 1,
