@@ -34,6 +34,7 @@ public class ScoreScreen extends Screen {
 	/** Checks if current score is a new high score. */
 	private boolean isNewRecord;
 
+	private boolean CheckTwoplayermode;
 	/**
 	 * Constructor, establishes the properties of the screen.
 	 * 
@@ -50,10 +51,11 @@ public class ScoreScreen extends Screen {
 			final GameState gameState) {
 		super(width, height, fps);
 
-		this.score = gameState.getScore();
+		this.score = gameState.getScoreP1() + gameState.getScoreP2();
 		this.livesRemaining = gameState.getLivesRemaining();
 		this.bulletsShot = gameState.getBulletsShot();
 		this.shipsDestroyed = gameState.getShipsDestroyed();
+		this.CheckTwoplayermode = gameState.isTwoPlayerMode();
 		this.isNewRecord = false;
 
 		// Check against global high scores
@@ -91,9 +93,12 @@ public class ScoreScreen extends Screen {
 				// Play again.
                 if (Core.isAIMode){
                     this.returnCode = 5;
-                } else {
-                    this.returnCode = 2;
                 }
+				else if (CheckTwoplayermode) {
+                    this.returnCode = 7;
+                }
+				else
+					this.returnCode = 2;
 				this.isRunning = false;
 			}
 		}

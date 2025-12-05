@@ -1,18 +1,13 @@
 package engine;
 
 import audio.SoundManager;
+import engine.dto.ActionPacket;
+import engine.level.LevelManager;
+import entity.ShopItem;
+import screen.*;
 
 import java.io.File;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import entity.ShopItem;
-import engine.level.LevelManager;
-import screen.*;
-import engine.dto.*;
+import java.util.logging.*;
 
 /**
  * Implements core game logic.
@@ -121,7 +116,7 @@ public final class Core {
 						LOGGER.info("Closing mode select screen.");
 					}
                     break;
-                case 2:
+                case 2: // 1p mode
 					isTwoPlayerMode = false;
 					gameState = new GameState(1, 0, MAX_LIVES, 0, 0, 0,0, isTwoPlayerMode, isAIMode);
                     do {
@@ -450,6 +445,8 @@ public final class Core {
 							gameState = new GameState(
 									gameState.getLevel() + 1,          // Increment level
 									gameState.getScore(),              // Keep current score
+									gameState.getScoreP1(),            // Keep current scoreP1
+									gameState.getScoreP2(),			   // Keep current scoreP2
 									gameState.getLivesRemaining(),     // Keep remaining lives
 									gameState.getLivesRemainingP2(),   // Keep remaining livesP2
 									gameState.getBulletsShot(),        // Keep bullets fired
