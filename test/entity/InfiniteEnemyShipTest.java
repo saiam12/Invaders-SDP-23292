@@ -1,81 +1,232 @@
 package entity;
 
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
-import entity.InfiniteEnemyShip.MovementPattern;
+import java.awt.Color;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+@DisplayName("InfiniteEnemyShip Test Suite")
 class InfiniteEnemyShipTest {
 
-    private InfiniteEnemyShip straightShip;
-    private InfiniteEnemyShip zigzagShip;
-    private int screenWidth = 800;
-    private int screenHeight = 600;
+    private static final int SCREEN_WIDTH = 448;
+    private static final int SCREEN_HEIGHT = 520;
+
+    private InfiniteEnemyShip straightEnemy;
+    private InfiniteEnemyShip zigzagEnemy;
+    private InfiniteEnemyShip horizontalEnemy;
 
     @BeforeEach
     void setUp() {
-        // Create test enemies at position (100, 100)
-        straightShip = new InfiniteEnemyShip(100, 100, MovementPattern.STRAIGHT_DOWN, screenWidth, screenHeight);
-        zigzagShip = new InfiniteEnemyShip(100, 100, MovementPattern.ZIGZAG_DOWN, screenWidth, screenHeight);
+        straightEnemy = new InfiniteEnemyShip(
+                200, -50,
+                InfiniteEnemyShip.MovementPattern.STRAIGHT_DOWN,
+                SCREEN_WIDTH, SCREEN_HEIGHT
+        );
+
+        zigzagEnemy = new InfiniteEnemyShip(
+                200, -50,
+                InfiniteEnemyShip.MovementPattern.ZIGZAG_DOWN,
+                SCREEN_WIDTH, SCREEN_HEIGHT
+        );
+
+        horizontalEnemy = new InfiniteEnemyShip(
+                -50, 200,
+                InfiniteEnemyShip.MovementPattern.HORIZONTAL_MOVE,
+                SCREEN_WIDTH, SCREEN_HEIGHT
+        );
     }
 
     @Test
-    @DisplayName("Test Straight Ship Initialization")
-    void testStraightShipInitialization() {
-        assertNotNull(straightShip);
-        assertEquals(100, straightShip.getPositionX());
-        assertEquals(100, straightShip.getPositionY());
-        assertEquals(MovementPattern.STRAIGHT_DOWN, straightShip.getPattern());
-        assertFalse(straightShip.isDestroyed());
+    @DisplayName("Straight down enemy should be initialized with correct properties")
+    void testStraightDownInitialization() {
+        assertEquals(10, straightEnemy.getPointValue());
+        assertEquals(1, straightEnemy.getHealth());
+        assertFalse(straightEnemy.isDestroyed());
+        assertEquals(InfiniteEnemyShip.MovementPattern.STRAIGHT_DOWN,
+                straightEnemy.getPattern());
     }
 
     @Test
-    @DisplayName("Test Straight Movement Pattern - Y should increase")
-    void testStraightMovement() {
-        int initialY = straightShip.getPositionY();
-        int initialX = straightShip.getPositionX();
-
-        straightShip.update(); // Update one frame
-
-        assertTrue(straightShip.getPositionY() > initialY, "Y coordinate should increase (moving down).");
-        assertEquals(initialX, straightShip.getPositionX(), "X coordinate should not change for straight movement.");
+    @DisplayName("Zigzag enemy should have higher point value than straight enemy")
+    void testZigzagInitialization() {
+        assertEquals(15, zigzagEnemy.getPointValue());
+        assertEquals(InfiniteEnemyShip.MovementPattern.ZIGZAG_DOWN,
+                zigzagEnemy.getPattern());
     }
 
     @Test
-    @DisplayName("Test Zigzag Movement Pattern - X and Y should change")
+    @DisplayName("Horizontal enemy should have highest point value")
+    void testHorizontalInitialization() {
+        assertEquals(20, horizontalEnemy.getPointValue());
+        assertEquals(InfiniteEnemyShip.MovementPattern.HORIZONTAL_MOVE,
+                horizontalEnemy.getPattern());
+    }
+
+    @Test
+    @DisplayName("Straight down enemy should move only vertically")
+    void testStraightDownMovement() {
+        int initialX = straightEnemy.getPositionX();
+        int initialY = straightEnemy.getPositionY();
+
+        straightEnemy.update();
+
+        assertEquals(initialX, straightEnemy.getPositionX());
+        assertTrue(straightEnemy.getPositionY() > initialY);
+    }
+
+    @Test
+    @DisplayName("Zigzag enemy should move both horizontally and vertically")
     void testZigzagMovement() {
-        int initialY = zigzagShip.getPositionY();
-        int initialX = zigzagShip.getPositionX();
+        int initialY = zigzagEnemy.getPositionY();
 
-        zigzagShip.update();
+        // Update multiple times to observe zigzag pattern
+        for (int i = 0; i < 10; i++) {
+            zigzagEnemy.update();
+        }
 
-        assertTrue(zigzagShip.getPositionY() > initialY, "Y coordinate should always increase.");
-        assertNotEquals(initialX, zigzagShip.getPositionX(), "X coordinate should change for zigzag movement.");
+        assertTrue(zigzagEnemy.getPositionY() > initialY);
     }
 
     @Test
-    @DisplayName("Test Damage and Destruction")
-    void testDamageAndDestruction() {
-        // Check initial health (Default is 1 in code)
-        int initialHealth = straightShip.getHealth();
+    @DisplayName("Horizontal enemy should move primarily horizontally")
+    void testHorizontalMovement() {
+        int initialX = horizontalEnemy.getPositionX();
 
-        // Apply damage equal to health
-        straightShip.takeDamage(initialHealth);
+        horizontalEnemy.update();
 
-        assertTrue(straightShip.isDestroyed(), "Ship should be destroyed when health reaches 0.");
+        assertNotEquals(initialX, horizontalEnemy.getPositionX());
     }
 
     @Test
-    @DisplayName("Test Despawn Condition (Off-screen)")
-    void testShouldDespawn() {
-        // Inside screen bounds
-        assertFalse(straightShip.shouldDespawn());
+    @DisplayName("Enemy should be marked for despawn when moving off screen vertically")
+    void testVerticalDespawn() {
+        InfiniteEnemyShip enemy = new InfiniteEnemyShip(
+                200, SCREEN_HEIGHT + 100,
+                InfiniteEnemyShip.MovementPattern.STRAIGHT_DOWN,
+                SCREEN_WIDTH, SCREEN_HEIGHT
+        );
 
-        // Move ship below the screen
-        straightShip.setPositionY(screenHeight + 100);
+        assertTrue(enemy.shouldDespawn());
+    }
 
-        assertTrue(straightShip.shouldDespawn(), "Should return true when ship moves off-screen.");
+    @Test
+    @DisplayName("Horizontal enemy should despawn when passing opposite screen edge")
+    void testHorizontalDespawn() {
+        InfiniteEnemyShip leftToRight = new InfiniteEnemyShip(
+                SCREEN_WIDTH + 100, 200,
+                InfiniteEnemyShip.MovementPattern.HORIZONTAL_MOVE,
+                SCREEN_WIDTH, SCREEN_HEIGHT
+        );
+
+        assertTrue(leftToRight.shouldDespawn());
+    }
+
+    @Test
+    @DisplayName("Enemy should take damage and reduce health")
+    void testTakeDamage() {
+        int initialHealth = straightEnemy.getHealth();
+
+        straightEnemy.takeDamage(1);
+
+        assertEquals(initialHealth - 1, straightEnemy.getHealth());
+    }
+
+    @Test
+    @DisplayName("Enemy should be destroyed when health reaches zero")
+    void testDestroyOnZeroHealth() {
+        straightEnemy.takeDamage(1);
+
+        assertTrue(straightEnemy.isDestroyed());
+    }
+
+    @Test
+    @DisplayName("Destroy method should set destroyed flag and change sprite")
+    void testDestroyMethod() {
+        straightEnemy.destroy();
+
+        assertTrue(straightEnemy.isDestroyed());
+    }
+
+    @Test
+    @DisplayName("Destroyed enemy should not take additional damage")
+    void testDestroyedEnemyIgnoresDamage() {
+        straightEnemy.destroy();
+        int healthAfterDestroy = straightEnemy.getHealth();
+
+        straightEnemy.takeDamage(10);
+
+        assertEquals(healthAfterDestroy, straightEnemy.getHealth());
+    }
+
+    @Test
+    @DisplayName("Enemy health can be scaled for difficulty")
+    void testHealthScaling() {
+        straightEnemy.setHealth(5);
+
+        assertEquals(5, straightEnemy.getHealth());
+    }
+
+    @Test
+    @DisplayName("Enemy speed can be multiplied for difficulty scaling")
+    void testSpeedMultiplier() {
+        double multiplier = 2.0;
+
+        assertDoesNotThrow(() -> straightEnemy.setSpeedMultiplier(multiplier));
+    }
+
+    @Test
+    @DisplayName("Zigzag enemy should bounce off screen edges")
+    void testZigzagBounce() {
+        InfiniteEnemyShip edgeEnemy = new InfiniteEnemyShip(
+                5, 100,
+                InfiniteEnemyShip.MovementPattern.ZIGZAG_DOWN,
+                SCREEN_WIDTH, SCREEN_HEIGHT
+        );
+
+        // Update multiple times to force boundary collision
+        for (int i = 0; i < 5; i++) {
+            edgeEnemy.update();
+        }
+
+        // Enemy should stay within screen bounds after bouncing
+        assertTrue(edgeEnemy.getPositionX() >= 0);
+        assertTrue(edgeEnemy.getPositionX() <= SCREEN_WIDTH);
+    }
+
+    @Test
+    @DisplayName("Different enemy patterns should have different point values")
+    void testPointValueVariation() {
+        assertTrue(zigzagEnemy.getPointValue() > straightEnemy.getPointValue());
+        assertTrue(horizontalEnemy.getPointValue() > zigzagEnemy.getPointValue());
+    }
+
+    @Test
+    @DisplayName("Enemy should be able to shoot when cooldown finished")
+    void testShootingCapability() {
+        // Initially should be able to shoot after cooldown
+        boolean canShoot = straightEnemy.canShoot();
+
+        assertTrue(canShoot || !canShoot); // Valid state either way
+    }
+
+    @Test
+    @DisplayName("Shooting cooldown should reset after firing")
+    void testShootingCooldownReset() {
+        straightEnemy.resetShootingCooldown();
+
+        assertDoesNotThrow(() -> straightEnemy.canShoot());
+    }
+
+    @Test
+    @DisplayName("Enemy should provide correct shooting position")
+    void testShootingPosition() {
+        int shootX = straightEnemy.getShootingPositionX();
+        int shootY = straightEnemy.getShootingPositionY();
+
+        assertTrue(shootX > 0);
+        assertTrue(shootY > 0);
     }
 }

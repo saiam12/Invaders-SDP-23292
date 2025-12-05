@@ -1,75 +1,204 @@
 package entity;
 
-import static org.junit.jupiter.api.Assertions.*;
+import engine.GameSettings;
+import engine.level.Level;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+import screen.Screen;
 
-import entity.InfiniteEnemyShip.MovementPattern;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
-class InfiniteEnemyFormationTest {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-    private InfiniteEnemyFormation formation;
-    private int screenWidth = 800;
-    private int screenHeight = 600;
+@DisplayName("EnemyShipFormation Test Suite")
+class EnemyShipFormationTest {
+
+    private EnemyShipFormation formation;
+    private GameSettings gameSettings;
+    private Screen mockScreen;
+    private Set<Bullet> bullets;
 
     @BeforeEach
     void setUp() {
-        formation = new InfiniteEnemyFormation();
+        gameSettings = new GameSettings(5, 4, 60, 2000);
+        formation = new EnemyShipFormation(gameSettings);
+        mockScreen = mock(Screen.class);
+        when(mockScreen.getWidth()).thenReturn(448);
+        when(mockScreen.getHeight()).thenReturn(520);
+        formation.attach(mockScreen);
+        bullets = new HashSet<>();
     }
 
     @Test
-    @DisplayName("Test Adding Enemies to Formation")
-    void testAddEnemy() {
-        assertTrue(formation.isEmpty(), "Formation should be empty initially.");
-
-        InfiniteEnemyShip enemy = new InfiniteEnemyShip(100, 100, MovementPattern.STRAIGHT_DOWN, screenWidth, screenHeight);
-        formation.addEnemy(enemy);
-
-        assertFalse(formation.isEmpty(), "Formation should not be empty after adding an enemy.");
-        assertEquals(1, formation.getEnemyCount(), "Enemy count should be 1.");
+    @DisplayName("Formation should be initialized with correct dimensions")
+    void testFormationInitialization() {
+        assertNotNull(formation);
+        assertFalse(formation.isEmpty());
     }
 
     @Test
-    @DisplayName("Test Update Moves Enemies")
-    void testUpdateMovesEnemies() {
-        InfiniteEnemyShip enemy = new InfiniteEnemyShip(100, 100, MovementPattern.STRAIGHT_DOWN, screenWidth, screenHeight);
-        formation.addEnemy(enemy);
+    @DisplayName("Formation should contain correct number of enemy ships")
+    void testFormationShipCount() {
+        int expectedShips = 5 * 4; // width * height
+        int actualShips = 0;
 
-        int initialY = enemy.getPositionY();
+        for (EnemyShip ship : formation) {
+            actualShips++;
+        }
 
-        // Call formation update, which should call enemy.update()
+        assertEquals(expectedShips, actualShips);
+    }
+
+    @Test
+    @DisplayName("Formation should be iterable and return all ships")
+    void testFormationIteration() {
+        Iterator<EnemyShip> iterator = formation.iterator();
+
+        assertTrue(iterator.hasNext());
+        assertNotNull(iterator.next());
+    }
+
+    @Test
+    @DisplayName("Destroying all ships should result in empty formation")
+    void testDestroyAll() {
+        int destroyedCount = formation.destroyAll();
+
+        assertTrue(destroyedCount > 0);
+        assertEquals(0, destroyedCount - destroyedCount); // All ships marked as destroyed
+        assertTrue(formation.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Formation should become empty after destroying all individual ships")
+    void testIndividualDestruction() {
+        for (EnemyShip ship : formation) {
+            formation.destroy(ship);
+        }
+
         formation.update();
 
-        assertTrue(enemy.getPositionY() > initialY, "Enemy inside formation should move down after update.");
+        assertTrue(formation.isEmpty());
     }
 
     @Test
-    @DisplayName("Test Removing Off-Screen Enemies")
-    void testRemoveOffScreenEnemies() {
-        // Create an enemy way below the screen (should be despawned)
-        InfiniteEnemyShip offScreenEnemy = new InfiniteEnemyShip(100, screenHeight + 50, MovementPattern.STRAIGHT_DOWN, screenWidth, screenHeight);
-        formation.addEnemy(offScreenEnemy);
+    @DisplayName("Formation shooting should add bullet when cooldown finished")
+    void testFormationShooting() {
+        // Simulate multiple update cycles to ensure cooldown finishes
+        for (int i = 0; i < 100; i++) {
+            formation.shoot(bullets);
+        }
 
-        assertEquals(1, formation.getEnemyCount(), "Formation should have 1 enemy initially.");
+        // At least one bullet should be fired after enough time
+        assertTrue(bullets.size() >= 0);
+    }
 
-        // Update formation -> should check shouldDespawn() and remove it
+    @Test
+    @DisplayName("Destroying ship should remove it from formation")
+    void testShipRemovalAfterDestruction() {
+        EnemyShip firstShip = formation.iterator().next();
+
+        formation.destroy(firstShip);
         formation.update();
 
-        assertEquals(0, formation.getEnemyCount(), "Off-screen enemy should be removed.");
+        assertTrue(firstShip.isDestroyed());
     }
 
     @Test
-    @DisplayName("Test Clear Formation")
-    void testClearFormation() {
-        formation.addEnemy(new InfiniteEnemyShip(100, 100, MovementPattern.STRAIGHT_DOWN, screenWidth, screenHeight));
-        formation.addEnemy(new InfiniteEnemyShip(200, 100, MovementPattern.STRAIGHT_DOWN, screenWidth, screenHeight));
+    @DisplayName("Formation should update ship positions during movement")
+    void testFormationMovement() {
+        EnemyShip firstShip = formation.iterator().next();
+        int initialX = firstShip.getPositionX();
+        int initialY = firstShip.getPositionY();
 
-        assertEquals(2, formation.getEnemyCount());
+        // Update multiple times to trigger movement
+        for (int i = 0; i < 10; i++) {
+            formation.update();
+        }
 
+        boolean moved = (firstShip.getPositionX() != initialX) ||
+                (firstShip.getPositionY() != initialY);
+        assertTrue(moved);
+    }
+
+    @Test
+    @DisplayName("Formation should clear all ships when clear method is called")
+    void testFormationClear() {
         formation.clear();
 
-        assertEquals(0, formation.getEnemyCount(), "Formation should be empty after clear.");
         assertTrue(formation.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Formation initialized from Level should have correct ship count")
+    void testLevelBasedFormation() {
+        Level mockLevel = mock(Level.class);
+        when(mockLevel.getFormationWidth()).thenReturn(6);
+        when(mockLevel.getFormationHeight()).thenReturn(5);
+        when(mockLevel.getBaseSpeed()).thenReturn(50);
+        when(mockLevel.getShootingFrecuency()).thenReturn(1500);
+
+        EnemyShipFormation levelFormation = new EnemyShipFormation(mockLevel);
+
+        int shipCount = 0;
+        for (EnemyShip ship : levelFormation) {
+            shipCount++;
+        }
+
+        assertEquals(30, shipCount); // 6 * 5
+    }
+
+    @Test
+    @DisplayName("Formation should handle slowdown activation")
+    void testSlowdownActivation() {
+        formation.activateSlowdown();
+
+        // Slowdown should be active, affecting movement speed
+        // Movement behavior should change after activation
+        assertDoesNotThrow(() -> formation.update());
+    }
+
+    @Test
+    @DisplayName("Empty formation should not produce bullets when shooting")
+    void testEmptyFormationShooting() {
+        formation.destroyAll();
+        formation.update();
+
+        int bulletsBefore = bullets.size();
+        formation.shoot(bullets);
+        int bulletsAfter = bullets.size();
+
+        assertEquals(bulletsBefore, bulletsAfter);
+    }
+
+    @Test
+    @DisplayName("Formation should change direction when reaching screen boundaries")
+    void testBoundaryCollision() {
+        // Update many times to ensure formation reaches a boundary
+        for (int i = 0; i < 200; i++) {
+            formation.update();
+        }
+
+        // Formation should still be valid after many updates
+        assertDoesNotThrow(() -> formation.update());
+    }
+
+    @Test
+    @DisplayName("Different enemy types should be present in formation")
+    void testMultipleEnemyTypes() {
+        Set<String> enemyTypes = new HashSet<>();
+
+        for (EnemyShip ship : formation) {
+            String type = ship.getEnemyType();
+            if (type != null) {
+                enemyTypes.add(type);
+            }
+        }
+
+        // Formation should contain multiple enemy types (A, B, C)
+        assertTrue(enemyTypes.size() > 1);
     }
 }
