@@ -157,7 +157,7 @@ public final class FileManager {
 
 				Map<String, Boolean> achievementsMap = (Map<String, Boolean>) userMap.get("achievements");
 				for (Map.Entry<String, Boolean> entry : achievementsMap.entrySet()) {
-					user.getAchievements().put(entry.getKey(), entry.getValue());
+					user.setAchievementStatus(entry.getKey(), entry.getValue());
 				}
 
 				users.put(username, user);
