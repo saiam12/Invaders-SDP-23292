@@ -184,6 +184,10 @@ public class LoginScreen extends Screen {
         return this.isRunning;
     }
 
+    public String getErrorMessage() {
+        return this.errorMessage;
+    }
+
     public void setInputManager(engine.InputManager inputManager) {
         this.inputManager = inputManager;
     }
@@ -194,5 +198,23 @@ public class LoginScreen extends Screen {
 
     public void setSelectedField(int selectedField) {
         this.selectedField = selectedField;
+    }
+
+    // --- Package-private setters for testing dependency injection ---
+
+    void setNavigationCooldown(Cooldown cooldown) {
+        this.navigationCooldown = cooldown;
+    }
+
+    void setTypingCooldown(Cooldown cooldown) {
+        this.typingCooldown = cooldown;
+    }
+
+    void setErrorCooldown(Cooldown cooldown) {
+        this.errorCooldown = cooldown;
+    }
+
+    void setInputDelay(Cooldown cooldown) {
+        this.inputDelay = cooldown;
     }
 }
