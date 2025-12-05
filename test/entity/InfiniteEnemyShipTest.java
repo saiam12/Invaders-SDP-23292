@@ -115,15 +115,20 @@ class InfiniteEnemyShipTest {
     @Test
     @DisplayName("Horizontal enemy should despawn when passing opposite screen edge")
     void testHorizontalDespawn() {
+        // Horizontal enemy spawning from left (negative X) should move right
         InfiniteEnemyShip leftToRight = new InfiniteEnemyShip(
-                SCREEN_WIDTH + 100, 200,
+                -50, 200,
                 InfiniteEnemyShip.MovementPattern.HORIZONTAL_MOVE,
                 SCREEN_WIDTH, SCREEN_HEIGHT
         );
 
+        // Move it far past the right edge
+        for (int i = 0; i < 200; i++) {
+            leftToRight.update();
+        }
+
         assertTrue(leftToRight.shouldDespawn());
     }
-
     @Test
     @DisplayName("Enemy should take damage and reduce health")
     void testTakeDamage() {
@@ -226,7 +231,11 @@ class InfiniteEnemyShipTest {
         int shootX = straightEnemy.getShootingPositionX();
         int shootY = straightEnemy.getShootingPositionY();
 
-        assertTrue(shootX > 0);
-        assertTrue(shootY > 0);
+        // Shooting position should be at center X and bottom Y of the enemy
+        int expectedX = straightEnemy.getPositionX() + straightEnemy.getWidth() / 2;
+        int expectedY = straightEnemy.getPositionY() + straightEnemy.getHeight();
+
+        assertEquals(expectedX, shootX);
+        assertEquals(expectedY, shootY);
     }
 }
