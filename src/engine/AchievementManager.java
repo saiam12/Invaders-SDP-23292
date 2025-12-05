@@ -1,12 +1,8 @@
 package engine;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * Manages all game achievements (including their state, unlocking logic, and persistence).
@@ -93,7 +89,7 @@ public class AchievementManager {
         for (Achievement achievement : achievements) {
             if (achievement.getName().equals(name) && !achievement.isUnlocked()) {
                 achievement.unlock();
-                currentUser.getAchievements().put(name, true);
+                currentUser.setAchievementStatus(name, true);
 
                 // Persist the change
                 try {
@@ -111,7 +107,7 @@ public class AchievementManager {
      */
     public void checkKillAchievements(GameState gameState) {
         User currentUser = Core.getCurrentUser();
-        if (currentUser == null) return;
+        if (currentUser == null || gameState == null) return;
 
         // First Blood Achievement
         if (!currentUser.getAchievements().getOrDefault("First Blood", false)) {

@@ -15,11 +15,39 @@
       }
     },
     {
+      "username": "kk",
+      "password": "kk",
+      "achievements": {
+        "First Blood": true,
+        "Bad Sniper": true,
+        "Beginner": false,
+        "Bear Grylls": false,
+        "Intermediate": false,
+        "Conqueror": false,
+        "Mr. Greedy": false,
+        "Boss Slayer": false
+      }
+    },
+    {
       "username": "test",
       "password": "1234",
       "achievements": {
         "First Blood": true,
-        "Bad Sniper": false,
+        "Bad Sniper": true,
+        "Beginner": false,
+        "Bear Grylls": false,
+        "Intermediate": false,
+        "Conqueror": false,
+        "Mr. Greedy": false,
+        "Boss Slayer": false
+      }
+    },
+    {
+      "username": "k",
+      "password": "k",
+      "achievements": {
+        "First Blood": true,
+        "Bad Sniper": true,
         "Beginner": false,
         "Bear Grylls": false,
         "Intermediate": false,

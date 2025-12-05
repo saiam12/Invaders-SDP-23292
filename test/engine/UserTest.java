@@ -52,15 +52,26 @@ public class UserTest {
     }
 
     @Test
-    @DisplayName("getAchievements should return modifiable map")
-    public void testGetAchievementsReturnsModifiableMap() {
+    @DisplayName("getAchievements should return an unmodifiable map")
+    public void testGetAchievementsReturnsUnmodifiableMap() {
         Map<String, Boolean> achievements = user.getAchievements();
         assertNotNull(achievements);
 
-        // Verify we can modify the map
-        achievements.put("Test Achievement", true);
-        assertTrue(achievements.containsKey("Test Achievement"));
-        assertTrue(achievements.get("Test Achievement"));
+        // Verify we cannot modify the map directly
+        assertThrows(UnsupportedOperationException.class, () -> {
+            achievements.put("Test Achievement", true);
+        });
+    }
+
+    @Test
+    @DisplayName("setAchievementStatus should add a new achievement")
+    public void testSetAchievementStatusAddsNew() {
+        user.setAchievementStatus("Newbie", true);
+        Map<String, Boolean> achievements = user.getAchievements();
+
+        assertEquals(1, achievements.size());
+        assertTrue(achievements.containsKey("Newbie"));
+        assertTrue(achievements.get("Newbie"));
     }
 
     @Test
@@ -94,14 +105,14 @@ public class UserTest {
     }
 
     @Test
-    @DisplayName("Multiple achievements can be added and retrieved")
+    @DisplayName("Multiple achievements can be added and retrieved via setter")
     public void testMultipleAchievements() {
-        Map<String, Boolean> achievements = user.getAchievements();
-        achievements.put("First Blood", true);
-        achievements.put("Bad Sniper", false);
-        achievements.put("Beginner", true);
-        achievements.put("Bear Grylls", false);
+        user.setAchievementStatus("First Blood", true);
+        user.setAchievementStatus("Bad Sniper", false);
+        user.setAchievementStatus("Beginner", true);
+        user.setAchievementStatus("Bear Grylls", false);
 
+        Map<String, Boolean> achievements = user.getAchievements();
         assertEquals(4, achievements.size());
         assertTrue(achievements.get("First Blood"));
         assertFalse(achievements.get("Bad Sniper"));
@@ -110,26 +121,13 @@ public class UserTest {
     }
 
     @Test
-    @DisplayName("Achievement status can be updated")
+    @DisplayName("Achievement status can be updated via setter")
     public void testAchievementStatusUpdate() {
-        Map<String, Boolean> achievements = user.getAchievements();
-        achievements.put("Boss Slayer", false);
-        assertFalse(achievements.get("Boss Slayer"));
+        user.setAchievementStatus("Boss Slayer", false);
+        assertFalse(user.getAchievements().get("Boss Slayer"));
 
-        achievements.put("Boss Slayer", true);
-        assertTrue(achievements.get("Boss Slayer"));
-    }
-
-    @Test
-    @DisplayName("Achievements map can be cleared")
-    public void testClearAchievements() {
-        Map<String, Boolean> achievements = user.getAchievements();
-        achievements.put("Test1", true);
-        achievements.put("Test2", false);
-        assertEquals(2, achievements.size());
-
-        achievements.clear();
-        assertTrue(achievements.isEmpty());
+        user.setAchievementStatus("Boss Slayer", true);
+        assertTrue(user.getAchievements().get("Boss Slayer"));
     }
 
     @Test
@@ -160,21 +158,5 @@ public class UserTest {
         String longPassword = "p".repeat(1000);
         User longUser = new User(TEST_USERNAME, longPassword);
         assertEquals(1000, longUser.getPassword().length());
-    }
-
-    @Test
-    @DisplayName("Achievement with null key should be handled")
-    public void testAchievementWithNullKey() {
-        Map<String, Boolean> achievements = user.getAchievements();
-        achievements.put(null, true);
-        assertTrue(achievements.containsKey(null));
-    }
-
-    @Test
-    @DisplayName("Achievement with null value should be handled")
-    public void testAchievementWithNullValue() {
-        Map<String, Boolean> achievements = user.getAchievements();
-        achievements.put("Test", null);
-        assertNull(achievements.get("Test"));
     }
 }
