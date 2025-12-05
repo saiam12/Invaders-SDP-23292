@@ -261,7 +261,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             if (p1Fire) {
                 if (this.ship.shoot(this.bullets)) {
                     this.bulletsShot++;
-                    AchievementManager.getInstance().onShotFired();
                 }
             }
         }
@@ -704,6 +703,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
                 this.bulletsShot,
                 this.shipsDestroyed,
                 this.coin,
+                false,
                 false
         );
     }
