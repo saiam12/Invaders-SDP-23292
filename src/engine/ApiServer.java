@@ -34,7 +34,7 @@ public class ApiServer {
             config.http.defaultContentType = "application/json";
         });
 
-        // Basic endpointsx`
+        // Basic endpoints
         app.get("/health", ctx -> ctx.json(Map.of("ok", true)));
         app.get("/state", this::handleGetState);
         app.post("/action", this::handlePostAction);
