@@ -1,58 +1,60 @@
-name: Java CI with Gradle
+name: Java CI/CD with Gradle
 
-# 언제 실행할지 설정 (master 브랜치 기준)
+# 언제 실행할지 정의 (main 브랜치에 푸시하거나 PR을 보낼 때)
+# Define triggers (Run on push or PR to main/develop branches)
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "develop" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "develop" ]
 
-# 테스트 리포트 작성을 위한 권한 설정 (이게 있어야 PR에 결과가 예쁘게 달립니다)
 permissions:
   contents: read
-  checks: write
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Run on Ubuntu Linux
 
     steps:
-      # 1. 코드 가져오기
-      - name: Checkout code
-        uses: actions/checkout@v4
+      # 1. 코드를 가져옵니다.
+      # 1. Checkout the source code
+      - uses: actions/checkout@v4
 
-      # 2. 자바 21 설정
+      # 2. Java 21 환경을 설정합니다. (아까 오류 해결할 때 Java 21이었으므로 21로 설정)
+      # 2. Set up JDK 21 environment
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: gradle
 
-      # 3. Gradle Wrapper 검증 (보안상 추천)
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
+      # 3. Gradle 설정을 로드합니다. (캐싱 등 자동 처리)
+      # 3. Setup Gradle (Handles caching automatically)
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      # 4. 권한 부여
+      # 4. gradlew 실행 권한 부여 (윈도우에서 커밋한 경우 권한이 없을 수 있음)
+      # 4. Grant execute permission for gradlew (Required if committed from Windows)
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 5. 빌드 및 테스트 실행 (build 하나면 테스트까지 다 됩니다)
-      - name: Build with Gradle Wrapper
-        run: ./gradlew build --info
+      # [CI 파트] 5. 테스트를 실행합니다. (실패하면 여기서 멈춤)
+      # [CI Part] 5. Run tests (Workflow stops here if tests fail)
+      - name: Run Tests
+        run: ./gradlew test
 
-      # 6. 테스트 결과 리포트 발행 (성공하든 실패하든 실행)
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v4
-        if: success() || failure()
-        with:
-          report_paths: '**/build/test-results/test/TEST-*.xml'
-          check_name: Test Results # 깃허브 PR 탭에 이 이름으로 뜹니다
+      # [CD 파트] 6. 테스트가 통과하면 빌드(jar 파일 생성)를 수행합니다.
+      # [CD Part] 6. Build the project (Create jar file) if tests pass
+      - name: Build with Gradle
+        run: ./gradlew build -x test # 테스트는 위에서 했으니 건너뜀
 
-      # 7. (선택사항) 빌드된 Jar 파일 업로드 (팀원들이 다운로드 가능)
-      - name: Upload Build Artifacts
-        if: success()
+      # [CD 파트] 7. 빌드된 jar 파일을 GitHub Artifact에 업로드합니다.
+      # 팀원들이 GitHub Actions 탭에서 다운로드 받을 수 있게 됩니다.
+        # [CD Part] 7. Upload the built jar file to GitHub Artifacts
+        # Allows team members to download the build from the GitHub Actions tab
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: game-build-file
+          name: SpaceInvaders-Build
           path: build/libs/*.jar
+          retention-days: 5 # Retain artifact for 5 days

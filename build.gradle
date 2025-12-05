@@ -3,66 +3,58 @@ plugins {
     id 'application'
 }
 
-group = 'spaceinvaders'
+group = 'KWAK'
 version = '1.0-SNAPSHOT'
-sourceCompatibility = '21'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    // JUnit 5 for testing
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
-
-    // Mockito for mocking (optional)
-    testImplementation 'org.mockito:mockito-core:5.3.1'
-    testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
+    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'io.javalin:javalin:6.7.0'
+    implementation 'org.slf4j:slf4j-simple:2.0.16'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-// Main class 설정
+sourceSets {
+    main {
+        java { srcDirs = ['src'] }
+        resources { srcDirs = ['res'] }
+    }
+    test {
+        java {
+            srcDirs = ['test']
+        }
+        resources {
+            srcDirs = ['res']
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
 application {
     mainClass = 'engine.Core'
 }
 
-// 소스 디렉토리 설정 (기존 구조 유지)
-sourceSets {
-    main {
-        java {
-            srcDirs = ['src']  // 현재 src 폴더를 메인 소스로 지정
-        }
-        resources {
-            srcDirs = ['res']  // 리소스 폴더 (있다면)
-        }
-    }
-    test {
-        java {
-            srcDirs = ['test']  // test 폴더를 테스트 소스로 지정
-        }
-    }
-}
-
-// 테스트 설정
-test {
-    useJUnitPlatform()
-
-    testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat "full"
-    }
-}
-
-// JAR 생성 시 메인 클래스 지정
 jar {
     manifest {
         attributes 'Main-Class': 'engine.Core'
     }
-
-    // 의존성 포함 (fat jar)
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
