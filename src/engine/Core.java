@@ -262,24 +262,24 @@ public final class Core {
                     isTwoPlayerMode = true;
 
                     try {
-                        // Detect python executable name
-                        String pythonExec = System.getProperty("os.name").toLowerCase().contains("win")
-                                ? "python"
-                                : "python3";
-
-                        // Absolute path for reliability
-                        String scriptPath = new File("rl/ai_controller.py").getAbsolutePath();
-
-                        ProcessBuilder pb = new ProcessBuilder(pythonExec, scriptPath);
-
-                        // Set working directory to project root
-                        pb.directory(new File("."));
-
-                        pb.redirectErrorStream(true);
-                        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-
-                        //aiProcess = pb.start();
-                        System.out.println("[AI] ai_controller.py started.");
+//                        // Detect python executable name
+//                        String pythonExec = System.getProperty("os.name").toLowerCase().contains("win")
+//                                ? "python"
+//                                : "python3";
+//
+//                        // Absolute path for reliability
+//                        String scriptPath = new File("rl/ai_controller.py").getAbsolutePath();
+//
+//                        ProcessBuilder pb = new ProcessBuilder(pythonExec, scriptPath);
+//
+//                        // Set working directory to project root
+//                        pb.directory(new File("."));
+//
+//                        pb.redirectErrorStream(true);
+//                        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+//
+//                        //aiProcess = pb.start();
+//                        System.out.println("[AI] ai_controller.py started.");
 
 
                         gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0, 0, isTwoPlayerMode, isAIMode);
