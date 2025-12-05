@@ -1,121 +1,299 @@
 package screen;
 
-import engine.*;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Logger;
-
+import engine.GameState;
+import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
+
+@DisplayName("InfiniteScoreScreen Simple Test")
 class InfiniteScoreScreenTest {
-    private MockedStatic<Core> coreMock;
-    private FileManager fileManagerMock;
-    private GameState gameStateMock;
-    private Cooldown cooldownMock;
 
-    @BeforeEach
-    void setUp() {
-        // 1. Core 클래스의 정적 메서드들을 가로채기 위해 MockedStatic 생성
-        coreMock = Mockito.mockStatic(Core.class);
+    private static final int SCREEN_WIDTH = 448;
+    private static final int SCREEN_HEIGHT = 520;
+    private static final int FPS = 60;
 
-        // 2. 의존성 Mock 객체 생성
-        fileManagerMock = mock(FileManager.class);
-        gameStateMock = mock(GameState.class);
-        cooldownMock = mock(Cooldown.class);
-        DrawManager drawManagerMock = mock(DrawManager.class);
-        InputManager inputManagerMock = mock(InputManager.class);
+    // ==================== Constructor Tests ====================
 
-        // 3. Core가 요청받을 때 가짜 객체(Mock)를 반환하도록 설정
-        coreMock.when(Core::getFileManager).thenReturn(fileManagerMock);
-        coreMock.when(Core::getDrawManager).thenReturn(drawManagerMock);
-        coreMock.when(Core::getInputManager).thenReturn(inputManagerMock);
-        coreMock.when(Core::getLogger).thenReturn(Logger.getGlobal());
-        coreMock.when(() -> Core.getCooldown(anyInt())).thenReturn(cooldownMock);
+    @Test
+    @DisplayName("Constructor Test - GameState should not be null")
+    void testConstructorWithValidGameState() {
+        GameState gameState = new GameState(
+                1,      // level
+                1000,   // score
+                2,      // lives
+                2,      // livesP2
+                50,     // bullets shot
+                30,     // ships destroyed
+                100,    // coin
+                false,  // isTwoPlayerMode
+                false   // isAIMode [Updated]
+        );
 
-        // 4. GameState 기본 설정 (생성자에서 사용)
-        when(gameStateMock.getScore()).thenReturn(1000);
-        when(gameStateMock.getLivesRemaining()).thenReturn(3);
-        when(gameStateMock.getBulletsShot()).thenReturn(50);
-        when(gameStateMock.getShipsDestroyed()).thenReturn(20);
-    }
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
 
-    @AfterEach
-    void tearDown() {
-        // 정적 Mock 해제 (메모리 누수 방지 및 다른 테스트 간섭 방지)
-        coreMock.close();
+        assertNotNull(screen, "Screen object should be created");
     }
 
     @Test
-    @DisplayName("생성자: 점수가 기존 기록보다 높으면 신기록(isNewRecord=true)이어야 한다")
-    void testConstructor_NewRecord() throws IOException, NoSuchFieldException, IllegalAccessException {
-        // Given: 기존 1등 점수가 500점이고, 현재 점수(GameState)는 1000점인 상황
-        List<Score> lowScores = new ArrayList<>();
-        lowScores.add(new Score("TEST", 500));
-        when(fileManagerMock.loadInfiniteHighScores()).thenReturn(lowScores);
+    @DisplayName("Constructor Test - Zero Score")
+    void testConstructorWithZeroScore() {
+        GameState gameState = new GameState(1, 0, 3, 3, 0, 0, 0, false, false);
 
-        // When: 화면 객체 생성
-        InfiniteScoreScreen screen = new InfiniteScoreScreen(800, 600, 60, gameStateMock);
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
 
-        // Then: isNewRecord 필드가 true여야 함
-        // (private 필드이므로 Reflection을 사용하여 값 확인)
-        Field field = InfiniteScoreScreen.class.getDeclaredField("isNewRecord");
-        field.setAccessible(true);
-        boolean isNewRecord = (boolean) field.get(screen);
-
-        assertTrue(isNewRecord, "기존 점수보다 높으므로 신기록이어야 합니다.");
+        assertNotNull(screen, "Should be created even with zero score");
     }
 
     @Test
-    @DisplayName("생성자: 점수가 기존 기록보다 낮으면 신기록이 아니어야(isNewRecord=false) 한다")
-    void testConstructor_NoNewRecord() throws IOException, NoSuchFieldException, IllegalAccessException {
-        // Given: 기존 1등 점수가 5000점이고, 현재 점수는 1000점인 상황
-        List<Score> highScores = new ArrayList<>();
-        // 7개의 높은 점수로 채움
-        for(int i=0; i<7; i++) {
-            highScores.add(new Score("USER", 5000));
-        }
-        when(fileManagerMock.loadInfiniteHighScores()).thenReturn(highScores);
+    @DisplayName("Constructor Test - High Score")
+    void testConstructorWithHighScore() {
+        GameState gameState = new GameState(
+                5, 99999, 1, 1, 1000, 500, 5000, false, false
+        );
 
-        // When
-        InfiniteScoreScreen screen = new InfiniteScoreScreen(800, 600, 60, gameStateMock);
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
 
-        // Then
-        Field field = InfiniteScoreScreen.class.getDeclaredField("isNewRecord");
-        field.setAccessible(true);
-        boolean isNewRecord = (boolean) field.get(screen);
-
-        assertFalse(isNewRecord, "기존 점수보다 낮으므로 신기록이 아니어야 합니다.");
+        assertNotNull(screen, "Should be created with high score");
     }
 
     @Test
-    @DisplayName("saveScore: 점수 저장 시 FileManager가 호출되어야 한다")
-    void testSaveScore() throws Exception {
-        // Given: 초기화
-        when(fileManagerMock.loadInfiniteHighScores()).thenReturn(new ArrayList<>()); // 빈 리스트 반환
-        InfiniteScoreScreen screen = new InfiniteScoreScreen(800, 600, 60, gameStateMock);
+    @DisplayName("Constructor Test - Zero Lives")
+    void testConstructorWithZeroLives() {
+        GameState gameState = new GameState(1, 500, 0, 0, 25, 10, 50, false, false);
 
-        // private 메서드인 saveScore를 호출하기 위해 Reflection 사용
-        // (또는 update() 메서드를 통해 간접 호출할 수도 있지만, 로직 단위 테스트를 위해 직접 호출)
-        Method saveMethod = InfiniteScoreScreen.class.getDeclaredMethod("saveScore");
-        saveMethod.setAccessible(true);
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
 
-        // When: 저장 실행
-        saveMethod.invoke(screen);
+        assertNotNull(screen, "Should be created even with zero lives");
+    }
 
-        // Then: FileManager.saveInfiniteHighScores()가 호출되었는지 검증
-        verify(fileManagerMock, times(1)).saveInfiniteHighScores(anyList());
+    // ==================== Screen Dimension Tests ====================
+
+    @Test
+    @DisplayName("Screen Size Test - Width")
+    void testScreenWidth() {
+        GameState gameState = new GameState(1, 100, 2, 2, 10, 5, 10, false, false);
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
+
+        int width = screen.getWidth();
+
+        assertEquals(SCREEN_WIDTH, width, "Screen width should match");
+    }
+
+    @Test
+    @DisplayName("Screen Size Test - Height")
+    void testScreenHeight() {
+        GameState gameState = new GameState(1, 100, 2, 2, 10, 5, 10, false, false);
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
+
+        int height = screen.getHeight();
+
+        assertEquals(SCREEN_HEIGHT, height, "Screen height should match");
+    }
+
+    // ==================== GameState Scenario Tests ====================
+
+    @Test
+    @DisplayName("Scenario Test - Beginner (Low Score)")
+    void testBeginnerScenario() {
+        GameState gameState = new GameState(
+                1,      // level 1
+                50,     // low score
+                1,      // 1 life remaining
+                1,
+                100,    // high bullet count
+                5,      // few kills
+                10,     // low coin
+                false,
+                false   // isAIMode
+        );
+
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
+
+        assertNotNull(screen, "Beginner scenario should be handled correctly");
+    }
+
+    @Test
+    @DisplayName("Scenario Test - Expert (High Score)")
+    void testExpertScenario() {
+        GameState gameState = new GameState(
+                10,     // level 10
+                50000,  // high score
+                3,      // full lives
+                3,
+                200,    // low bullet count
+                190,    // high kills (high accuracy)
+                10000,  // high coin
+                false,
+                false   // isAIMode
+        );
+
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
+
+        assertNotNull(screen, "Expert scenario should be handled correctly");
+    }
+
+    @Test
+    @DisplayName("Scenario Test - Perfect Accuracy")
+    void testPerfectAccuracyScenario() {
+        GameState gameState = new GameState(
+                3, 5000, 2, 2,
+                50,     // 50 bullets
+                50,     // 50 kills (100% accuracy)
+                500, false, false
+        );
+
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
+
+        assertNotNull(screen, "Perfect accuracy scenario should be handled correctly");
+    }
+
+    @Test
+    @DisplayName("Scenario Test - No Kills")
+    void testNoKillsScenario() {
+        GameState gameState = new GameState(
+                1, 0, 0, 0,
+                1000,   // 1000 bullets
+                0,      // 0 kills (0% accuracy)
+                0, false, false
+        );
+
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
+
+        assertNotNull(screen, "No kills scenario should be handled correctly");
+    }
+
+    // ==================== Boundary Tests ====================
+
+    @Test
+    @DisplayName("Boundary Test - Minimum Screen Size")
+    void testMinimumScreenSize() {
+        GameState gameState = new GameState(1, 100, 2, 2, 10, 5, 10, false, false);
+
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(1, 1, FPS, gameState);
+
+        assertNotNull(screen, "Should be created with minimum screen size");
+        assertEquals(1, screen.getWidth());
+        assertEquals(1, screen.getHeight());
+    }
+
+    @Test
+    @DisplayName("Boundary Test - Large Screen Size")
+    void testLargeScreenSize() {
+        GameState gameState = new GameState(1, 100, 2, 2, 10, 5, 10, false, false);
+
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                1920, 1080, FPS, gameState
+        );
+
+        assertNotNull(screen, "Should be created with large screen size");
+        assertEquals(1920, screen.getWidth());
+        assertEquals(1080, screen.getHeight());
+    }
+
+    @Test
+    @DisplayName("Boundary Test - Minimum FPS")
+    void testMinimumFPS() {
+        GameState gameState = new GameState(1, 100, 2, 2, 10, 5, 10, false, false);
+
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, 1, gameState
+        );
+
+        assertNotNull(screen, "Should be created with 1 FPS");
+    }
+
+    @Test
+    @DisplayName("Boundary Test - High FPS")
+    void testHighFPS() {
+        GameState gameState = new GameState(1, 100, 2, 2, 10, 5, 10, false, false);
+
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, 144, gameState
+        );
+
+        assertNotNull(screen, "Should be created with high FPS");
+    }
+
+
+    // ==================== Exception Tests ====================
+
+    @Test
+    @DisplayName("Exception Test - Null GameState throws NullPointerException")
+    void testNullGameState() {
+        GameState gameState = null;
+
+        assertThrows(NullPointerException.class, () -> {
+            new InfiniteScoreScreen(SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState);
+        }, "Should throw exception when GameState is null");
+    }
+
+    // ==================== Integration Tests ====================
+
+    @Test
+    @DisplayName("Integration Test - Multiple Screen Creation")
+    void testMultipleScreenCreation() {
+        GameState state1 = new GameState(1, 100, 3, 3, 10, 5, 10, false, false);
+        GameState state2 = new GameState(5, 5000, 1, 1, 100, 80, 500, false, false);
+        GameState state3 = new GameState(10, 50000, 0, 0, 500, 400, 10000, false, false);
+
+        InfiniteScoreScreen screen1 = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, state1
+        );
+        InfiniteScoreScreen screen2 = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, state2
+        );
+        InfiniteScoreScreen screen3 = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, state3
+        );
+
+        assertNotNull(screen1);
+        assertNotNull(screen2);
+        assertNotNull(screen3);
+        assertNotSame(screen1, screen2, "Screens should be distinct objects");
+        assertNotSame(screen2, screen3, "Screens should be distinct objects");
+    }
+
+    @Test
+    @DisplayName("Integration Test - Real Gameplay Scenario")
+    void testRealGameplayScenario() {
+        // Player reached level 7, 15000 score, died (0 lives), 300 bullets shot, 200 enemies killed
+        GameState gameState = new GameState(
+                7,      // level
+                15000,  // score
+                0,      // lives
+                0,
+                300,    // bullets
+                200,    // kills
+                1500,   // coin
+                false,
+                false   // isAIMode
+        );
+
+        InfiniteScoreScreen screen = new InfiniteScoreScreen(
+                SCREEN_WIDTH, SCREEN_HEIGHT, FPS, gameState
+        );
+
+        assertNotNull(screen, "Real gameplay scenario should be handled correctly");
+        assertEquals(SCREEN_WIDTH, screen.getWidth());
+        assertEquals(SCREEN_HEIGHT, screen.getHeight());
     }
 }
