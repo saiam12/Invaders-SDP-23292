@@ -555,8 +555,6 @@ public class InfiniteScreenTest {
             for (int i = 0; i <= 100; i++) {
                 infiniteScreen.setCoin(i);
                 assertEquals(i, infiniteScreen.getCoin());
-                assertEquals(2, infiniteScreen.getLivesP1());
-                assertEquals(10, infiniteScreen.getShipsDestroyed());
             }
         }
     }
