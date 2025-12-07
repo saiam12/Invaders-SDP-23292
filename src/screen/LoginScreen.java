@@ -1,12 +1,8 @@
 package screen;
 
-import java.awt.Color;
+import engine.*;
+
 import java.awt.event.KeyEvent;
-import engine.Cooldown;
-import engine.Core;
-import engine.User;
-import engine.UserManager;
-import engine.AchievementManager;
 
 public class LoginScreen extends Screen {
 
