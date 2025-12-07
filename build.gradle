@@ -46,7 +46,6 @@ sourceSets {
 
 test {
     useJUnitPlatform()
-    enabled = false
 }
 
 application {
