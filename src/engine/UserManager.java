@@ -12,13 +12,7 @@ public class UserManager {
 
     private UserManager() {
         try {
-            Map<String, User> loadedData = FileManager.getInstance().loadUsers();
-            if (loadedData != null) {
-                users = new HashMap<>(loadedData);
-            } else {
-                users = new HashMap<>();
-            }
-
+            users = FileManager.getInstance().loadUsers();
             logger.info("User data loaded successfully.");
 
         } catch (IOException e) {
