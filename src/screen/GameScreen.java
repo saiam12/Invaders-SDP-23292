@@ -852,4 +852,14 @@ public class GameScreen extends Screen implements CollisionContext {
     public EnemyShipSpecialFormation getEnemyShipSpecialFormation() { return this.enemyShipSpecialFormation; }
     public MidBoss getOmegaBoss() { return this.omegaBoss; }
     public FinalBoss getFinalBoss() { return this.finalBoss; }
+
+
+    //Setters for Testing
+    public void setShipP2(Ship shipP2) { this.shipP2 = shipP2; }
+    public void setBullets(Set<Bullet> bullets) { this.bullets = bullets; }
+    public void setDropItems(Set<DropItem> dropItems) { this.dropItems = dropItems; }
+    public void setBossBullets(Set<BossBullet> bullets) { this.bossBullets = bullets; }
+    public void setEnemyShipFormation(EnemyShipFormation enemyShipFormation) {this.enemyShipFormation = enemyShipFormation; };
+    public void setFinalBoss(FinalBoss finalBoss) { this.finalBoss = finalBoss; };
+    public void setScoreP2(int scoreP2) { this.scoreP2 = scoreP2; }
 }
