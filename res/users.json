@@ -2,7 +2,7 @@
   "users": [
     {
       "username": "test",
-      "password": "111",
+      "password": "1234",
       "achievements": {
         "First Blood": false,
         "Bad Sniper": false,
