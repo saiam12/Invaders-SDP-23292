@@ -190,3 +190,5 @@ log*
 .checkstyle
 production
 achievements.dat
+!LoginScreenTest.java
+!LoginScreen.java
