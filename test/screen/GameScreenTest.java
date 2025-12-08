@@ -58,7 +58,7 @@ class GameScreenTest {
     }
 
     /**
-     * 1. P2 상태 확인: P2 ship과 lives가 StatePacket에 제대로 매핑되는지 확인
+     * 1. Check P2: coordinates/HP are included in the packet, Check if coordinates/HP are correct
      */
     @Test
     void testP2StateMappedToPacket() {
@@ -85,7 +85,7 @@ class GameScreenTest {
     }
 
     /**
-     * 2. Bullet 체크: bullets가 패킷에 포함되고, 좌표/개수가 맞는지 확인
+     * 2. Check Bullet: bullets are included in the packet, Check if the coordinates/numbers are correct
      */
     @Test
     void testBulletsMappedToPacket() {
@@ -107,7 +107,7 @@ class GameScreenTest {
     }
 
     /**
-     * 3. Enemy 체크: 적들이 패킷에 포함되는지, 적 목록이 비어 있지 않은지 확인
+     * 3. Check Enemy: Enemies are included in the packet, Check if the coordinates/HP/Type are correct
      */
     @Test
     void testEnemiesMappedToPacket() {
@@ -117,15 +117,13 @@ class GameScreenTest {
         // then
         assertNotNull(packet.enemies, "enemies list should not be null");
         assertFalse(packet.enemies.isEmpty(), "enemies list should not be empty");
-
-        // Optional: check one enemy entry format if you know it
         // Example: [x, y, hp, type]
         var firstEnemy = packet.enemies.get(0);
         assertEquals(4, firstEnemy.size(), "enemy entry should have 4 fields (x, y, hp, type)");
     }
 
     /**
-     * 4. Item 체크: DropItem이 패킷 items에 들어가고 좌표가 맞는지 확인
+     * 4. Check DropItems: DropItems are included in the packet, Check if the coordinates/Type are correct
      */
     @Test
     void testItemsMappedToPacket() {
@@ -149,7 +147,7 @@ class GameScreenTest {
     }
 
     /**
-     * 5. Boss 체크: Boss 정보가 패킷에 포함되는지 확인
+     * 5. Check Boss: Boss are included in the packet, Check if the coordinates/HP are correct
      */
     @Test
     void testBossMappedToPacket() {
@@ -166,7 +164,7 @@ class GameScreenTest {
     }
 
     /**
-     * 6. 점수 체크: GameState의 score가 StatePacket.score에 반영되는지 확인
+     * 6. Check score: score is included in the packet, Check if the score is correct
      */
     @Test
     void testScoreMappedToPacket() {
