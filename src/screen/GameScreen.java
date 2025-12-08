@@ -794,6 +794,23 @@ public class GameScreen extends Screen implements CollisionContext {
                 packet.enemies.add(enemy_info);
             }
         }
+        if (this.finalBoss != null && !this.finalBoss.isDestroyed()) {
+            List<Integer> enemy_info = new ArrayList<>();
+            enemy_info.add(finalBoss.getPositionX());
+            enemy_info.add(finalBoss.getPositionY());
+            enemy_info.add(finalBoss.getHealPoint());
+            int enemy_ship_type = 1;
+            enemy_info.add(enemy_ship_type);
+            packet.enemies.add(enemy_info);
+        }if (this.omegaBoss != null && !this.omegaBoss.isDestroyed()) {
+            List<Integer> enemy_info = new ArrayList<>();
+            enemy_info.add(omegaBoss.getPositionX());
+            enemy_info.add(omegaBoss.getPositionY());
+            enemy_info.add(omegaBoss.getHealPoint());
+            int enemy_ship_type = 1;
+            enemy_info.add(enemy_ship_type);
+            packet.enemies.add(enemy_info);
+        }
 
         // 5. Items info
         packet.items = new ArrayList<>();
@@ -805,32 +822,10 @@ public class GameScreen extends Screen implements CollisionContext {
             packet.items.add(item_info);
         }
 
-        // 6. Boss info
-        packet.boss = new ArrayList<>();
-        if (this.finalBoss != null && !this.finalBoss.isDestroyed()) {
-            packet.boss = List.of(
-                    finalBoss.getPositionX(),
-                    finalBoss.getPositionY(),
-                    finalBoss.getHealPoint(),
-                    finalBoss.getMaxHp(),
-                    0
-            );
-        } else if (this.omegaBoss != null && !this.omegaBoss.isDestroyed()) {
-            packet.boss = List.of(
-                    omegaBoss.getPositionX(),
-                    omegaBoss.getPositionY(),
-                    omegaBoss.getHealPoint(),
-                    omegaBoss.getMaxHp(),
-                    1
-            );
-        } else {
-            packet.boss = null;
-        }
-
-        // 7. Score
+        // 6. Score
         packet.score = this.scoreP2;
 
-        // === 8. Enemy Damage Events ===
+        // === 7. Enemy Damage Events ===
         packet.enemyDamageEvents = new ArrayList<>(enemyDamageEvents);
         enemyDamageEvents.clear();
 
