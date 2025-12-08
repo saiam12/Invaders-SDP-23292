@@ -90,9 +90,13 @@ Sprint progress and task tracking are managed through **Jira**.
 - Add **AI Mode** selection button
 
 #### 🐍 Python Side
-- Implement **Reinforcement Learning algorithm**
-- Build **Python API server**
-- Write `run_server.py` script to launch API server
+- Implement **Reinforcement Learning algorithm** (`agent.py`)
+    - `agent.py` implements the core RL agent (DQN-based)
+- Central control handled by **integrated server interface** (`ai_controller.py`)
+    - Handles:
+        - HTTP communication with Java game
+        - State preprocessing & reward calculation
+        - Action selection & model training
 
 ---
 
