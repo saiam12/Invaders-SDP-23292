@@ -212,7 +212,6 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.shopSelectionCooldown.reset();
         this.isShopOpen = false;
         this.lastScoreAdded = System.currentTimeMillis();
-        this.gameTimer.start();
         this.gameStartTime = System.currentTimeMillis();
         this.inputDelay = Core.getCooldown(INPUT_DELAY);
         this.inputDelay.reset();
@@ -223,26 +222,31 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         super.update();
         handleShopToggle();
 
-        // If shop is open, pause game and skip game logic
-        if (isShopOpen) {
-            if (this.gameTimer.isRunning()) { // Pause game timer
-                this.gameTimer.stop();
-            }
-            handleShopInput(); // Handle shop-specific input (navigation, buy, close)
-            drawInfiniteMode(); // Still draw game frame (so overlay is visible)
-            return; // Skip all game logic
-        }
-        else{
-            if (!this.gameTimer.isRunning()) {
-                this.gameTimer.start();
-            }
-        }
-
-        if (this.gameTimer.isRunning()) {
-        this.elapsedTime = this.gameTimer.getElapsedTime();
-        updateSpeedMultiplier();
-        }
         if (this.inputDelay.checkFinished()) {
+            if (!this.gameTimer.isRunning() && !this.isShopOpen) {
+                this.gameTimer.start();
+                this.lastScoreAdded = System.currentTimeMillis(); // 점수 타이머도 이때부터 기준 잡기
+            }
+            // If shop is open, pause game and skip game logic
+            if (isShopOpen) {
+                if (this.gameTimer.isRunning()) { // Pause game timer
+                    this.gameTimer.stop();
+                }
+                handleShopInput(); // Handle shop-specific input (navigation, buy, close)
+                drawInfiniteMode(); // Still draw game frame (so overlay is visible)
+                return; // Skip all game logic
+            }
+            else{
+                if (!this.gameTimer.isRunning() && this.lives > 0) {
+                    this.gameTimer.start();
+                }
+            }
+
+            if (this.gameTimer.isRunning()) {
+                this.elapsedTime = this.gameTimer.getElapsedTime();
+                updateSpeedMultiplier();
+            }
+
             spawnEnemies();
             updateScore();
             updateTime();
