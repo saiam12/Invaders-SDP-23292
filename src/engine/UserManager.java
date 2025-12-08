@@ -2,7 +2,6 @@ package engine;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -13,13 +12,7 @@ public class UserManager {
 
     private UserManager() {
         try {
-            Map<String, User> loadedData = FileManager.getInstance().loadUsers();
-            if (loadedData != null) {
-                users = new HashMap<>(loadedData);
-            } else {
-                users = new HashMap<>();
-            }
-
+            users = FileManager.getInstance().loadUsers();
             logger.info("User data loaded successfully.");
 
         } catch (IOException e) {
