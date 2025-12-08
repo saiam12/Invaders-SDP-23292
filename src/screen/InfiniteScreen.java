@@ -124,7 +124,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Number of times the boss has spawned */
     private int BOSS_SPAWN_COUNT = 0;
     /** Boss spawn interval: 90 second(90000 milliseconds) */
-    private static final int BOSS_SPAWN_INTERVAL = 90000;
+    private static final int BOSS_SPAWN_INTERVAL = 30000;
 
     // Speed scaling constants
     private static final double INITIAL_SPEED_MULTIPLIER = 0.5;
@@ -211,8 +211,8 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.shopSelectionCooldown = Core.getCooldown(200);
         this.shopSelectionCooldown.reset();
         this.isShopOpen = false;
-
         this.lastScoreAdded = System.currentTimeMillis();
+        this.gameTimer.start();
         this.gameStartTime = System.currentTimeMillis();
         this.inputDelay = Core.getCooldown(INPUT_DELAY);
         this.inputDelay.reset();
@@ -221,21 +221,28 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Update game state (spawn enemies, update player, etc.) */
     protected void update() {
         super.update();
+        handleShopToggle();
+
+        // If shop is open, pause game and skip game logic
+        if (isShopOpen) {
+            if (this.gameTimer.isRunning()) { // Pause game timer
+                this.gameTimer.stop();
+            }
+            handleShopInput(); // Handle shop-specific input (navigation, buy, close)
+            drawInfiniteMode(); // Still draw game frame (so overlay is visible)
+            return; // Skip all game logic
+        }
+        else{
+            if (!this.gameTimer.isRunning()) {
+                this.gameTimer.start();
+            }
+        }
+
+        if (this.gameTimer.isRunning()) {
+        this.elapsedTime = this.gameTimer.getElapsedTime();
+        updateSpeedMultiplier();
+        }
         if (this.inputDelay.checkFinished()) {
-            if (this.gameTimer.isRunning()) {
-                this.elapsedTime = this.gameTimer.getElapsedTime();
-                updateSpeedMultiplier();
-            }
-            handleShopToggle();
-            // If shop is open, pause game and skip game logic
-            if (isShopOpen) {
-                if (this.gameTimer.isRunning()) { // Pause game timer
-                    this.gameTimer.stop();
-                }
-                handleShopInput(); // Handle shop-specific input (navigation, buy, close)
-                drawInfiniteMode(); // Still draw game frame (so overlay is visible)
-                return; // Skip all game logic
-            }
             spawnEnemies();
             updateScore();
             updateTime();
