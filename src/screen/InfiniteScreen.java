@@ -68,6 +68,10 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Cooldown for difficulty increase timing. */
     private Cooldown difficultyIncreaseCooldown;
 
+    // Game Start Time and Delay
+    private long gameStartTime;
+    private Cooldown inputDelay;
+
     // ==================== Enemyhship Speed Fields ====================
     /** Current speed multiplier for enemies based on elapsed time. */
     private double currentSpeedMultiplier;
@@ -106,7 +110,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Height of the items separation line (above items). */
     private static final int ITEMS_SEPARATION_LINE_HEIGHT = 400;
     private static final int SEPARATION_LINE_HEIGHT = 45;
-
+    private static final int INPUT_DELAY = 6000;
     // Enemy spawn constants
     /** EnemyShip spawn interval :
      * every 10 seconds, enemyship spawn time is reduced by 0.1 seconds from 1.2 second to minimum 0.2 seconds
@@ -207,19 +211,15 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         this.shopSelectionCooldown = Core.getCooldown(200);
         this.shopSelectionCooldown.reset();
         this.isShopOpen = false;
-
         this.lastScoreAdded = System.currentTimeMillis();
-        this.gameTimer.start();
+        this.gameStartTime = System.currentTimeMillis();
+        this.inputDelay = Core.getCooldown(INPUT_DELAY);
+        this.inputDelay.reset();
     }
 
     /** Update game state (spawn enemies, update player, etc.) */
     protected void update() {
         super.update();
-
-        if (this.gameTimer.isRunning()) {
-            this.elapsedTime = this.gameTimer.getElapsedTime();
-            updateSpeedMultiplier();
-        }
         handleShopToggle();
         // If shop is open, pause game and skip game logic
         if (isShopOpen) {
@@ -230,45 +230,58 @@ public class InfiniteScreen extends Screen implements CollisionContext {
             drawInfiniteMode(); // Still draw game frame (so overlay is visible)
             return; // Skip all game logic
         }
-        spawnEnemies();
-        updateScore();
-        updateTime();
-        updateDifficulty();
-        spawnBoss();
 
-        if (!DropItem.isTimeFreezeActive()) {
-            this.enemyManager.update();
-        }
-        this.enemyManager.shoot(this.bullets);
+        if (this.inputDelay.checkFinished()) {
+            if (!this.gameTimer.isRunning() && !this.isShopOpen && !this.bossActive) {
+                this.gameTimer.start();
+                this.lastScoreAdded = System.currentTimeMillis();
+            }
 
-        if (this.lives > 0 && !this.ship.isDestroyed()) {
-            boolean p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
-            boolean p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_LEFT);
-            boolean p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_UP);
-            boolean p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_DOWN);
-            boolean p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_ENTER);
+            if (this.gameTimer.isRunning()) {
+                this.elapsedTime = this.gameTimer.getElapsedTime();
+                updateSpeedMultiplier();
+            }
 
-            boolean isRightBorder = this.ship.getPositionX() + this.ship.getWidth() + this.ship.getSpeed() > this.width - 1;
-            boolean isLeftBorder = this.ship.getPositionX() - this.ship.getSpeed() < 1;
-            boolean isUpBorder = this.ship.getPositionY() - this.ship.getSpeed() < SEPARATION_LINE_HEIGHT;
-            boolean isDownBorder = this.ship.getPositionY() + this.ship.getHeight() + this.ship.getSpeed() > ITEMS_SEPARATION_LINE_HEIGHT;
+            spawnEnemies();
+            updateScore();
+            updateTime();
+            updateDifficulty();
+            spawnBoss();
 
-            if (p1Right && !isRightBorder) this.ship.moveRight();
-            if (p1Left  && !isLeftBorder)  this.ship.moveLeft();
-            if (p1Up    && !isUpBorder)    this.ship.moveUp();
-            if (p1Down  && !isDownBorder)  this.ship.moveDown();
+            if (!DropItem.isTimeFreezeActive()) {
+                this.enemyManager.update();
+            }
+            this.enemyManager.shoot(this.bullets);
 
-            if (p1Fire) {
-                if (this.ship.shoot(this.bullets)) {
-                    this.bulletsShot++;
+            if (this.lives > 0 && !this.ship.isDestroyed()) {
+                boolean p1Right = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_D) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_RIGHT);
+                boolean p1Left  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_A) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_LEFT);
+                boolean p1Up    = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_W) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_UP);
+                boolean p1Down  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_S) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_DOWN);
+                boolean p1Fire  = inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_SPACE) || inputManager.isP1KeyDown(java.awt.event.KeyEvent.VK_ENTER);
+
+                boolean isRightBorder = this.ship.getPositionX() + this.ship.getWidth() + this.ship.getSpeed() > this.width - 1;
+                boolean isLeftBorder = this.ship.getPositionX() - this.ship.getSpeed() < 1;
+                boolean isUpBorder = this.ship.getPositionY() - this.ship.getSpeed() < SEPARATION_LINE_HEIGHT;
+                boolean isDownBorder = this.ship.getPositionY() + this.ship.getHeight() + this.ship.getSpeed() > ITEMS_SEPARATION_LINE_HEIGHT;
+
+                if (p1Right && !isRightBorder) this.ship.moveRight();
+                if (p1Left  && !isLeftBorder)  this.ship.moveLeft();
+                if (p1Up    && !isUpBorder)    this.ship.moveUp();
+                if (p1Down  && !isDownBorder)  this.ship.moveDown();
+
+                if (p1Fire) {
+                    if (this.ship.shoot(this.bullets)) {
+                        this.bulletsShot++;
+                    }
                 }
             }
+            this.ship.update();
         }
-        this.ship.update();
+
         cleanItems();
         collisionManager.manageCollisions();
         cleanBullets();
-        updateScore();
 
         if (this.lives <= 0) {
             if (this.gameTimer.isRunning()) {
@@ -571,7 +584,14 @@ public class InfiniteScreen extends Screen implements CollisionContext {
         drawBullets();
         drawItems();
         drawUI();
-
+        if (!this.inputDelay.checkFinished()) {
+            int countdown = (int) ((INPUT_DELAY
+                    - (System.currentTimeMillis()
+                    - this.gameStartTime)) / 1000);
+            drawManager.drawCountDown(this, 1, countdown, false);
+            drawManager.drawHorizontalLine(this, this.height / 2 - this.height / 12);
+            drawManager.drawHorizontalLine(this, this.height / 2 + this.height / 12);
+        }
         drawManager.completeDrawing(this);
     }
     private void drawBosses() {
