@@ -2,9 +2,13 @@ import requests
 import time
 import numpy as np
 from agent import Agent
+import os
 
 # Java game server URL
-JAVA_SERVER_URL = "http://localhost:8000"
+JAVA_SERVER_URL = os.getenv("JAVA_SERVER_URL", "http://localhost:8000")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "save_model", "model_3500000(V1).pth")
 
 # fix state size
 STATE_SIZE = 120
@@ -113,7 +117,7 @@ def preprocess_state(state_json):
         print(f"Preprocessing error: {e}")
         return np.zeros(STATE_SIZE) # Return array filled with 0s on error
 
-def run_ai_controller(train=True, model_path=None):
+def run_ai_controller(train=False, model_path=None):
     """
     Start and run the AI controller loop that interacts with the Java game server to obtain game states, choose actions via the Agent, optionally train the agent, and persist models.
     
@@ -133,6 +137,11 @@ def run_ai_controller(train=True, model_path=None):
         - Handles transient connection errors internally and continues retrying.
     """
     print(f"AI Controller starting... (Attempting to connect to {JAVA_SERVER_URL})")
+
+    if not train:
+        if model_path is None:
+            model_path = DEFAULT_MODEL_PATH
+        print(f"[AI] Using model path: {model_path}")
 
     agent = Agent(state_size=STATE_SIZE)
     if not train and model_path:
@@ -374,6 +383,6 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", action="store_true", help="Enable training mode")
-    parser.add_argument("--model", type=str, default="save_model/model_3500000(V1).pth", help="Path to model file")
+    parser.add_argument("--model", type=str, default=DEFAULT_MODEL_PATH, help="Path to model file")
     args = parser.parse_args()
     run_ai_controller(train=args.train, model_path=args.model)

@@ -15,11 +15,11 @@
       }
     },
     {
-      "username": "qe",
-      "password": "qe",
+      "username": "test",
+      "password": "1234",
       "achievements": {
-        "First Blood": true,
-        "Bad Sniper": true,
+        "First Blood": false,
+        "Bad Sniper": false,
         "Beginner": false,
         "Bear Grylls": false,
         "Intermediate": false,
