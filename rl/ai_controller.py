@@ -2,9 +2,13 @@ import requests
 import time
 import numpy as np
 from agent import Agent
+import os
 
 # Java game server URL
-JAVA_SERVER_URL = "http://localhost:8000"
+JAVA_SERVER_URL = os.getenv("JAVA_SERVER_URL", "http://localhost:8000")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "save_model", "model_3500000(V2).pth")
 
 # fix state size
 STATE_SIZE = 120
@@ -12,9 +16,11 @@ STATE_SIZE = 120
 def preprocess_state(state_json):
     """
     Convert a game state JSON from the Java server into a fixed-length 1D NumPy array suitable for the agent.
+    
     Parameters:
         state_json (dict): Parsed JSON-like dictionary from the Java game server containing keys such as
             'playerX', 'playerY', 'playerHp', 'score', 'enemies', and 'bullets'.
+    
     Description:
         - Encodes player information as four normalized values: x / 448.0, y / 520.0, hp / 3.0, score / 10000.0.
         - Encodes up to 10 enemies, each as four normalized values [x / 448.0, y / 520.0, hp / 50.0, type / 3.0];
@@ -147,6 +153,11 @@ def run_ai_controller(train=False, model_path=None):
     # count item cooltime for training
     item_reward_cooldown = -100
 
+    if not train:
+        if model_path is None:
+            model_path = DEFAULT_MODEL_PATH
+        print(f"[AI] Using model path: {model_path}")
+
     agent = Agent(state_size=STATE_SIZE)
     if not train and model_path:
         agent.load_model(model_path)
@@ -243,16 +254,18 @@ def run_ai_controller(train=False, model_path=None):
 def calc_reward(prev, curr, prev_action, current_step, last_item_reward_step):
     """
     Compute the scalar reward for a transition from a previous game state to the current game state.
+    
     Parameters:
         prev (dict): Previous raw game state JSON-like object.
         curr (dict): Current raw game state JSON-like object.
         prev_action: The action taken in the previous state (kept for context; not required to be a specific type).
+    
     Returns:
         float: Accumulated reward for the transition. Positive values indicate desirable events (e.g., damaging or killing enemies, picking up items, clearing a stage); negative values indicate undesirable events (e.g., time penalty, being near screen edges, getting hit, dying).
     """
     reward = 0.0
 
-# ---- 0. Time penalty ----
+    # ---- 0. Time penalty ----
     reward -= 0.05
     # ---- 1. corner penalty ----
     px = curr['playerX']
@@ -371,7 +384,8 @@ def calc_reward(prev, curr, prev_action, current_step, last_item_reward_step):
         reward += 150
         print(f"[STAGE CLEAR] +150 reward")
 
-    # ---- 10. Death penalty ---
+
+    # ---- 10. Death penalty ----
     if curr_hp <= 0:
         reward -= 100
 
@@ -402,5 +416,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", action="store_true", help="Enable training mode")
     parser.add_argument("--model", type=str, default="save_model/model_4000000(V2).pth", help="Path to model file")
+    parser.add_argument("--model", type=str, default=DEFAULT_MODEL_PATH, help="Path to model file")
     args = parser.parse_args()
     run_ai_controller(train=args.train, model_path=args.model)
