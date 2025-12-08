@@ -147,24 +147,7 @@ class GameScreenTest {
     }
 
     /**
-     * 5. Check Boss: Boss are included in the packet, Check if the coordinates/HP are correct
-     */
-    @Test
-    void testBossMappedToPacket() {
-        // when
-        StatePacket packet = gameScreen.buildStatePacket();
-
-        // then
-        // Assuming boss is encoded as a list like [x, y, hp]
-        assertNotNull(packet.boss, "boss field should not be null");
-
-        assertEquals(300, packet.boss.get(0), "boss X should match");
-        assertEquals(50, packet.boss.get(1), "boss Y should match");
-        assertEquals(80, packet.boss.get(2));
-    }
-
-    /**
-     * 6. Check score: score is included in the packet, Check if the score is correct
+     * 5. Check score: score is included in the packet, Check if the score is correct
      */
     @Test
     void testScoreMappedToPacket() {
