@@ -1,6 +1,20 @@
 {
   "users": [
     {
+      "username": "qqq",
+      "password": "qqq",
+      "achievements": {
+        "First Blood": true,
+        "Bad Sniper": true,
+        "Beginner": false,
+        "Bear Grylls": false,
+        "Intermediate": false,
+        "Conqueror": false,
+        "Mr. Greedy": false,
+        "Boss Slayer": true
+      }
+    },
+    {
       "username": "test",
       "password": "1234",
       "achievements": {

@@ -124,7 +124,7 @@ public class InfiniteScreen extends Screen implements CollisionContext {
     /** Number of times the boss has spawned */
     private int BOSS_SPAWN_COUNT = 0;
     /** Boss spawn interval: 90 second(90000 milliseconds) */
-    private static final int BOSS_SPAWN_INTERVAL = 90000;
+    private static final int BOSS_SPAWN_INTERVAL = 9000;
 
     // Speed scaling constants
     private static final double INITIAL_SPEED_MULTIPLIER = 0.5;
